@@ -12,7 +12,7 @@ import HeaderLogo from "@/assets/HeaderLogo.png";
 const Footer: React.FC = () => {
   return (
     <footer className="bg-[#F8F8F8] py-10 px-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pl-10">
         {/* Logo and Contact Information */}
         <div className="mb-8 md:mb-0">
           <Image
