@@ -1,8 +1,85 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import HeaderLogo from "@/assets/HeaderLogo.png";
+import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const Header: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [activeSection, setActiveSection] = useState<string>("");
+
+  useEffect(() => {
+    const targetSection = searchParams.get("scrollTo");
+    if (pathname === "/" && targetSection) {
+      const section = document.getElementById(targetSection);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [pathname, searchParams]);
+
+  const handleLoginClick = () => {
+    setActiveSection("");
+    router.push("/login");
+  };
+
+  const handleNavigation = (section: string) => {
+    if (pathname === "/") {
+      scrollToSection(section);
+    } else {
+      router.push(`/?scrollTo=${section}`);
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setActiveSection("");
+      return;
+    }
+
+    const sections = ["home", "services", "about", "contact"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.6,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) {
+        observer.observe(section);
+      }
+    });
+
+    return () => {
+      sections.forEach((id) => {
+        const section = document.getElementById(id);
+        if (section) {
+          observer.unobserve(section);
+        }
+      });
+    };
+  }, [pathname]);
+
   return (
     <>
       <header className="flex justify-between items-center p-4 bg-white shadow-md">
@@ -16,7 +93,7 @@ const Header: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center w-[523px] h-[42px] border border-[#D1D1D1] rounded-[50px] overflow-hidden">
+        <div className="flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
           <input
             type="text"
             className="flex-grow px-4 py-2 text-gray-700 focus:outline-none"
@@ -42,7 +119,10 @@ const Header: React.FC = () => {
 
         {/* Login Button */}
         <div>
-          <button className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px]">
+          <button
+            onClick={handleLoginClick}
+            className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px]"
+          >
             LOGIN
           </button>
         </div>
@@ -50,31 +130,20 @@ const Header: React.FC = () => {
 
       {/* Black Bar Section with Links */}
       <div className="w-full h-[42px] bg-black flex justify-center items-center">
-        <div className="flex space-x-4">
-          <a
-            href="#home"
-            className="text-white text-[16px] font-body hover:text-black hover:bg-[#F9C301] w-[127px] h-[42px] flex items-center justify-center"
-          >
-            Home
-          </a>
-          <a
-            href="#services"
-            className="text-white text-[16px] font-body hover:text-black hover:bg-[#F9C301] w-[127px] h-[42px] flex items-center justify-center"
-          >
-            Services
-          </a>
-          <a
-            href="#about"
-            className="text-white text-[16px] font-body hover:text-black hover:bg-[#F9C301] w-[127px] h-[42px] flex items-center justify-center"
-          >
-            About Us
-          </a>
-          <a
-            href="#contact"
-            className="text-white text-[16px] font-body hover:text-black hover:bg-[#F9C301] w-[127px] h-[42px] flex items-center justify-center"
-          >
-            Contact Us
-          </a>
+        <div className="flex space-x-2">
+          {["home", "services", "about", "contact"].map((section) => (
+            <button
+              key={section}
+              onClick={() => handleNavigation(section)}
+              className={`text-[16px] font-body w-[127px] h-[42px] flex items-center justify-center ${
+                activeSection === section
+                  ? "bg-yellow-500 text-black"
+                  : "text-white hover:text-black hover:bg-yellow-500"
+              }`}
+            >
+              {section.charAt(0).toUpperCase() + section.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
     </>
