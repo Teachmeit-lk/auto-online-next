@@ -58,7 +58,7 @@ const VendorsCard: React.FC = () => {
 
 const StatsSection: React.FC = () => {
   return (
-    <div className="bg-white pt-10 pb-20 px-[130px]">
+    <div className="bg-white pt-10  px-[130px]">
       <h2 className="text-[24px] font-title text-[#111102] mb-8">
         Everyday, Autoonline Parts Powers...
       </h2>

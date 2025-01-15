@@ -2,7 +2,7 @@ import React from "react";
 
 const AboutUs: React.FC = () => {
   return (
-    <div className="bg-white  pb-20 px-20">
+    <div className="bg-white pt-20 px-20" id="about">
       <h1 className="text-[32px]  mb-7 text-black pl-11 font-title">
         About Us
       </h1>

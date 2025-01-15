@@ -11,6 +11,7 @@ import {
   AboutUs,
   ContactUsSection,
   ContactUsForm,
+  ScrollToTopButton,
 } from "../components/atoms/index";
 
 const Home: FC = () => {
@@ -24,6 +25,7 @@ const Home: FC = () => {
       <StatCard />
       <AboutUs />
       <ContactUsSection />
+      <ScrollToTopButton />
       <ContactUsForm />
     </div>
   );

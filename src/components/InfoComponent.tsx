@@ -2,7 +2,7 @@ import React from "react";
 
 const InfoComponent: React.FC = () => {
   return (
-    <div className="bg-white pt-10 pb-20 px-20">
+    <div className="bg-white pt-10  px-20">
       <p className="text-[#111102] bg-[#F8F8F8] text-[18px] leading-relaxed rounded-[15px] font-body p-10 mx-10">
         Autoonline.lk is a platform where customers and buyers meet online and
         exchange product information and prices. Delivery of goods from the

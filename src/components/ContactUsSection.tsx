@@ -48,7 +48,7 @@ const ContactUsSection: React.FC = () => {
   ];
 
   return (
-    <div className="text-left pb-10 px-[120px] bg-white">
+    <div className="text-left pb-10 pt-20 px-[120px] bg-white" id="contact">
       <h2 className="text-[32px] font-title text-[#111102] mb-8">Contact Us</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {contacts.map((contact, index) => (

@@ -9,6 +9,7 @@ export { default as StatCard } from "@/components/StatCard";
 export { default as AboutUs } from "@/components/AboutUs";
 export { default as ContactUsSection } from "@/components/ContactUsSection";
 export { default as ContactUsForm } from "@/components/ContactUsForm";
+export { default as ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 //Svg Components
 export { default as FacebookIcon } from "@/assets/FacebookIcon";

@@ -13,7 +13,10 @@ import HeroImg3 from "@/assets/HeroImg3.png";
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="relative bg-[#F8F8F8] flex  justify-between px-20">
+    <div
+      className="relative bg-[#F8F8F8] flex  justify-between px-20"
+      id="home"
+    >
       {/* Text Section */}
       <div className="max-w-2xl pt-20">
         <h1
