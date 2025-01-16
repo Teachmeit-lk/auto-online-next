@@ -1,12 +1,12 @@
 import { FC } from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-import { Header } from "../components/atoms/index";
+import { Footer } from "../components/atoms/index";
 
 const Home: FC = () => {
   return (
     <div>
-      <Header />
+      <Footer />
     </div>
   );
 };

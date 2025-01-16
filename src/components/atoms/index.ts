@@ -1,5 +1,5 @@
-// Main Components
-export { default as Header } from "@/components/Header";
+//Main Components
+export { default as Footer } from "@/components/Footer";
 
 //Svg Components
 export { default as FacebookIcon } from "@/assets/FacebookIcon";
