@@ -22,11 +22,11 @@ const AboutUs: React.FC = () => {
         of the defected item.
         <br />
         <br />
-        With reference to the buyer's inquiry, suppliers can check for the
+        With reference to the buyer&apos;s inquiry, suppliers can check for the
         availability of the requested item and make their own quotations using
         the quotation software provided on the autoonline.lk website. Based on
-        the supplier's quotation, if the customer chooses to purchase from the
-        supplier, the customer can place the order online and pay via the
+        the supplier&apos;s quotation, if the customer chooses to purchase from
+        the supplier, the customer can place the order online and pay via the
         payment gateway to the supplier, or can choose cash on delivery. Auto
         Online has no delivery system, it is a collective responsibility between
         the customer and the supplier.
