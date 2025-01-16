@@ -23,14 +23,14 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none">
-          <Dialog.Title className="text-[14px] font-bold mb-5 text-[#111102] font-body">
+          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             NMK Motors - Filters
           </Dialog.Title>
 
           <form className="grid grid-cols-3 gap-y-4 gap-x-8 bg-[#F8F8F8] rounded-[8px] p-8">
             {/* Vehicle Country */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Vehicle Country
               </label>
               <input
@@ -42,7 +42,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* Vehicle Model */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Vehicle Model
               </label>
               <input
@@ -54,7 +54,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* District */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 District
               </label>
               <input
@@ -66,7 +66,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* Vehicle Type */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Vehicle Type
               </label>
               <select className="w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]">
@@ -80,7 +80,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* Year of Manufacturing */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Year of Manufacturing
               </label>
               <input
@@ -92,7 +92,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* Fuel Type */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Fuel Type
               </label>
               <select className="w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]">
@@ -106,7 +106,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
 
             {/* Measurement */}
             <div className="col-span-1">
-              <label className="text-[10px] font-body font-[500] text-[#111102]">
+              <label className="text-[12px] font-body font-[500] text-[#111102]">
                 Measurement
               </label>
               <select
@@ -170,7 +170,7 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
                 />
                 <label
                   htmlFor="file-upload"
-                  className="cursor-pointer text-[#D1D1D1] font-body text-[8px] pl-1"
+                  className="cursor-pointer text-[#D1D1D1] font-body text-[9px] pl-1"
                 >
                   {fileName ||
                     "Choose an Image to upload ( jpg and png files only )"}
