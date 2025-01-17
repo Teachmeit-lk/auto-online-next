@@ -15,9 +15,11 @@ import {
   OService3,
   OService4,
   OService5,
-  RightArrow,
-  LeftArrow,
+  // RightArrow,
+  // LeftArrow,
 } from "@/components/atoms/index";
+import LeftArrow from "@/assets/LeftArrow";
+import RightArrow from "@/assets/RightArrow";
 
 const initialProducts = [
   {

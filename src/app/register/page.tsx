@@ -1,9 +1,10 @@
 "use client";
 
 import React, { Suspense, useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,11 +26,11 @@ const RegisterPage: React.FC = () => {
     confirmPassword: "",
   });
 
-  const router = useRouter();
+  // const router = useRouter();
 
-  const handleLoginClick = () => {
-    router.push("/login");
-  };
+  // const handleLoginClick = () => {
+  //   router.push("/login");
+  // };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () =>
@@ -105,6 +106,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
+    // <div>
     <Suspense fallback={<div>Loading...</div>}>
       <Header />
       <div
@@ -361,12 +363,14 @@ const RegisterPage: React.FC = () => {
             {/* Footer */}
             <p className="text-center font-body text-[12px] mt-4 text-[#111102]">
               Already have an account?{" "}
-              <button
-                onClick={handleLoginClick}
-                className="text-[#F9C301] text-[12px] underline"
-              >
-                Login
-              </button>
+              <Link href="/login">
+                <button
+                  // onClick={handleLoginClick}
+                  className="text-[#F9C301] text-[12px] underline"
+                >
+                  Login
+                </button>
+              </Link>
             </p>
           </div>
         </div>

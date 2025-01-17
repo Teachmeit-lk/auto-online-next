@@ -1,12 +1,10 @@
 import React from "react";
 import Image from "next/image";
 
-import {
-  FacebookIcon,
-  InstagramIcon,
-  TwitterIcon,
-  YoutubeIcon,
-} from "@/components/atoms/index";
+import FacebookIcon from "@/assets/FacebookIcon";
+import InstagramIcon from "@/assets/InstagramIcon";
+import TwitterIcon from "@/assets/TwitterIcon";
+import YoutubeIcon from "@/assets/YoutubeIcon";
 import HeaderLogo from "@/assets/HeaderLogo.png";
 
 const Footer: React.FC = () => {

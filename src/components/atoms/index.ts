@@ -14,10 +14,10 @@ export { default as Footer } from "@/components/Footer";
 export { default as Header } from "@/components/Header";
 
 //Svg Components
-export { default as FacebookIcon } from "@/assets/FacebookIcon";
-export { default as InstagramIcon } from "@/assets/InstagramIcon";
-export { default as TwitterIcon } from "@/assets/TwitterIcon";
-export { default as YoutubeIcon } from "@/assets/YoutubeIcon";
+// export { default as FacebookIcon } from "@/assets/FacebookIcon";
+// export { default as InstagramIcon } from "@/assets/InstagramIcon";
+// export { default as TwitterIcon } from "@/assets/TwitterIcon";
+// export { default as YoutubeIcon } from "@/assets/YoutubeIcon";
 
 //Auto Services Component Images
 export { default as Toyota } from "@/assets/Toyota.png";
@@ -42,8 +42,8 @@ export { default as Product5 } from "@/assets/Product5.png";
 export { default as Right } from "@/assets/right-arrow.png";
 export { default as Left } from "@/assets/left-arrow.png";
 
-export { default as LeftArrow } from "@/assets/LeftArrow";
-export { default as RightArrow } from "@/assets/RightArrow";
+// export { default as LeftArrow } from "@/assets/LeftArrow";
+// export { default as RightArrow } from "@/assets/RightArrow";
 
 //Our Services Component Images
 export { default as OService1 } from "@/assets/OService1.png";

@@ -2,21 +2,16 @@
 
 import React, { Suspense, useState } from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ mobile: "", password: "" });
-
-  const router = useRouter();
-
-  const handleSignUpClick = () => {
-    router.push("/register");
-  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -165,12 +160,14 @@ const LoginPage: React.FC = () => {
             <div className="text-center text-[12px] mt-4 text-[#111102] font-body">
               <p>
                 Don’t have an account?{" "}
-                <button
-                  onClick={handleSignUpClick}
-                  className="text-[#F9C301] text-[12px] underline"
-                >
-                  Signup
-                </button>
+                <Link href="/register">
+                  <button
+                    // onClick={handleSignUpClick}
+                    className="text-[#F9C301] text-[12px] underline"
+                  >
+                    Signup
+                  </button>
+                </Link>
               </p>
               <p>
                 <a href="#" className="text-[#111102] text-[12px] underline">
