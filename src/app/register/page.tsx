@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -105,7 +105,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Header />
       <div
         className="bg-white min-h-screen relative flex justify-center items-center px-4 py-10"
@@ -372,7 +372,7 @@ const RegisterPage: React.FC = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </Suspense>
   );
 };
 

@@ -1,15 +1,14 @@
 import React from "react";
 
-import {
-  FacebookIcon,
-  YoutubeIcon,
-  InstagramIcon,
-  TwitterIcon,
-} from "@/components/atoms/index";
 import Image from "next/image";
 import HeroImg1 from "@/assets/HeroImg1.png";
 import HeroImg2 from "@/assets/HeroImg2.png";
 import HeroImg3 from "@/assets/HeroImg3.png";
+
+import FacebookIcon from "@/assets/FacebookIcon";
+import InstagramIcon from "@/assets/InstagramIcon";
+import TwitterIcon from "@/assets/TwitterIcon";
+import YoutubeIcon from "@/assets/YoutubeIcon";
 
 const HeroSection: React.FC = () => {
   return (
@@ -17,7 +16,7 @@ const HeroSection: React.FC = () => {
       className="relative bg-[#F8F8F8] flex  justify-between px-20"
       id="home"
     >
-      {/* Text Section */}
+      Text Section
       <div className="max-w-2xl pt-20">
         <h1
           className="text-[72px]  text-black font-title "

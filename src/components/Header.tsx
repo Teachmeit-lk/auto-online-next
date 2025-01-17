@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import HeaderLogo from "@/assets/HeaderLogo.png";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -81,7 +81,7 @@ const Header: React.FC = () => {
   }, [pathname]);
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <header className="flex justify-between items-center p-4 bg-white shadow-md">
         {/* Logo Section */}
         <div className="flex items-center">
@@ -146,7 +146,7 @@ const Header: React.FC = () => {
           ))}
         </div>
       </div>
-    </>
+    </Suspense>
   );
 };
 

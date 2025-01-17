@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <>
+    <Suspense fallback={<div>Loading...</div>}>
       <Header />
       <div
         className="bg-white relative px-20 py-[63px] overflow-hidden h-[100%]"
@@ -182,7 +182,7 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </Suspense>
   );
 };
 
