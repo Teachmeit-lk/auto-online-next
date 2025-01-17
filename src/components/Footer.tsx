@@ -1,6 +1,6 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-
 import {
   FacebookIcon,
   InstagramIcon,
@@ -10,164 +10,260 @@ import {
 import HeaderLogo from "@/assets/HeaderLogo.png";
 
 const Footer: React.FC = () => {
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
   return (
-    <footer className="bg-[#F8F8F8] py-10 px-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pl-10">
+    <footer className="bg-[#F8F8F8] py-10 px-6 md:px-[100px]">
+      {/* Top Section */}
+      <div
+        className={`flex ${
+          isMobile
+            ? "flex-row justify-between items-start"
+            : "flex-row justify-between items-start md:items-center mb-8"
+        } `}
+      >
         {/* Logo and Contact Information */}
-        <div className="mb-8 md:mb-0">
+        <div
+          className={`flex flex-col mb-8 md:mb-0 w-1/2 ${
+            isMobile ? "mb-[-15px]" : "mb-8"
+          }`}
+        >
           <Image
             src={HeaderLogo}
             alt="Autoonline Logo"
-            className="w-[101px] h-[84px]"
+            className={`${
+              isMobile ? "w-[51px] h-[43px]" : "w-[101px] h-[84px]"
+            }`}
           />
-          <p className="text-gray-700 mt-4">
+
+          <p
+            className={`text-gray-700 mt-4 ${
+              isMobile ? "text-[10px] pl-1" : "text-[18px]"
+            }`}
+          >
             {/* Phone */}
             <span className="flex items-center mb-2">
-              <i className="fas fa-phone-alt text-[#111102] w-[14.25px] h-[14.25px]"></i>
-              <span className="ml-2 font-body text-[18px] text-[#5B5B5B]">
+              <i
+                className={`fas fa-phone-alt text-[#111102] ${
+                  isMobile ? "mt-[2px]" : ""
+                }`}
+              ></i>
+
+              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
                 +94 7538 13398
               </span>
             </span>
 
             {/* Address */}
             <span className="flex items-center mb-2">
-              <i className="fas fa-map-marker-alt text-[#111102]  w-[14.25px] h-[14.25px]"></i>
-              <span className="ml-2 font-body text-[18px] text-[#5B5B5B]">
+              <i
+                className={`fas fa-map-marker-alt text-[#111102] w-[14px] h-[14px]${
+                  isMobile ? "mt-[2px]" : ""
+                }`}
+              ></i>
+              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
                 No.20, 6th Lane, Araliya Uyana, Pannipitiya
               </span>
             </span>
 
             {/* Email */}
             <span className="flex items-center">
-              <i className="fas fa-envelope text-[#111102]  w-[14.25px] h-[14.25px]"></i>
-              <span className="ml-2 font-body text-[18px] text-[#5B5B5B]">
+              <i
+                className={`fas fa-envelope text-[#111102] w-[14px] h-[14px] ${
+                  isMobile ? "mt-[4px]" : ""
+                }`}
+              ></i>
+              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
                 info@autoonline.lk
               </span>
             </span>
           </p>
-
-          <div className="flex mt-4 space-x-4">
-            <a href="#" className="text-gray-500 hover:text-gray-800">
-              <FacebookIcon />
-            </a>
-            <a href="#" className="text-gray-500 hover:text-gray-800">
-              <InstagramIcon />
-            </a>
-            <a href="#" className="text-gray-500 hover:text-gray-800">
-              <YoutubeIcon />
-            </a>
-            <a href="#" className="text-gray-500 hover:text-gray-800">
-              <TwitterIcon />
-            </a>
-          </div>
         </div>
 
         {/* Footer Links */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full md:w-auto">
-          <div>
-            <h3 className="text-[18px] font-body text-[#111102] mb-4 font-bold ">
-              Information
-            </h3>
-            <ul className="text-gray-700 space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Delivery Info
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Terms & Conditions
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-[18px] font-body text-[#111102] mb-4 font-bold">
-              User Area
-            </h3>
-            <ul className="text-gray-700 space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  My Account
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Login
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-[18px] font-body text-[#111102] mb-4 font-bold ">
-              Guide & Help
-            </h3>
-            <ul className="text-gray-700 space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  FAQs
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="hover:text-gray-900 font-body text-[18px] text-[#5B5B5B]"
-                >
-                  Contact Us
-                </a>
-              </li>
-            </ul>
-          </div>
+        <div
+          className={`grid ${
+            isMobile
+              ? "grid-cols-1 justify-end text-left mt-[55px] "
+              : "grid-cols-1 md:grid-cols-3 w-full md:w-auto gap-x-[40px] mt-8"
+          }`}
+        >
+          {[
+            {
+              title: "Information",
+              items: [
+                "About Us",
+                "Delivery Info",
+                "Privacy Policy",
+                "Terms & Conditions",
+              ],
+            },
+            { title: "User Area", items: ["My Account", "Login"] },
+            { title: "Guide & Help", items: ["Careers", "FAQs", "Contact Us"] },
+          ].map((section) => (
+            <div key={section.title} className="text-left">
+              <button
+                onClick={() => toggleSection(section.title)}
+                className={`w-full  text-[#111102] flex items-center gap-2 ${
+                  isMobile
+                    ? "text-[10px] pr-2 font-body font-[500] text-left py-1 "
+                    : "text-[18px] font-bold py-2"
+                }`}
+              >
+                {isMobile && (
+                  <span>
+                    {openSection === section.title ? (
+                      // Arrow Up Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    ) : (
+                      // Arrow Down Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                )}
+
+                {/* Title aligned to the left of the arrow */}
+                <span>{section.title}</span>
+              </button>
+
+              {/* Show Items Only on Larger Screens or when clicked on Mobile */}
+              {!isMobile && (
+                <ul className="mt-2 gap-8  text-[18px] text-[#5B5B5B] space-y-2">
+                  {section.items.map((item) => (
+                    <li key={item}>
+                      <a href="#" className="hover:text-gray-800">
+                        {item}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Footer Bottom Section */}
-      <div className="pt-6 flex flex-col md:flex-row justify-center md:justify-between items-center text-[12px] text-[#5B5B5B] font-body font-[300]">
-        <p className="text-center md:order-1 md:flex-1">
-          Copyright © 2024 <span className="text-[#930000]">Autoonline</span>.
-          All Rights Reserved.
-        </p>
+      {/* Dropdown Content for Mobile - Above Social Icons */}
+      {isMobile && openSection && (
+        <div className="mt-[20px]">
+          <ul className="text-[10px] text-[#5B5B5B] space-y-1 justify-center text-center">
+            {[
+              {
+                title: "Information",
+                items: [
+                  "About Us",
+                  "Delivery Info",
+                  "Privacy Policy",
+                  "Terms & Conditions",
+                ],
+              },
+              { title: "User Area", items: ["My Account", "Login"] },
+              {
+                title: "Guide & Help",
+                items: ["Careers", "FAQs", "Contact Us"],
+              },
+            ]
+              .find((section) => section.title === openSection)
+              ?.items.map((item) => (
+                <li key={item}>
+                  <a href="#" className="hover:text-gray-800">
+                    {item}
+                  </a>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
 
-        <div className="flex space-x-4 mt-4 md:mt-0 md:order-2">
+      {/* Social Media Icons */}
+      <div
+        className={`flex ${
+          isMobile ? "justify-center mt-6 mb-1" : "justify-start mt-2 "
+        } space-x-4`}
+      >
+        <a href="#" className="text-gray-500 hover:text-gray-800">
+          <FacebookIcon />
+        </a>
+        <a href="#" className="text-gray-500 hover:text-gray-800">
+          <InstagramIcon />
+        </a>
+        <a href="#" className="text-gray-500 hover:text-gray-800">
+          <YoutubeIcon />
+        </a>
+        <a href="#" className="text-gray-500 hover:text-gray-800">
+          <TwitterIcon />
+        </a>
+      </div>
+
+      {/* Footer Bottom Section */}
+      <div
+        className={`flex flex-col md:flex-row items-center ${
+          isMobile ? "text-[10px] pt-1" : "text-[12px] pt-10"
+        } text-[#5B5B5B] w-full`}
+      >
+        {/* Empty space for alignment on larger screens */}
+        <div className={`hidden md:flex md:w-1/3`}></div>
+
+        {/* Centered Copyright */}
+        <div
+          className={`text-center ${
+            isMobile ? "order-2 mt-2 w-full" : "order-none md:w-1/3"
+          }`}
+        >
+          <p>
+            Copyright © 2024 <span className="text-[#930000]">Autoonline</span>.
+            All Rights Reserved.
+          </p>
+        </div>
+
+        {/* Footer Links - Right aligned on larger screens */}
+        <div
+          className={`flex ${
+            isMobile
+              ? "order-1 justify-center  w-full"
+              : "order-none justify-end md:w-1/3"
+          } space-x-4`}
+        >
           <a href="#" className="hover:text-gray-800">
             Website use policy
           </a>
