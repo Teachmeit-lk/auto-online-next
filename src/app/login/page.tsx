@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
                 type="text"
                 id="mobile"
                 name="mobile"
-                className={`w-full md:h-[36px] h-[24px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
+                className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
                   errors.mobile
                     ? "focus:ring-red-500 focus:border-red-500"
                     : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -103,7 +103,9 @@ const LoginPage: React.FC = () => {
                 onChange={(e) => setMobile(e.target.value)}
               />
               {errors.mobile && (
-                <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
+                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  {errors.mobile}
+                </p>
               )}
             </div>
 
@@ -119,7 +121,7 @@ const LoginPage: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  className={`w-full md:h-[36px] h-[24px] text-[10px]   md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
+                  className={`w-full md:h-[36px] h-[28px] text-[10px]   md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
                     errors.password
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -141,7 +143,9 @@ const LoginPage: React.FC = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  {errors.password}
+                </p>
               )}
             </div>
 
