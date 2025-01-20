@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,12 +23,6 @@ const RegisterPage: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
-
-  const router = useRouter();
-
-  const handleLoginClick = () => {
-    router.push("/login");
-  };
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () =>
@@ -104,33 +99,39 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div
-      className="bg-white min-h-screen relative flex justify-center items-center px-4 py-10"
+      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-5 py-5 sm:px-16 md:px-4 md:py-10"
       id="register"
     >
       {/* Buyer/Vendor Buttons */}
-      <div className="absolute top-4 right-12 flex space-x-6">
-        <a href="#" className="text-[#F9C301] font-bold font-body text-[16px]">
+      <div className="absolute top-4 right-5 md:right-12 flex md:space-x-6 space-x-3">
+        <a
+          href="#"
+          className="text-[#F9C301] font-bold font-body text-[12px] md:text-[16px]"
+        >
           Buyer
         </a>
-        <a href="#" className="text-[#111102] font-bold font-body text-[16px]">
+        <a
+          href="#"
+          className="text-[#111102] font-bold font-body text-[12px] md:text-[16px]"
+        >
           Vendor
         </a>
       </div>
 
       <div className="w-full max-w-md flex flex-col items-center">
-        <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-5 mt-5">
+        <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 mt-5  md:mt-5">
           Buyer Register
         </h1>
 
         {/* Gray Container */}
-        <div className="bg-[#F8F8F8] w-full py-12 px-14 rounded-[15px] shadow-md flex flex-col justify-center items-center ">
+        <div className="bg-[#F8F8F8] w-full md:w-full md:py-12 md:px-14 py-7 px-7 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center ">
           <form className="space-y-4 w-full" onSubmit={handleSubmit}>
             {/* First Name and Last Name */}
             <div className="flex space-x-4">
               <div className="w-1/2">
                 <label
                   htmlFor="firstName"
-                  className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
                 >
                   First Name
                 </label>
@@ -139,7 +140,7 @@ const RegisterPage: React.FC = () => {
                   id="firstName"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                  className={`w-full placeholder:text-[10px] text-[10px] md:text-[14px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                     errors.firstName
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -147,7 +148,7 @@ const RegisterPage: React.FC = () => {
                   placeholder="First Name"
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[14px] text-sm mt-1">
                     {errors.firstName}
                   </p>
                 )}
@@ -155,7 +156,7 @@ const RegisterPage: React.FC = () => {
               <div className="w-1/2">
                 <label
                   htmlFor="lastName"
-                  className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
                 >
                   Last Name
                 </label>
@@ -164,7 +165,7 @@ const RegisterPage: React.FC = () => {
                   id="lastName"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                  className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                     errors.lastName
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -172,7 +173,9 @@ const RegisterPage: React.FC = () => {
                   placeholder="Last Name"
                 />
                 {errors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                  <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
+                    {errors.lastName}
+                  </p>
                 )}
               </div>
             </div>
@@ -181,7 +184,7 @@ const RegisterPage: React.FC = () => {
             <div>
               <label
                 htmlFor="mobileNumber"
-                className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
               >
                 Mobile Number
               </label>
@@ -190,7 +193,7 @@ const RegisterPage: React.FC = () => {
                 id="mobileNumber"
                 value={mobileNumber}
                 onChange={(e) => setMobileNumber(e.target.value)}
-                className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                   errors.mobileNumber
                     ? "focus:ring-red-500 focus:border-red-500"
                     : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -198,7 +201,7 @@ const RegisterPage: React.FC = () => {
                 placeholder="Mobile Number"
               />
               {errors.mobileNumber && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
                   {errors.mobileNumber}
                 </p>
               )}
@@ -208,7 +211,7 @@ const RegisterPage: React.FC = () => {
             <div>
               <label
                 htmlFor="whatsappNumber"
-                className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
               >
                 WhatsApp Number
               </label>
@@ -217,7 +220,7 @@ const RegisterPage: React.FC = () => {
                 id="whatsappNumber"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                   errors.whatsappNumber
                     ? "focus:ring-red-500 focus:border-red-500"
                     : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -225,7 +228,7 @@ const RegisterPage: React.FC = () => {
                 placeholder="WhatsApp Number"
               />
               {errors.whatsappNumber && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
                   {errors.whatsappNumber}
                 </p>
               )}
@@ -235,7 +238,7 @@ const RegisterPage: React.FC = () => {
             <div>
               <label
                 htmlFor="district"
-                className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
               >
                 District
               </label>
@@ -243,19 +246,21 @@ const RegisterPage: React.FC = () => {
                 id="district"
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
-                className={`w-full text-gray-400 bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 focus:ring-2 focus:outline-none ${
+                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-gray-400 bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 focus:ring-2 focus:outline-none ${
                   errors.district
                     ? "focus:ring-red-500 focus:border-red-500"
                     : "focus:ring-yellow-500 focus:border-yellow-500"
                 }`}
               >
-                <option value="">Select District</option>
+                <option value=" ">Select District</option>
                 <option value="district1">District 1</option>
                 <option value="district2">District 2</option>
                 <option value="district3">District 3</option>
               </select>
               {errors.district && (
-                <p className="text-red-500 text-sm mt-1">{errors.district}</p>
+                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
+                  {errors.district}
+                </p>
               )}
             </div>
 
@@ -263,7 +268,7 @@ const RegisterPage: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-[16px] font-medium font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
               >
                 Password
               </label>
@@ -273,7 +278,7 @@ const RegisterPage: React.FC = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                  className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                     errors.password
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -285,15 +290,17 @@ const RegisterPage: React.FC = () => {
                   onClick={togglePasswordVisibility}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                 >
-                  <i
-                    className={`fas ${
-                      showPassword ? "fa-eye-slash" : "fa-eye"
-                    }`}
-                  ></i>
+                  {showPassword ? (
+                    <EyeOff className="size-[12px] md:size-[16px]" />
+                  ) : (
+                    <Eye className="size-[12px] md:size-[16px]" />
+                  )}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
+                  {errors.password}
+                </p>
               )}
             </div>
 
@@ -301,7 +308,7 @@ const RegisterPage: React.FC = () => {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-[16px] font-body font-medium text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-body font-medium text-[#111102] mb-2"
               >
                 Confirm Password
               </label>
@@ -311,7 +318,7 @@ const RegisterPage: React.FC = () => {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                  className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
                     errors.confirmPassword
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -323,15 +330,15 @@ const RegisterPage: React.FC = () => {
                   onClick={toggleConfirmPasswordVisibility}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                 >
-                  <i
-                    className={`fas ${
-                      showConfirmPassword ? "fa-eye-slash" : "fa-eye"
-                    }`}
-                  ></i>
+                  {showConfirmPassword ? (
+                    <EyeOff className="size-[12px] md:size-[16px]" />
+                  ) : (
+                    <Eye className="size-[12px] md:size-[16px]" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
                   {errors.confirmPassword}
                 </p>
               )}
@@ -340,21 +347,21 @@ const RegisterPage: React.FC = () => {
             {/* Register Button */}
             <button
               type="submit"
-              className="w-full bg-[#F9C301] text-[#111102] font-bold text-[16px] font-body py-2 rounded-md hover:bg-yellow-500 transition"
+              className="w-full h-[36px] md:h-[42px]  bg-[#F9C301] text-[#111102] font-bold text-[12px] md:text-[16px] font-body py-2 rounded-md hover:bg-yellow-500 transition"
             >
               REGISTER
             </button>
           </form>
 
           {/* Footer */}
-          <p className="text-center font-body text-[12px] mt-4 text-[#111102]">
+          <p className="text-center font-body text-[8px] md:text-[12px] md:mt-4 mt-2 text-[#111102]">
             Already have an account?{" "}
-            <button
-              onClick={handleLoginClick}
-              className="text-[#F9C301] text-[12px] underline"
+            <Link
+              href="/#login"
+              className="text-[#F9C301] text-[8px] md:text-[12px] underline"
             >
               Login
-            </button>
+            </Link>
           </p>
         </div>
       </div>
