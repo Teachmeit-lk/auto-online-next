@@ -1,1 +1,2 @@
-export * from "./Header";
+//Main Components
+export * from "@/components/Footer";

@@ -1,15 +1,19 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { Phone, MapPin, Mail, ChevronUp, ChevronDown } from "lucide-react";
+
+import HeaderLogo from "@/assets/Images/HeaderLogo.png";
+
 import {
   FacebookIcon,
   InstagramIcon,
   TwitterIcon,
   YoutubeIcon,
-} from "@/components/atoms/index";
-import HeaderLogo from "@/assets/HeaderLogo.png";
+} from "@/components/data/index";
 
-const Footer: React.FC = () => {
+export const Footer: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [openSection, setOpenSection] = useState<string | null>(null);
 
@@ -25,6 +29,20 @@ const Footer: React.FC = () => {
   const toggleSection = (section: string) => {
     setOpenSection(openSection === section ? null : section);
   };
+
+  const data = [
+    {
+      title: "Information",
+      items: [
+        "About Us",
+        "Delivery Info",
+        "Privacy Policy",
+        "Terms & Conditions",
+      ],
+    },
+    { title: "User Area", items: ["My Account", "Login"] },
+    { title: "Guide & Help", items: ["Careers", "FAQs", "Contact Us"] },
+  ];
 
   return (
     <footer className="bg-[#F8F8F8] py-10 px-6 md:px-[100px]">
@@ -57,13 +75,11 @@ const Footer: React.FC = () => {
           >
             {/* Phone */}
             <span className="flex items-center mb-2">
-              <i
-                className={`fas fa-phone-alt text-[#111102] ${
-                  isMobile ? "mt-[2px]" : ""
-                }`}
-              ></i>
+              <i className={` text-[#111102]  `}>
+                <Phone className="md:w-[19px] md:h-[19px] w-[12px] h-[12px] " />
+              </i>
 
-              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
+              <span className="ml-[6px] md:ml-2  font-body text-[#5B5B5B]">
                 +94 7538 13398
               </span>
             </span>
@@ -71,10 +87,12 @@ const Footer: React.FC = () => {
             {/* Address */}
             <span className="flex items-center mb-2">
               <i
-                className={`fas fa-map-marker-alt text-[#111102] w-[14px] h-[14px]${
-                  isMobile ? "mt-[2px]" : ""
+                className={` text-[#111102] w-[12px] h-[12px]${
+                  isMobile ? "mt-[2px]" : "mb-2"
                 }`}
-              ></i>
+              >
+                <MapPin className="md:w-[19px] md:h-[19px] w-[14px] h-[14px]" />
+              </i>
               <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
                 No.20, 6th Lane, Araliya Uyana, Pannipitiya
               </span>
@@ -83,11 +101,13 @@ const Footer: React.FC = () => {
             {/* Email */}
             <span className="flex items-center">
               <i
-                className={`fas fa-envelope text-[#111102] w-[14px] h-[14px] ${
-                  isMobile ? "mt-[4px]" : ""
+                className={` text-[#111102] w-[12px] h-[12px] ${
+                  isMobile ? "mt-[4px] mb-[6px] " : "mb-[6px]"
                 }`}
-              ></i>
-              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
+              >
+                <Mail className="md:w-[19px] md:h-[19px] w-[14px] h-[14px]" />
+              </i>
+              <span className="ml-2  md:ml-4 font-body text-[#5B5B5B]">
                 info@autoonline.lk
               </span>
             </span>
@@ -102,19 +122,7 @@ const Footer: React.FC = () => {
               : "grid-cols-1 md:grid-cols-3 w-full md:w-auto gap-x-[40px] mt-8"
           }`}
         >
-          {[
-            {
-              title: "Information",
-              items: [
-                "About Us",
-                "Delivery Info",
-                "Privacy Policy",
-                "Terms & Conditions",
-              ],
-            },
-            { title: "User Area", items: ["My Account", "Login"] },
-            { title: "Guide & Help", items: ["Careers", "FAQs", "Contact Us"] },
-          ].map((section) => (
+          {data.map((section) => (
             <div key={section.title} className="text-left">
               <button
                 onClick={() => toggleSection(section.title)}
@@ -128,36 +136,10 @@ const Footer: React.FC = () => {
                   <span>
                     {openSection === section.title ? (
                       // Arrow Up Icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
+                      <ChevronUp size="15px" color="#111102" />
                     ) : (
                       // Arrow Down Icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
+                      <ChevronDown size="15px" color="#111102" />
                     )}
                   </span>
                 )}
@@ -187,22 +169,7 @@ const Footer: React.FC = () => {
       {isMobile && openSection && (
         <div className="mt-[20px]">
           <ul className="text-[10px] text-[#5B5B5B] space-y-1 justify-center text-center">
-            {[
-              {
-                title: "Information",
-                items: [
-                  "About Us",
-                  "Delivery Info",
-                  "Privacy Policy",
-                  "Terms & Conditions",
-                ],
-              },
-              { title: "User Area", items: ["My Account", "Login"] },
-              {
-                title: "Guide & Help",
-                items: ["Careers", "FAQs", "Contact Us"],
-              },
-            ]
+            {data
               .find((section) => section.title === openSection)
               ?.items.map((item) => (
                 <li key={item}>
@@ -278,5 +245,3 @@ const Footer: React.FC = () => {
     </footer>
   );
 };
-
-export default Footer;
