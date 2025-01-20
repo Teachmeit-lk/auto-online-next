@@ -1,5 +1,5 @@
 import { FC } from "react";
-import LoginPage from "./login/page";
+import LoginPage from "@/app/login/page";
 
 const Home: FC = () => {
   return (

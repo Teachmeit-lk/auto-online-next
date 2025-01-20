@@ -1,20 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import "@fortawesome/fontawesome-free/css/all.min.css";
-import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ mobile: "", password: "" });
-
-  const router = useRouter();
-
-  const handleSignUpClick = () => {
-    router.push("/register");
-  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -55,34 +49,43 @@ const LoginPage: React.FC = () => {
 
   return (
     <div
-      className="bg-white relative px-20 py-[63px] overflow-hidden h-[100%]"
+      className="bg-white relative md:px-20 px-5 py-5 md:py-[63px] overflow-hidden h-[100%]"
       id="login"
     >
-      <div className="absolute top-4 right-12 flex space-x-6">
-        <a href="#" className="text-[#F9C301] font-bold font-body text-[16px]">
+      <div className="absolute top-4 md:right-12 right-5 flex md:space-x-6 space-x-3">
+        <a
+          href="#"
+          className="text-[#F9C301] font-bold font-body text-[12px] md:text-[16px]"
+        >
           Buyer
         </a>
-        <a href="#" className="text-[#111102] font-bold font-body text-[16px]">
+        <a
+          href="#"
+          className="text-[#111102] font-bold font-body text-[12px] md:text-[16px]"
+        >
           Vendor
         </a>
       </div>
 
       {/* Buyer Login Heading */}
-      <div className="top-[10%] w-full mb-5 mt-5">
-        <h1 className="text-center text-[24px] font-body font-bold text-[#111102]">
+      <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
+        <h1 className="text-center text-[16px] md:text-[24px] font-body font-bold text-[#111102]">
           Buyer Login
         </h1>
       </div>
 
       {/* Login Form */}
       <div className="flex justify-center h-full">
-        <div className="bg-[#F8F8F8] w-[459px] h-auto rounded-[15px] shadow-md p-8 flex flex-col justify-center items-center">
+        <div className="bg-[#F8F8F8] md:w-[459px] w-[328px] h-auto rounded-[15px] shadow-md md:p-8 p-6 flex flex-col justify-center items-center">
           {/* Input Fields */}
-          <form className="space-y-6 w-full" onSubmit={handleSubmit}>
+          <form
+            className="md:space-y-6 space-y-5 w-full"
+            onSubmit={handleSubmit}
+          >
             <div>
               <label
                 htmlFor="mobile"
-                className="block text-[16px] font-[500] font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-[500] font-body text-[#111102] mb-2"
               >
                 Mobile Number
               </label>
@@ -90,7 +93,7 @@ const LoginPage: React.FC = () => {
                 type="text"
                 id="mobile"
                 name="mobile"
-                className={`w-full h-[36px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:outline-none focus:ring-2 ${
+                className={`w-full md:h-[36px] h-[24px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
                   errors.mobile
                     ? "focus:ring-red-500 focus:border-red-500"
                     : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -107,7 +110,7 @@ const LoginPage: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-[16px] font-[500] font-body text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-[500] font-body text-[#111102] mb-2"
               >
                 Password
               </label>
@@ -116,7 +119,7 @@ const LoginPage: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
-                  className={`w-full h-[36px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:outline-none focus:ring-2 ${
+                  className={`w-full md:h-[36px] h-[24px] text-[10px]   md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
                     errors.password
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -128,13 +131,13 @@ const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  className="absolute right-3 top-[52%] items-center transform -translate-y-1/2 text-gray-500"
                 >
-                  <i
-                    className={`fas ${
-                      showPassword ? "fa-eye-slash" : "fa-eye"
-                    }`}
-                  ></i>
+                  {showPassword ? (
+                    <EyeOff className="size-[12px] md:size-[16px]" />
+                  ) : (
+                    <Eye className="size-[12px] md:size-[16px]" />
+                  )}
                 </button>
               </div>
               {errors.password && (
@@ -145,25 +148,28 @@ const LoginPage: React.FC = () => {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full h-[42px] bg-[#F9C301] text-[#111102] text-[16px] font-bold font-body py-2 rounded-[5px] hover:bg-yellow-500 transition"
+              className="w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] md:text-[16px] text-[12px] font-bold font-body py-2 rounded-[5px] hover:bg-yellow-500 transition"
             >
               LOGIN
             </button>
           </form>
 
           {/* Links */}
-          <div className="text-center text-[12px] mt-4 text-[#111102] font-body">
+          <div className="text-center text-[8px] md:text-[12px] md:mt-4 mt-2 text-[#111102] font-body">
             <p>
               Don’t have an account?{" "}
-              <button
-                onClick={handleSignUpClick}
-                className="text-[#F9C301] text-[12px] underline"
+              <Link
+                href={"/#register"}
+                className="text-[#F9C301] text-[8px] md:text-[12px] underline"
               >
                 Signup
-              </button>
+              </Link>
             </p>
             <p>
-              <a href="#" className="text-[#111102] text-[12px] underline">
+              <a
+                href="#"
+                className="text-[#111102] text-[8px] md:text-[12px] underline"
+              >
                 Forgot Password?
               </a>
             </p>
