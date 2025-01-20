@@ -1,7 +1,5 @@
 import { FC } from "react";
-import "@fortawesome/fontawesome-free/css/all.min.css";
-
-import { Header } from "../components/atoms/index";
+import { Header } from "@/components/index";
 
 const Home: FC = () => {
   return (

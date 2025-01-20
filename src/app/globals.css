@@ -23,7 +23,11 @@ body {
 
 @font-face {
   font-family: "Sebino Medium";
-  src: url("/fonts/sebino-medium.ttf") format("truetype");
+  src: url("../assets/fonts/sebino-medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
+}
+
+html {
+  scroll-behavior: smooth;
 }
