@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-const ScrollToTopButton: React.FC = () => {
+export const ScrollToTopButton: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const ScrollToTopButton: React.FC = () => {
       {isVisible && (
         <button
           onClick={scrollToHome}
-          className="fixed bottom-4 right-4 z-50 bg-[#F9C301] hover:bg-yellow-500 text-black font-body font-bold py-2 px-4 rounded-full shadow-lg transition-all"
+          className="fixed bottom-4 right-4 z-50 bg-[#F9C301] hover:bg-yellow-500 text-[#111102] font-body font-bold py-2 px-4 rounded-full shadow-lg transition-all"
           title="Scroll to Home"
         >
           ⬆ Home
@@ -44,5 +44,3 @@ const ScrollToTopButton: React.FC = () => {
     </>
   );
 };
-
-export default ScrollToTopButton;

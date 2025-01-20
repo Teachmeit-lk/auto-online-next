@@ -1,18 +1,17 @@
 import { FC } from "react";
-import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import {
   AutoServices,
   HeroSection,
   ProductCategories,
   InfoComponent,
-  OurServices,
-  StatCard,
+  ServiceCategories,
+  StatsSection,
   AboutUs,
   ContactUsSection,
-  ContactUsForm,
+  ContactForm,
   ScrollToTopButton,
-} from "../components/atoms/index";
+} from "../components/index";
 
 const Home: FC = () => {
   return (
@@ -21,12 +20,12 @@ const Home: FC = () => {
       <AutoServices />
       <ProductCategories />
       <InfoComponent />
-      <OurServices />
-      <StatCard />
+      <ServiceCategories />
+      <StatsSection />
       <AboutUs />
       <ContactUsSection />
       <ScrollToTopButton />
-      <ContactUsForm />
+      <ContactForm />
     </div>
   );
 };

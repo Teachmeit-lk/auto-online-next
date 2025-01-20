@@ -5,13 +5,13 @@ import {
   YoutubeIcon,
   InstagramIcon,
   TwitterIcon,
-} from "@/components/atoms/index";
+  HeroImg1,
+  HeroImg2,
+  HeroImg3,
+} from "@/components/data/index";
 import Image from "next/image";
-import HeroImg1 from "@/assets/HeroImg1.png";
-import HeroImg2 from "@/assets/HeroImg2.png";
-import HeroImg3 from "@/assets/HeroImg3.png";
 
-const HeroSection: React.FC = () => {
+export const HeroSection: React.FC = () => {
   return (
     <div
       className="relative bg-[#F8F8F8] flex  justify-between px-20"
@@ -71,5 +71,3 @@ const HeroSection: React.FC = () => {
     </div>
   );
 };
-
-export default HeroSection;

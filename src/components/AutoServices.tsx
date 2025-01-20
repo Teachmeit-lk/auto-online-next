@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 
-// Import your images
 import {
   Toyota,
   Bmw,
@@ -12,7 +11,7 @@ import {
   Service1,
   Service2,
   Service3,
-} from "@/components/atoms/index";
+} from "@/components/data/index";
 
 const brands = [
   { name: "TOYOTA", logo: Toyota },
@@ -23,7 +22,7 @@ const brands = [
   { name: "Chrysler", logo: Chr },
 ];
 
-const AutoServices: React.FC = () => {
+export const AutoServices: React.FC = () => {
   return (
     <div className="px-20 py-10 bg-white">
       {/* Brands Section */}
@@ -95,5 +94,3 @@ const AutoServices: React.FC = () => {
     </div>
   );
 };
-
-export default AutoServices;

@@ -8,6 +8,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
+import { ChevronRight, ChevronLeft, Star } from "lucide-react";
 
 import {
   Product1,
@@ -15,9 +16,9 @@ import {
   Product3,
   Product4,
   Product5,
-  RightArrow,
-  LeftArrow,
-} from "@/components/atoms/index";
+} from "@/components/data/index";
+
+import type { Swiper as SwiperType } from "swiper";
 
 const initialProducts = [
   {
@@ -78,8 +79,8 @@ const initialProducts = [
   },
 ];
 
-const ProductCategories: React.FC = () => {
-  const swiperRef = useRef<any>(null);
+export const ProductCategories: React.FC = () => {
+  const swiperRef = useRef<SwiperType | null>(null);
 
   return (
     <div className="bg-white pt-10 pb-20 px-20">
@@ -92,13 +93,13 @@ const ProductCategories: React.FC = () => {
           className="absolute left-0 text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
           onClick={() => swiperRef.current?.slideNext()}
         >
-          <LeftArrow />
+          <ChevronLeft />
         </button>
         <button
-          className="absolute right-[20px] text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
+          className="absolute right-[15px] text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
           onClick={() => swiperRef.current?.slidePrev()}
         >
-          <RightArrow />
+          <ChevronRight />
         </button>
 
         {/* Swiper Slider */}
@@ -124,20 +125,19 @@ const ProductCategories: React.FC = () => {
                 <h3 className="text-[12px] font-semibold text-black font-body mt-1">
                   {product.name}
                 </h3>
-                <p className="text-[#000000] text-[12px] font-body mb-1">
+                <p className="text-[#000000] text-[12px] font-body">
                   {product.description}
                 </p>
 
-                <div className="flex mt-[2px]">
+                <div className="flex">
                   {Array.from({ length: 5 }, (_, i) => (
-                    <span
-                      key={i}
-                      className={`text-yellow-500 text-[10px] ${
-                        i < Math.floor(product.rating)
-                          ? "fas fa-star"
-                          : "far fa-star"
-                      }`}
-                    ></span>
+                    <span key={i} className="text-yellow-500 text-[10px]">
+                      {i < Math.floor(product.rating) ? (
+                        <Star fill="#FBBF24" size="12px" />
+                      ) : (
+                        <Star size="12px" />
+                      )}
+                    </span>
                   ))}
                 </div>
                 <button className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px]">
@@ -151,5 +151,3 @@ const ProductCategories: React.FC = () => {
     </div>
   );
 };
-
-export default ProductCategories;

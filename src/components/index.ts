@@ -1,6 +1,11 @@
-export const navItems = [
-  { name: "Home", link: "./#home", id: 1 },
-  { name: "Services", link: "./#services", id: 2 },
-  { name: "About Us", link: "./#about", id: 3 },
-  { name: "Contact Us", link: "./#contact", id: 4 },
-];
+// Main Components
+export * from "@/components/HeroSection";
+export * from "@/components/AutoServices";
+export * from "@/components/InfoComponent";
+export * from "@/components/ProductCategories";
+export * from "@/components/OurServices";
+export * from "@/components/StatCard";
+export * from "@/components/AboutUs";
+export * from "@/components/ContactUsSection";
+export * from "@/components/ContactUsForm";
+export * from "@/components/ScrollToTopButton";

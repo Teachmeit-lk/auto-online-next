@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-const ContactForm: React.FC = () => {
+export const ContactForm: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -191,5 +191,3 @@ const ContactForm: React.FC = () => {
     </div>
   );
 };
-
-export default ContactForm;
