@@ -24,9 +24,9 @@ const brands = [
 
 export const AutoServices: React.FC = () => {
   return (
-    <div className="px-20 py-10 bg-white">
+    <div className="md:px-20 py-5  md:py-10 bg-white">
       {/* Brands Section */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
+      <div className="grid grid-cols-6 md:space-x-6 space-x-4 md:mb-12 mb-6 w-full mt-1 md:mt-0 pl-1 pr-3 md:px-0">
         {brands.map((brand, index) => (
           <div
             key={index}
@@ -35,58 +35,57 @@ export const AutoServices: React.FC = () => {
             <Image
               src={brand.logo}
               alt={brand.name}
-              className="w-[94px] h-[56px] "
+              className="w-[32px] h-[32px] md:w-[94px] md:h-[56px] object-contain"
             />
-            <p className="text-sm font-bold mt-2 text-center">{brand.name}</p>
           </div>
         ))}
       </div>
 
       {/* Services and Products Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mx-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:mx-10 ml-3 mr-4">
         {/* Best Services Card */}
-        <div className="bg-[#F8F8F8]  py-6 px-[60px] rounded-lg flex items-center justify-between ml-[5px]">
+        <div className="bg-[#F8F8F8]  md:py-6 md:px-[60px] py-6 pl-6 pr-4 rounded-lg flex items-center justify-between ml-[5px]">
           <div className="flex flex-col justify-between rounded-[16x]">
-            <h3 className="text-[24px] lg:text-[32px]  text-black  font-title">
+            <h3 className="text-[22px] md:text-[32px]  text-black  font-title">
               Best Services
             </h3>
-            <p className="text-black font-[400] mb-4 font-title text-[20px]">
+            <p className="text-black text-[17px]  font-[400] mb-4 font-title md:text-[20px]">
               from us
             </p>
-            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 w-[100px] h-[32px] text-[14px] flex items-center justify-center">
+            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 md:w-[100px] md:h-[32px] w-[76px] h-[22px] md:text-[14px] text-[10px] flex items-center justify-center">
               Shop Now
             </button>
           </div>
           <Image
             src={Service1}
             alt="Best Services"
-            className="w-[152px] h-[99px] object-contain "
+            className="md:w-[152px] md:h-[99px] w-[113px] h-[74px] object-contain "
           />
         </div>
 
         {/* Best Products Card */}
-        <div className="bg-[#F8F8F8] rounded-lg px-12 py-6 flex items-center justify-between ml-5">
-          <div className="flex flex-col justify-between rounded-[16x] pl-[10px]">
-            <h3 className="text-[24px] lg:text-[32px]  text-black  font-title ">
+        <div className="bg-[#F8F8F8] rounded-lg md:px-12 md:py-6 px-6 py-6 flex items-center justify-between md:ml-5 ml-[4px]">
+          <div className="flex flex-col justify-between rounded-[16x] md:pl-[10px] ">
+            <h3 className="text-[22px] md:text-[32px]  text-black  font-title ">
               Best Products
             </h3>
-            <p className="text-black font-[400] mb-4 text-[20px] font-title">
+            <p className="text-black font-[400] mb-4 md:text-[20px] text-[17px] font-title">
               from us
             </p>
-            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 w-[100px] h-[32px] text-[14px] flex items-center justify-center">
+            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 md:w-[100px] md:h-[32px] w-[76px] h-[22px] text-[10px] md:text-[14px] flex items-center justify-center">
               Shop Now
             </button>
           </div>
-          <div className="relative right-[45px]">
+          <div className="relative md:right-[45px] right-[30px]">
             <Image
               src={Service3}
               alt="Best Products"
-              className="  w-[113px] h-[84px] object-contain  "
+              className="  md:w-[113px] md:h-[84px] w-[82px] h-[63px] object-contain  "
             />
             <Image
               src={Service2}
               alt="Best Products"
-              className="absolute w-[96px] h-[81px] object-contain top-[30px] left-[53px]"
+              className="absolute md:w-[96px] md:h-[81px] w-[70px] h-[60px] object-contain md:top-[30px] top-[20px] md:left-[53px] left-[40px]"
             />
           </div>
         </div>

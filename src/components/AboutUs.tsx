@@ -2,11 +2,11 @@ import React from "react";
 
 export const AboutUs: React.FC = () => {
   return (
-    <div className="bg-white pt-20 px-20" id="about">
-      <h1 className="text-[32px]  mb-7 text-black pl-11 font-title">
+    <div className="bg-white md:pt-20 md:px-20 py-10 " id="about">
+      <h1 className="md:text-[32px] text-[16px]  md:mb-7 mb-3 text-black md:pl-11 pl-5 font-title">
         About Us
       </h1>
-      <p className="text-[#111102] bg-[#F8F8F8] text-[18px]  leading-relaxed rounded-[15px] font-body px-[60px] py-[80px] mx-10">
+      <p className="text-[#111102] bg-[#F8F8F8] md:text-[18px] text-[10px]  leading-relaxed rounded-[15px] font-body md:px-[60px] px-6 py-7 md:py-[80px] mx-5">
         Auto Online is a web portal, which facilitate buyers, suppliers and
         service providers to meet in an online flatform. Buyers can search for
         suitable suppliers for the vehicle parts or services they require.

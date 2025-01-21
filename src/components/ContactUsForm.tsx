@@ -71,17 +71,20 @@ export const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white px-20 pt-10 pb-20">
-      <div className="bg-[#F8F8F8] rounded-[15px] w-[639px] h-auto mx-auto px-16 py-12">
-        <h2 className="text-center font-title text-[24px] text-[#111102] mb-6">
+    <div className="bg-white md:px-20 md:pt-10 md:pb-20 px-1 pt-5 pb-10">
+      <div className="bg-[#F8F8F8] rounded-[15px] md:w-[639px] w-full max-w-[90%] h-auto mx-auto pl-[24px] pr-[33px] md:pl-[55px] md:pr-16 py-8 md:py-12">
+        <h2 className="text-center font-title md:text-[24px] text-[16px] text-[#111102] md:mb-8 mb-5">
           Get In Touch with Us
         </h2>
-        <form className="space-y-6 pl-2" onSubmit={handleSubmit}>
+        <form
+          className="md:space-y-6 space-y-3 pl-2 w-full"
+          onSubmit={handleSubmit}
+        >
           {/* Name Field */}
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col">
             <label
               htmlFor="name"
-              className="text-[#111102] text-[18px] font-body font-[500]"
+              className="text-[#111102] md:text-[18px] text-[12px] font-body font-[500]"
             >
               Name
             </label>
@@ -90,7 +93,7 @@ export const ContactForm: React.FC = () => {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-[495px] h-[54px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+              className={`mt-2 p-3 w-full text-[#111102]  text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                 errors.name
                   ? "focus:ring-red-500 focus:border-red-500"
                   : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -98,7 +101,9 @@ export const ContactForm: React.FC = () => {
               placeholder="Enter your name"
             />
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              <p className="text-red-500  md:text-sm text-[12px]  mt-1">
+                {errors.name}
+              </p>
             )}
           </div>
 
@@ -106,7 +111,7 @@ export const ContactForm: React.FC = () => {
           <div className="flex flex-col">
             <label
               htmlFor="email"
-              className="text-[#111102] text-[18px] font-body font-[500]"
+              className="text-[#111102] md:text-[18px] text-[12px] font-body font-[500]"
             >
               Email
             </label>
@@ -115,7 +120,7 @@ export const ContactForm: React.FC = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-[495px] h-[54px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                 errors.email
                   ? "focus:ring-red-500 focus:border-red-500"
                   : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -123,15 +128,17 @@ export const ContactForm: React.FC = () => {
               placeholder="Enter your email"
             />
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              <p className="text-red-500  md:text-sm text-[12px]  mt-1">
+                {errors.email}
+              </p>
             )}
           </div>
 
           {/* WhatsApp Number Field */}
-          <div className="flex flex-col ">
+          <div className="flex flex-col">
             <label
               htmlFor="whatsapp"
-              className="text-[#111102] text-[18px] font-body font-[500]"
+              className="text-[#111102] md:text-[18px] text-[12px] font-body font-[500]"
             >
               WhatsApp Number
             </label>
@@ -140,7 +147,7 @@ export const ContactForm: React.FC = () => {
               id="whatsapp"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-[495px] h-[54px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px] h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                 errors.whatsapp
                   ? "focus:ring-red-500 focus:border-red-500"
                   : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -148,7 +155,9 @@ export const ContactForm: React.FC = () => {
               placeholder="Enter your WhatsApp number"
             />
             {errors.whatsapp && (
-              <p className="text-red-500 text-sm mt-1">{errors.whatsapp}</p>
+              <p className="text-red-500 md:text-sm text-[12px]  mt-1">
+                {errors.whatsapp}
+              </p>
             )}
           </div>
 
@@ -156,7 +165,7 @@ export const ContactForm: React.FC = () => {
           <div className="flex flex-col">
             <label
               htmlFor="message"
-              className="text-[#111102] text-[18px] font-body font-[500]"
+              className="text-[#111102] md:text-[18px] text-[12px] font-body font-[500]"
             >
               Message
             </label>
@@ -165,7 +174,7 @@ export const ContactForm: React.FC = () => {
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-[495px] h-[105px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                 errors.message
                   ? "focus:ring-red-500 focus:border-red-500"
                   : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -173,7 +182,9 @@ export const ContactForm: React.FC = () => {
               placeholder="Enter your message"
             ></textarea>
             {errors.message && (
-              <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+              <p className="text-red-500 md:text-sm text-[12px] mt-1">
+                {errors.message}
+              </p>
             )}
           </div>
 
@@ -181,7 +192,7 @@ export const ContactForm: React.FC = () => {
           <div className="flex flex-col">
             <button
               type="submit"
-              className="mt-4 mb-2 w-[495px] h-[54px] bg-[#F9C301] text-[#111102] font-body text-[18px] font-bold py-2 px-4 rounded-[8px] shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-1 focus:ring-[#F9C301] focus:ring-offset-1"
+              className="mt-4 mb-2 w-full bg-[#F9C301] h-[36px] md:h-[50px] text-[#111102] font-body text-[14px] md:text-[18px] font-bold md:py-3 px-4 rounded-[8px] shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-1 focus:ring-[#F9C301] focus:ring-offset-1"
             >
               SEND
             </button>
