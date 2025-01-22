@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { Footer } from "@/components/index";
+import { Footer } from "@/components";
 
 const Home: FC = () => {
   return (

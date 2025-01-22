@@ -4,14 +4,13 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Phone, MapPin, Mail, ChevronUp, ChevronDown } from "lucide-react";
 
-import HeaderLogo from "@/assets/Images/HeaderLogo.png";
-
 import {
   FacebookIcon,
   InstagramIcon,
   TwitterIcon,
   YoutubeIcon,
-} from "@/components/data/index";
+  HeaderLogo,
+} from "@/assets/images";
 
 export const Footer: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
