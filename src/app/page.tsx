@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { RegisterPage } from "@/app/register";
+import RegisterPage from "@/app/register/page";
 
 const Home: FC = () => {
   return (

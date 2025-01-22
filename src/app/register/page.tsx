@@ -3,98 +3,72 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from "react-hook-form";
 
-export const RegisterPage: React.FC = () => {
+import { ChevronDown } from "lucide-react";
+
+const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [district, setDistrict] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    mobileNumber: "",
-    whatsappNumber: "",
-    district: "",
-    password: "",
-    confirmPassword: "",
+  const [showConfirmPassword, setshowConfirmPassword] = useState(false);
+
+  // Yup schema for validation
+  const schema = Yup.object().shape({
+    firstname: Yup.string().required("First name is required."),
+    lastname: Yup.string().required("Last name is required."),
+    district: Yup.string().required("District is required."),
+    mobileNumber: Yup.string()
+      .required("Mobile number is required.")
+      .matches(
+        /^0\d{9}$/,
+        "Mobile number must start with 0 and contain exactly 10 digits."
+      ),
+    whatsappNumber: Yup.string()
+      .required("WhatsApp number is required.")
+      .matches(
+        /^0\d{9}$/,
+        "WhatsApp number must start with 0 and contain exactly 10 digits."
+      ),
+    password: Yup.string()
+      .required("Password is required.")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
+        "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character."
+      ),
+    confirmPassword: Yup.string()
+      .required("Confirm password is required.")
+      .oneOf([Yup.ref("password")], "Passwords must match."),
   });
 
-  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
-  const toggleConfirmPasswordVisibility = () =>
-    setShowConfirmPassword((prev) => !prev);
+  // Initialize react-hook-form
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const validateForm = () => {
-    const newErrors = {
-      firstName: "",
-      lastName: "",
-      mobileNumber: "",
-      whatsappNumber: "",
-      district: "",
-      password: "",
-      confirmPassword: "",
-    };
-
-    // First Name and Last Name
-    if (!firstName) newErrors.firstName = "First name is required.";
-    if (!lastName) newErrors.lastName = "Last name is required.";
-
-    // Mobile Number validation
-    if (!mobileNumber) {
-      newErrors.mobileNumber = "Mobile number is required.";
-    } else if (!/^0\d{9}$/.test(mobileNumber)) {
-      newErrors.mobileNumber =
-        "Mobile number must start with 0 and contain exactly 10 digits.";
-    }
-
-    // WhatsApp Number validation (optional, same as mobile)
-    if (!whatsappNumber) {
-      newErrors.whatsappNumber = "WhatsApp number is required.";
-    } else if (!/^0\d{9}$/.test(whatsappNumber)) {
-      newErrors.whatsappNumber =
-        "WhatsApp number must start with 0 and contain exactly 10 digits.";
-    }
-
-    // District validation
-    if (!district) newErrors.district = "District is required.";
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required.";
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/.test(password)) {
-      newErrors.password =
-        "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character.";
-    }
-
-    // Confirm Password validation
-    if (confirmPassword !== password) {
-      newErrors.confirmPassword = "Passwords do not match.";
-    }
-
-    setErrors(newErrors);
-
-    // Return true if no errors
-    return !Object.values(newErrors).some((error) => error !== "");
+  // Form submission handler
+  const onSubmit = (data: {
+    firstname: string;
+    lastname: string;
+    district: string;
+    whatsappNumber: String;
+    mobileNumber: string;
+    password: string;
+    confirmPassword: string;
+  }) => {
+    console.log("Form submitted:", data);
+    // login logic here
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      console.log("Form submitted:", {
-        firstName,
-        lastName,
-        mobileNumber,
-        whatsappNumber,
-        district,
-        password,
-        confirmPassword,
-      });
-    }
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevState) => !prevState);
+  };
+  const toggleConfirmPasswordVisibility = () => {
+    setshowConfirmPassword((prevState) => !prevState);
   };
 
   return (
@@ -124,8 +98,8 @@ export const RegisterPage: React.FC = () => {
         </h1>
 
         {/* Gray Container */}
-        <div className="bg-[#F8F8F8] w-full md:w-full md:py-12 md:px-14 py-7 px-7 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center ">
-          <form className="space-y-4 w-full" onSubmit={handleSubmit}>
+        <div className="bg-[#F8F8F8] w-full md:w-full md:py-12 md:px-14 py-6 px-5 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center ">
+          <form className="space-y-4 w-full" onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
             <div className="flex space-x-4">
               <div className="w-1/2">
@@ -135,21 +109,27 @@ export const RegisterPage: React.FC = () => {
                 >
                   First Name
                 </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className={`w-full placeholder:text-[10px] text-[10px] md:text-[14px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                    errors.firstName
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  }`}
-                  placeholder="First Name"
+                <Controller
+                  name="firstname"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="firstName"
+                      className={`w-full placeholder:text-[10px] text-[10px] md:text-[14px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.firstname
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="First Name"
+                    />
+                  )}
                 />
-                {errors.firstName && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] text-sm mt-1">
-                    {errors.firstName}
+                {errors.firstname && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.firstname.message}
                   </p>
                 )}
               </div>
@@ -160,21 +140,27 @@ export const RegisterPage: React.FC = () => {
                 >
                   Last Name
                 </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                    errors.lastName
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  }`}
-                  placeholder="Last Name"
+                <Controller
+                  name="lastname"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="lastname"
+                      className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.lastname
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="Last Name"
+                    />
+                  )}
                 />
-                {errors.lastName && (
+                {errors.lastname && (
                   <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                    {errors.lastName}
+                    {errors.lastname.message}
                   </p>
                 )}
               </div>
@@ -188,21 +174,27 @@ export const RegisterPage: React.FC = () => {
               >
                 Mobile Number
               </label>
-              <input
-                type="text"
-                id="mobileNumber"
-                value={mobileNumber}
-                onChange={(e) => setMobileNumber(e.target.value)}
-                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                  errors.mobileNumber
-                    ? "focus:ring-red-500 focus:border-red-500"
-                    : "focus:ring-yellow-500 focus:border-yellow-500"
-                }`}
-                placeholder="Mobile Number"
+              <Controller
+                name="mobileNumber"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    id="mobileNumber"
+                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                      errors.mobileNumber
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                    placeholder="Mobile Number"
+                  />
+                )}
               />
               {errors.mobileNumber && (
                 <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                  {errors.mobileNumber}
+                  {errors.mobileNumber.message}
                 </p>
               )}
             </div>
@@ -215,21 +207,27 @@ export const RegisterPage: React.FC = () => {
               >
                 WhatsApp Number
               </label>
-              <input
-                type="text"
-                id="whatsappNumber"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                  errors.whatsappNumber
-                    ? "focus:ring-red-500 focus:border-red-500"
-                    : "focus:ring-yellow-500 focus:border-yellow-500"
-                }`}
-                placeholder="WhatsApp Number"
+              <Controller
+                name="whatsappNumber"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    id="whatsappNumber"
+                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                      errors.whatsappNumber
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                    placeholder="WhatsApp Number"
+                  />
+                )}
               />
               {errors.whatsappNumber && (
                 <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                  {errors.whatsappNumber}
+                  {errors.whatsappNumber.message}
                 </p>
               )}
             </div>
@@ -242,24 +240,39 @@ export const RegisterPage: React.FC = () => {
               >
                 District
               </label>
-              <select
-                id="district"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-gray-400 bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 focus:ring-2 focus:outline-none ${
-                  errors.district
-                    ? "focus:ring-red-500 focus:border-red-500"
-                    : "focus:ring-yellow-500 focus:border-yellow-500"
-                }`}
-              >
-                <option value=" ">Select District</option>
-                <option value="district1">District 1</option>
-                <option value="district2">District 2</option>
-                <option value="district3">District 3</option>
-              </select>
+
+              <div className="relative">
+                <Controller
+                  name="district"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <>
+                      <select
+                        {...field}
+                        id="district"
+                        className={`w-full text-[10px] md:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 focus:ring-2 focus:outline-none ${
+                          errors.district
+                            ? "focus:ring-red-500 focus:border-red-500"
+                            : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
+                      >
+                        <option value="">Select District</option>
+                        <option value="district1">District 1</option>
+                        <option value="district2">District 2</option>
+                        <option value="district3">District 3</option>
+                      </select>
+
+                      {/* ChevronDown Icon */}
+                      <ChevronDown className="absolute w-[12px] md:w-[16px] right-3 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </>
+                  )}
+                />
+              </div>
+
               {errors.district && (
-                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                  {errors.district}
+                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  {errors.district.message}
                 </p>
               )}
             </div>
@@ -272,76 +285,96 @@ export const RegisterPage: React.FC = () => {
               >
                 Password
               </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                    errors.password
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  }`}
-                  placeholder="Password"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-[12px] md:size-[16px]" />
-                  ) : (
-                    <Eye className="size-[12px] md:size-[16px]" />
-                  )}
-                </button>
+              <div className="relative flex flex-col">
+                <div className="flex items-center relative">
+                  <Controller
+                    name="password"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          id="password"
+                          className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                            errors.password
+                              ? "focus:ring-red-500 focus:border-red-500"
+                              : "focus:ring-yellow-500 focus:border-yellow-500"
+                          }`}
+                          placeholder="Password"
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-[12px] md:w-[16px]" />
+                          ) : (
+                            <Eye className="w-[12px] md:w-[16px]" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                  {errors.password}
-                </p>
-              )}
             </div>
 
             {/* Confirm Password */}
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-[12px] md:text-[16px] font-body font-medium text-[#111102] mb-2"
+                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
               >
                 Confirm Password
               </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                    errors.confirmPassword
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  }`}
-                  placeholder="Confirm Password"
-                />
-                <button
-                  type="button"
-                  onClick={toggleConfirmPasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="size-[12px] md:size-[16px]" />
-                  ) : (
-                    <Eye className="size-[12px] md:size-[16px]" />
-                  )}
-                </button>
+              <div className="relative flex flex-col">
+                <div className="flex items-center relative">
+                  <Controller
+                    name="confirmPassword"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <>
+                        <input
+                          {...field}
+                          type={showConfirmPassword ? "text" : "password"}
+                          id="confirmPassword"
+                          className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                            errors.confirmPassword
+                              ? "focus:ring-red-500 focus:border-red-500"
+                              : "focus:ring-yellow-500 focus:border-yellow-500"
+                          }`}
+                          placeholder="Confirm Password"
+                        />
+                        <button
+                          type="button"
+                          onClick={toggleConfirmPasswordVisibility}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-[12px] md:w-[16px]" />
+                          ) : (
+                            <Eye className="w-[12px] md:w-[16px]" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-[10px] md:text-[14px]  mt-1">
-                  {errors.confirmPassword}
-                </p>
-              )}
             </div>
 
             {/* Register Button */}
@@ -368,3 +401,5 @@ export const RegisterPage: React.FC = () => {
     </div>
   );
 };
+
+export default RegisterPage;
