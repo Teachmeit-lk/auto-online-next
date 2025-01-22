@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import { Shake } from "@/components/data/index";
+import { Shake } from "@/assets/images";
 
 export const CustomersCard: React.FC = () => {
   return (

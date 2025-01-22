@@ -11,7 +11,7 @@ import {
   Service1,
   Service2,
   Service3,
-} from "@/components/data/index";
+} from "@/assets/images";
 
 const brands = [
   { name: "TOYOTA", logo: Toyota },
@@ -59,7 +59,7 @@ export const AutoServices: React.FC = () => {
           <Image
             src={Service1}
             alt="Best Services"
-            className="md:w-[152px] md:h-[99px] w-[113px] h-[74px] object-contain "
+            className="md:w-[152px] md:h-[99px] w-[105px] h-[70px] object-contain "
           />
         </div>
 

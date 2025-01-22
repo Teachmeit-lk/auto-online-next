@@ -4,11 +4,14 @@ import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, A11y } from "swiper/modules";
+import { ChevronRight, ChevronLeft, Star } from "lucide-react";
+
+import type { Swiper as SwiperType } from "swiper";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
-import { ChevronRight, ChevronLeft, Star } from "lucide-react";
 
 import {
   Product1,
@@ -16,9 +19,7 @@ import {
   Product3,
   Product4,
   Product5,
-} from "@/components/data/index";
-
-import type { Swiper as SwiperType } from "swiper";
+} from "@/assets/images";
 
 const initialProducts = [
   {

@@ -1,7 +1,7 @@
 import React from "react";
 import { PhoneCall, MapPin, Mail } from "lucide-react";
 
-import { ContactCard } from "@/components/atoms/index";
+import { ContactCard } from "@/components/atoms";
 
 export const ContactUsSection: React.FC = () => {
   const contacts = [

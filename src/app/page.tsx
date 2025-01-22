@@ -11,7 +11,7 @@ import {
   ContactUsSection,
   ContactForm,
   ScrollToTopButton,
-} from "../components/index";
+} from "@/components";
 
 const Home: FC = () => {
   return (

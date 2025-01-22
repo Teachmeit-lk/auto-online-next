@@ -1,73 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from "react-hook-form";
 
 export const ContactForm: React.FC = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    whatsapp: "",
-    message: "",
+  // Yup schema for validation
+  const schema = Yup.object().shape({
+    name: Yup.string().required("Name is required"),
+    message: Yup.string().required("Message is required"),
+    whatsapp: Yup.string()
+      .required("Whatsapp number is required.")
+      .matches(
+        /^0\d{9}$/,
+        "Whatsapp number must start with 0 and contain exactly 10 digits."
+      ),
+    email: Yup.string()
+      .required("Email is required.")
+      .matches(
+        /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,
+        "Enter a valid email address."
+      ),
   });
 
-  const validateForm = () => {
-    const newErrors = {
-      name: "",
-      email: "",
-      whatsapp: "",
-      message: "",
-    };
+  // Initialize react-hook-form
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-    // Name validation
-    if (!name) {
-      newErrors.name = "Name is required.";
-    } else if (name.length < 3) {
-      newErrors.name = "Name must be at least 3 characters long.";
-    }
-
-    // Email validation
-    if (!email) {
-      newErrors.email = "Email is required.";
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-      newErrors.email = "Enter a valid email address.";
-    }
-
-    // WhatsApp validation
-    if (!whatsapp) {
-      newErrors.whatsapp = "WhatsApp number is required.";
-    } else if (!/^0\d{9}$/.test(whatsapp)) {
-      newErrors.whatsapp =
-        "WhatsApp number must start with 0 and contain exactly 10 digits.";
-    }
-
-    // Message validation
-    if (!message) {
-      newErrors.message = "Message is required.";
-    } else if (message.length < 10) {
-      newErrors.message = "Message must be at least 10 characters long.";
-    }
-
-    setErrors(newErrors);
-
-    // Return true if no errors
-    return !Object.values(newErrors).some((error) => error !== "");
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      console.log("Form submitted successfully:", {
-        name,
-        email,
-        whatsapp,
-        message,
-      });
-    }
+  // Form submission handler
+  const onSubmit = (data: {
+    name: string;
+    message: string;
+    email: string;
+    whatsapp: string;
+  }) => {
+    console.log("Form submitted:", data);
+    // submit logic here
   };
 
   return (
@@ -78,7 +52,7 @@ export const ContactForm: React.FC = () => {
         </h2>
         <form
           className="md:space-y-6 space-y-3 pl-2 w-full"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
         >
           {/* Name Field */}
           <div className="flex flex-col">
@@ -88,21 +62,27 @@ export const ContactForm: React.FC = () => {
             >
               Name
             </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`mt-2 p-3 w-full text-[#111102]  text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
-                errors.name
-                  ? "focus:ring-red-500 focus:border-red-500"
-                  : "focus:ring-yellow-500 focus:border-yellow-500"
-              }`}
-              placeholder="Enter your name"
+            <Controller
+              name="name"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  id="name"
+                  className={`mt-2 p-3 w-full text-[#111102]  text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                    errors.name
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  }`}
+                  placeholder="Enter your name"
+                />
+              )}
             />
             {errors.name && (
               <p className="text-red-500  md:text-sm text-[12px]  mt-1">
-                {errors.name}
+                {errors.name.message}
               </p>
             )}
           </div>
@@ -115,21 +95,27 @@ export const ContactForm: React.FC = () => {
             >
               Email
             </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
-                errors.email
-                  ? "focus:ring-red-500 focus:border-red-500"
-                  : "focus:ring-yellow-500 focus:border-yellow-500"
-              }`}
-              placeholder="Enter your email"
+            <Controller
+              name="email"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  id="email"
+                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                    errors.email
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  }`}
+                  placeholder="Enter your email"
+                />
+              )}
             />
             {errors.email && (
               <p className="text-red-500  md:text-sm text-[12px]  mt-1">
-                {errors.email}
+                {errors.email.message}
               </p>
             )}
           </div>
@@ -142,21 +128,27 @@ export const ContactForm: React.FC = () => {
             >
               WhatsApp Number
             </label>
-            <input
-              type="text"
-              id="whatsapp"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px] h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
-                errors.whatsapp
-                  ? "focus:ring-red-500 focus:border-red-500"
-                  : "focus:ring-yellow-500 focus:border-yellow-500"
-              }`}
-              placeholder="Enter your WhatsApp number"
+            <Controller
+              name="whatsapp"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  id="whatsapp"
+                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px] h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                    errors.whatsapp
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  }`}
+                  placeholder="Enter your WhatsApp number"
+                />
+              )}
             />
             {errors.whatsapp && (
               <p className="text-red-500 md:text-sm text-[12px]  mt-1">
-                {errors.whatsapp}
+                {errors.whatsapp.message}
               </p>
             )}
           </div>
@@ -169,21 +161,27 @@ export const ContactForm: React.FC = () => {
             >
               Message
             </label>
-            <textarea
-              id="message"
-              rows={4}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
-                errors.message
-                  ? "focus:ring-red-500 focus:border-red-500"
-                  : "focus:ring-yellow-500 focus:border-yellow-500"
-              }`}
-              placeholder="Enter your message"
-            ></textarea>
+            <Controller
+              name="message"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <textarea
+                  {...field}
+                  id="message"
+                  rows={4}
+                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                    errors.message
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  }`}
+                  placeholder="Enter your message"
+                />
+              )}
+            />
             {errors.message && (
               <p className="text-red-500 md:text-sm text-[12px] mt-1">
-                {errors.message}
+                {errors.message.message}
               </p>
             )}
           </div>

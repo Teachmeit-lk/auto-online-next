@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  CustomersCard,
-  VendorsCard,
-  OrdersCard,
-} from "@/components/atoms/index";
+import { CustomersCard, VendorsCard, OrdersCard } from "@/components/atoms";
 
 export const StatsSection: React.FC = () => {
   return (
