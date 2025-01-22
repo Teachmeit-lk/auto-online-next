@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { SearchVendors } from "@/components/atoms/index";
+
+import { SearchVendors } from "@/components/Vendor";
 
 const Home: FC = () => {
   return (
