@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 
 interface FilterModalProps {
@@ -9,7 +9,10 @@ interface FilterModalProps {
   onClose: () => void;
 }
 
-const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
+export const FilterModal: React.FC<FilterModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const [fileName, setFileName] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,9 +196,9 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
           <Dialog.Close asChild>
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black"
+              className="absolute top-4 right-4 text-gray-500 hover:text-[#F9C301]"
             >
-              <Cross2Icon />
+              <CirclePlus className="rotate-45" />
             </button>
           </Dialog.Close>
         </Dialog.Content>
@@ -203,5 +206,3 @@ const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose }) => {
     </Dialog.Root>
   );
 };
-
-export default FilterModal;
