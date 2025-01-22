@@ -1,2 +1,2 @@
 // Main Components
-export * from "@/components/Header";
+export * from "./Header";

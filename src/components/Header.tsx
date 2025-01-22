@@ -3,9 +3,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
-import HeaderLogo from "@/assets/Images/HeaderLogo.png";
-
 import {
   Search,
   CirclePlus,
@@ -16,9 +13,17 @@ import {
   AlignLeft,
 } from "lucide-react";
 
+import { HeaderLogo } from "@/assets/images";
+
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const data = [
+    { name: "home", path: "/#home", icon: LayoutGrid },
+    { name: "services", path: "/#services", icon: UsersRound },
+    { name: "about", path: "/#about", icon: History },
+    { name: "contact", path: "/#contact", icon: CircleHelp },
+  ];
 
   return (
     <>
@@ -92,12 +97,7 @@ export const Header: React.FC = () => {
       {/* Black Bar Section with Links */}
       <div className="hidden md:flex w-full h-[42px] bg-black justify-center items-center">
         <div className="flex space-x-2">
-          {[
-            { name: "home" },
-            { name: "services" },
-            { name: "about" },
-            { name: "contact" },
-          ].map(({ name }) => (
+          {data.map(({ name }) => (
             <Link
               key={name}
               href={`/#${name}`}
@@ -131,15 +131,10 @@ export const Header: React.FC = () => {
 
             {/* Navigation Links */}
             <nav className="mt-8 space-y-4">
-              {[
-                { name: "home", icon: LayoutGrid },
-                { name: "services", icon: UsersRound },
-                { name: "about", icon: History },
-                { name: "contact", icon: CircleHelp },
-              ].map(({ name, icon: Icon }) => (
+              {data.map(({ name, path, icon: Icon }) => (
                 <Link
                   key={name}
-                  href={`/#${name}`}
+                  href={path}
                   className={`w-full flex items-center gap-2 text-[14px] py-2 px-4 rounded-[4px] ${
                     activeSection === name
                       ? "bg-[#FEFEFE] text-[#F9C301]"

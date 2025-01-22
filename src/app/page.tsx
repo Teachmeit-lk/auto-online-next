@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { Header } from "@/components/index";
+
+import { Header } from "@/components";
 
 const Home: FC = () => {
   return (
