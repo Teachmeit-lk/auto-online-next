@@ -3,48 +3,46 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import * as Yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm, Controller } from "react-hook-form";
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({ mobile: "", password: "" });
+
+  // Yup schema for validation
+  const schema = Yup.object().shape({
+    mobile: Yup.string()
+      .required("Mobile number is required.")
+      .matches(
+        /^0\d{9}$/,
+        "Mobile number must start with 0 and contain exactly 10 digits."
+      ),
+    password: Yup.string()
+      .required("Password is required.")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
+        "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character."
+      ),
+  });
+
+  // Initialize react-hook-form
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  // Form submission handler
+  const onSubmit = (data: { mobile: string; password: string }) => {
+    console.log("Form submitted:", data);
+    // login logic here
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
-  };
-
-  const validateForm = () => {
-    const newErrors = { mobile: "", password: "" };
-
-    // Mobile number validation
-    if (!mobile) {
-      newErrors.mobile = "Mobile number is required.";
-    } else if (!/^0\d{9}$/.test(mobile)) {
-      newErrors.mobile =
-        "Mobile number must start with 0 and contain exactly 10 digits.";
-    }
-
-    // Password validation
-    if (!password) {
-      newErrors.password = "Password is required.";
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/.test(password)) {
-      newErrors.password =
-        "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character.";
-    }
-
-    setErrors(newErrors);
-
-    return !newErrors.mobile && !newErrors.password;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      console.log("Form submitted:", { mobile, password });
-      // need to add login logic here
-    }
   };
 
   return (
@@ -80,7 +78,7 @@ const LoginPage: React.FC = () => {
           {/* Input Fields */}
           <form
             className="md:space-y-6 space-y-5 w-full"
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div>
               <label
@@ -89,22 +87,27 @@ const LoginPage: React.FC = () => {
               >
                 Mobile Number
               </label>
-              <input
-                type="text"
-                id="mobile"
+              <Controller
                 name="mobile"
-                className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                  errors.mobile
-                    ? "focus:ring-red-500 focus:border-red-500"
-                    : "focus:ring-yellow-500 focus:border-yellow-500"
-                }`}
-                placeholder="Enter mobile number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    id="mobile"
+                    className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
+                      errors.mobile
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                    placeholder="Enter mobile number"
+                  />
+                )}
               />
               {errors.mobile && (
                 <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.mobile}
+                  {errors.mobile.message}
                 </p>
               )}
             </div>
@@ -116,35 +119,40 @@ const LoginPage: React.FC = () => {
               >
                 Password
               </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  className={`w-full md:h-[36px] h-[28px] text-[10px]   md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                    errors.password
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  }`}
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-[52%] items-center transform -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-[12px] md:size-[16px]" />
-                  ) : (
-                    <Eye className="size-[12px] md:size-[16px]" />
-                  )}
-                </button>
-              </div>
+              <Controller
+                name="password"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <div className="relative">
+                    <input
+                      {...field}
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
+                        errors.password
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute right-3 top-[52%] transform -translate-y-1/2 text-gray-500"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-[12px] md:size-[16px]" />
+                      ) : (
+                        <Eye className="size-[12px] md:size-[16px]" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              />
               {errors.password && (
                 <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.password}
+                  {errors.password.message}
                 </p>
               )}
             </div>

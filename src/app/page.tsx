@@ -1,4 +1,5 @@
 import { FC } from "react";
+
 import LoginPage from "@/app/login/page";
 
 const Home: FC = () => {
