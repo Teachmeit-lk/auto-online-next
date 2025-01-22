@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   SearchVendors,
   QuotationRequests,
@@ -6,7 +7,7 @@ import {
   AcceptedPO,
   CompletedOrders,
   VendorLayout,
-} from "@/components/atoms/index";
+} from "@/components/Vendor/index";
 
 const TabsPage: React.FC = () => {
   const tabs = [

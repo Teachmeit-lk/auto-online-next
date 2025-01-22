@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { TabsPage } from "@/components/atoms/index";
+
+import TabsPage from "@/app/pages/TabsPage";
 
 const Home: FC = () => {
   return (
