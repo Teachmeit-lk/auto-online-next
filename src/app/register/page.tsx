@@ -55,7 +55,7 @@ const RegisterPage: React.FC = () => {
     firstname: string;
     lastname: string;
     district: string;
-    whatsappNumber: String;
+    whatsappNumber: string;
     mobileNumber: string;
     password: string;
     confirmPassword: string;
