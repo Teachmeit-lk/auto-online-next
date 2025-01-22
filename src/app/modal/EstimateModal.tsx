@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 
 interface EstimateModalProps {
@@ -9,7 +9,10 @@ interface EstimateModalProps {
   onClose: () => void;
 }
 
-const EstimateModal: React.FC<EstimateModalProps> = ({ isOpen, onClose }) => {
+export const EstimateModal: React.FC<EstimateModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const [tableData] = useState(
     Array.from({ length: 10 }, (_, index) => ({
       id: index + 1,
@@ -160,9 +163,9 @@ const EstimateModal: React.FC<EstimateModalProps> = ({ isOpen, onClose }) => {
           <Dialog.Close asChild>
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black"
+              className="absolute top-4 right-4 text-gray-500 hover:text-[#F9C301] rotate-45"
             >
-              <Cross2Icon />
+              <CirclePlus />
             </button>
           </Dialog.Close>
         </Dialog.Content>
@@ -170,5 +173,3 @@ const EstimateModal: React.FC<EstimateModalProps> = ({ isOpen, onClose }) => {
     </Dialog.Root>
   );
 };
-
-export default EstimateModal;

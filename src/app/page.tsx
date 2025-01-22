@@ -1,12 +1,7 @@
 import { FC } from "react";
-import { TabsPage } from "@/components/atoms/index";
 
 const Home: FC = () => {
-  return (
-    <div>
-      <TabsPage />
-    </div>
-  );
+  return <div></div>;
 };
 
 export default Home;
