@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import TabsPage from "@/app/pages/TabsPage";
+import { TabsPage } from "@/app/pages";
 
 const Home: FC = () => {
   return (

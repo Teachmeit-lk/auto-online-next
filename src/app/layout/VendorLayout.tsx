@@ -11,7 +11,7 @@ interface TabLayoutProps {
   tabs: Tab[];
 }
 
-const VendorLayout: React.FC<TabLayoutProps> = ({ tabs }) => {
+export const VendorLayout: React.FC<TabLayoutProps> = ({ tabs }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
@@ -41,5 +41,3 @@ const VendorLayout: React.FC<TabLayoutProps> = ({ tabs }) => {
     </div>
   );
 };
-
-export default VendorLayout;

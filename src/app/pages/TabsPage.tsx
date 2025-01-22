@@ -6,10 +6,10 @@ import {
   QuotationsFromVendors,
   AcceptedPO,
   CompletedOrders,
-  VendorLayout,
-} from "@/components/Vendor/index";
+} from "@/components/vendor";
+import { VendorLayout } from "@/app/layout/index";
 
-const TabsPage: React.FC = () => {
+export const TabsPage: React.FC = () => {
   const tabs = [
     { label: "Search Vendors", component: <SearchVendors /> },
     { label: "Quotation Requests", component: <QuotationRequests /> },
@@ -24,5 +24,3 @@ const TabsPage: React.FC = () => {
     </div>
   );
 };
-
-export default TabsPage;
