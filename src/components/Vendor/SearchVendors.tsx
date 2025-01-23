@@ -3,8 +3,12 @@
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 
+// import { CompanyProfileModal, FilterModal } from "@/app/modal";
+
 export const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
+  // const [isModalOpen1, setIsModalOpen1] = useState(false);
+  // const [isModalOpen2, setIsModalOpen2] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -42,7 +46,7 @@ export const SearchVendors: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex space-x-4">
           <select
-            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px]"
+            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             defaultValue="All Categories"
           >
             <option>All Categories</option>
@@ -51,7 +55,7 @@ export const SearchVendors: React.FC = () => {
           </select>
 
           <select
-            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px]"
+            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             defaultValue="All Countries"
           >
             <option>All Countries</option>
@@ -60,7 +64,7 @@ export const SearchVendors: React.FC = () => {
           </select>
 
           <select
-            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px]"
+            className="rounded-[5px] px-3  text-sm text-gray-600 w-[181px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             defaultValue="All Districts"
           >
             <option>All Districts</option>
@@ -69,7 +73,7 @@ export const SearchVendors: React.FC = () => {
           </select>
 
           <select
-            className="rounded-[5px] px-3  text-sm text-gray-600 w-[131px] h-[28px]"
+            className="rounded-[5px] px-3  text-sm text-gray-600 w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             onChange={(e) => setEntries(Number(e.target.value))}
             defaultValue="10"
           >
@@ -83,7 +87,7 @@ export const SearchVendors: React.FC = () => {
           <input
             type="text"
             placeholder="Search"
-            className="w-full h-full pl-3 pr-8 rounded-[5px] text-sm text-gray-600 outline-none"
+            className="w-full h-full pl-3 pr-8 rounded-[5px] text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
           />
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
             <Search
@@ -132,10 +136,16 @@ export const SearchVendors: React.FC = () => {
                   {vendor.address}
                 </td>
                 <td className="grid grid-cols-2 text-center w-full h-full">
-                  <button className="bg-[#D1D1D1] border-r-2 border-white px-3 py-3  text-[#111102] text-[12px] w-full h-full">
+                  <button
+                    className="bg-[#D1D1D1] border-r-2 border-white px-3 py-3  text-[#111102] text-[12px] w-full h-full"
+                    // onClick={() => setIsModalOpen1(true)}
+                  >
                     Get Quotation
                   </button>
-                  <button className="bg-[#D1D1D1] px-3 py-3 text-[#111102] text-[12px] w-full h-full">
+                  <button
+                    className="bg-[#D1D1D1] px-3 py-3 text-[#111102] text-[12px] w-full h-full"
+                    // onClick={() => setIsModalOpen2(true)}
+                  >
                     View More
                   </button>
                 </td>
@@ -149,6 +159,16 @@ export const SearchVendors: React.FC = () => {
       <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
         Showing 1-{entries} Entries
       </div>
+
+      {/* <FilterModal
+        isOpen={isModalOpen1}
+        onClose={() => setIsModalOpen1(false)}
+      />
+
+      <CompanyProfileModal
+        isOpen={isModalOpen2}
+        onClose={() => setIsModalOpen2(false)}
+      /> */}
     </div>
   );
 };

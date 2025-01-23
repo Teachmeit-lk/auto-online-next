@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { SearchVendors } from "@/components/Vendor";
+import { SearchVendors } from "@/components/vendor";
 
 const Home: FC = () => {
   return (
