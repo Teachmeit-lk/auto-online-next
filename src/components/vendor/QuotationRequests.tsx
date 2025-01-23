@@ -7,7 +7,7 @@ import { Search, ClipboardCheck } from "lucide-react";
 
 export const QuotationRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  //   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -124,7 +124,7 @@ export const QuotationRequests: React.FC = () => {
                 <td className="grid grid-cols-1 text-center w-full h-full">
                   <button
                     className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full"
-                    onClick={() => setIsModalOpen(true)}
+                    // onClick={() => setIsModalOpen(true)}
                   >
                     View
                   </button>
