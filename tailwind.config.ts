@@ -12,6 +12,16 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      rotate: {
+        "42": "41.98deg",
+      },
+      scrollbar: {
+        hide: "::-webkit-scrollbar { display: none; }",
+      },
+      fontFamily: {
+        title: ["Russo One, serif"],
+        body: ["Lato, serif"],
+      },
     },
   },
   plugins: [],
