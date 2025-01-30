@@ -601,7 +601,7 @@ export const VendorProfile = () => {
               render={({ field }) => (
                 <Select
                   {...field}
-                  options={categoryOptions}
+                  options={brandOptions}
                   isMulti
                   isDisabled={!isEditable}
                   styles={{
@@ -694,7 +694,7 @@ export const VendorProfile = () => {
               render={({ field }) => (
                 <Select
                   {...field}
-                  options={categoryOptions}
+                  options={modelOptions}
                   isMulti
                   isDisabled={!isEditable}
                   styles={{
