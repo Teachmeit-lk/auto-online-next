@@ -33,7 +33,7 @@ export const CompletedOrders: React.FC = () => {
           </div>
           <div className="flex space-x-4">
             <select
-              className="rounded-[5px] px-3 font-body  text-sm text-gray-600 w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+              className="rounded-[5px] px-3 font-body  text-[12px] text-gray-600 w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               onChange={(e) => setEntries(Number(e.target.value))}
               defaultValue="5"
             >
@@ -52,7 +52,7 @@ export const CompletedOrders: React.FC = () => {
             <input
               type="text"
               placeholder="Search"
-              className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+              className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
               <Search
@@ -115,7 +115,7 @@ export const CompletedOrders: React.FC = () => {
                 </td>
                 <td className="grid grid-cols-1 text-center w-full h-full">
                   <button
-                    className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full"
+                    className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                     // onClick={() => setIsModalOpen(true)}
                   >
                     View
