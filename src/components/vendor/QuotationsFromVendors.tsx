@@ -61,7 +61,7 @@ export const QuotationsFromVendors: React.FC = () => {
           </div>
           <div className="flex space-x-4">
             <select
-              className="rounded-[5px] px-3 text-sm text-gray-600 w-[131px] h-[28px]"
+              className="rounded-[5px] px-3 text-[12px] font-body text-gray-600 w-[131px] h-[28px]"
               onChange={(e) => setEntries(Number(e.target.value))}
               defaultValue="5"
             >
@@ -80,7 +80,7 @@ export const QuotationsFromVendors: React.FC = () => {
             <input
               type="text"
               placeholder="Search"
-              className="w-full h-full pl-3 pr-8 rounded-[5px] text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+              className="w-full h-full pl-3 pr-8 rounded-[5px] text-[12px] font-body text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
             />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
               <Search
@@ -162,19 +162,19 @@ export const QuotationsFromVendors: React.FC = () => {
 
                 <td className="grid grid-cols-3 text-center w-full h-full font-body">
                   <button
-                    className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full"
+                    className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                     // onClick={() => setIsModalOpen1(true)}
                   >
                     View
                   </button>
                   <button
-                    className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full"
+                    className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                     // onClick={() => setIsModalOpen2(true)}
                   >
                     Chat
                   </button>
                   <button
-                    className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full"
+                    className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                     // onClick={() => setIsModalOpen3(true)}
                   >
                     Confirm
