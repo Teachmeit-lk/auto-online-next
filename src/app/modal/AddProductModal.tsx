@@ -22,7 +22,7 @@ interface FormValues {
   description: string;
 }
 
-export const AddProductModal: React.FC<AddProductModalProps> = ({
+const AddProductModal: React.FC<AddProductModalProps> = ({
   isOpen,
   onClose,
 }) => {
@@ -329,3 +329,5 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     </Dialog.Root>
   );
 };
+
+export { AddProductModal };
