@@ -6,6 +6,7 @@ import Image, { StaticImageData } from "next/image";
 
 import { CarImage1 } from "@/app/assets/images";
 import {
+  DeleteItemConfirmation,
   OpenChatConfirmationModal,
   TabLayout,
   ViewQuotationRequestModal,
@@ -224,48 +225,29 @@ export const NewPriceRequests: React.FC = () => {
                     {vendor.date}
                   </td>
 
-                  {vendor.qrequests === "New Quotations Requested" ? (
-                    <>
-                      <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          onClick={() => setIsModalOpen2(true)}
-                        >
-                          Quotation
-                        </button>
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          onClick={() => setIsModalOpen(true)}
-                        >
-                          Chat
-                        </button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="grid grid-cols-3 gap-1 text-center w-full h-full">
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen3(true)}
-                        >
-                          Quotation
-                        </button>
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen(true)}
-                        >
-                          Chat
-                        </button>
+                  <>
+                    <td className="grid grid-cols-3 gap-1 text-center w-full h-full">
+                      <button
+                        className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
+                        onClick={() => setIsModalOpen2(true)}
+                      >
+                        Quotation
+                      </button>
+                      <button
+                        className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
+                        onClick={() => setIsModalOpen(true)}
+                      >
+                        Chat
+                      </button>
 
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen4(true)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </>
-                  )}
+                      <button
+                        className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
+                        onClick={() => setIsModalOpen4(true)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </>
                 </tr>
               ))}
             </tbody>
@@ -301,6 +283,14 @@ export const NewPriceRequests: React.FC = () => {
         <OpenChatConfirmationModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {
+            alert("in development");
+            setIsModalOpen(false);
+          }}
+        />
+        <DeleteItemConfirmation
+          isOpen={isModalOpen4}
+          onClose={() => setIsModalOpen4(false)}
           onConfirm={() => {
             alert("in development");
             setIsModalOpen(false);
