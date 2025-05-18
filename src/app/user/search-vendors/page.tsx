@@ -2,13 +2,15 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { TabLayout, ViewVendorProfileModal } from "@/components";
 
 import { GetQuotationModal } from "@/components/";
 
 export const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
-  const [GetQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
+  const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
+  const [ViewVendorProfileModalOpen, setViewVendorProfileModalOpen] =
+    useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -147,6 +149,7 @@ export const SearchVendors: React.FC = () => {
                     <button
                       className="bg-[#D1D1D1] px-3 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
                       // onClick={() => setIsModalOpen2(true)}
+                      onClick={() => setViewVendorProfileModalOpen(true)}
                     >
                       View More
                     </button>
@@ -173,8 +176,12 @@ export const SearchVendors: React.FC = () => {
       /> */}
       </div>
       <GetQuotationModal
-        isOpen={GetQuotationModalOpen}
+        isOpen={getQuotationModalOpen}
         onClose={() => setGetQuotationModalOpen(false)}
+      />
+      <ViewVendorProfileModal
+        isOpen={ViewVendorProfileModalOpen}
+        onClose={() => setViewVendorProfileModalOpen(false)}
       />
     </TabLayout>
   );
