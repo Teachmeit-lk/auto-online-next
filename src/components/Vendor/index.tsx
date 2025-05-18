@@ -1,2 +1,0 @@
-//Tabs
-export * from "./SearchVendors";
