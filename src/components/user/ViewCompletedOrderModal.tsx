@@ -6,15 +6,14 @@ import Image from "next/image";
 
 import { ViewEstimate1 } from "@/app/assets/images";
 
-interface CompletedOrderModalProps {
+interface IViewCompletedOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const CompletedOrderModal: React.FC<CompletedOrderModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const ViewCompletedOrderModal: React.FC<
+  IViewCompletedOrderModalProps
+> = ({ isOpen, onClose }) => {
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>

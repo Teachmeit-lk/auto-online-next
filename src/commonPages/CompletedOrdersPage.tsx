@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { TabLayout, ViewCompletedOrderModal } from "@/components";
 
 // import { CompletedOrderModal } from "@/app/modal";
 
@@ -14,7 +14,7 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
   type,
 }) => {
   const [entries, setEntries] = useState(5);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -124,7 +124,7 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
                   <td className="grid grid-cols-1 text-center w-full h-full">
                     <button
                       className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      // onClick={() => setIsModalOpen(true)}
+                      onClick={() => setIsModalOpen(true)}
                     >
                       View
                     </button>
@@ -140,10 +140,10 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
           Showing 1-{entries} Entries
         </div>
 
-        {/* <CompletedOrderModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
+        <ViewCompletedOrderModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </TabLayout>
   );
