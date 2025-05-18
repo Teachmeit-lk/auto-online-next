@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout, ViewPurchaseOrderModal } from "@/components";
+import {
+  ConfirmQuotationConfirmationModal,
+  TabLayout,
+  ViewPurchaseOrderModal,
+} from "@/components";
 
 // import {
 //   NewPriceChatAlert,
@@ -25,9 +29,9 @@ export const NewPurchaseOrders: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isModalOpen1, setIsModalOpen1] = useState(false);
-  // const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
-  // const [isModalOpen4, setIsModalOpen4] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isModalOpen3, setIsModalOpen3] = useState(false);
+  const [isModalOpen4, setIsModalOpen4] = useState(false);
 
   useEffect(() => {
     const generatedVendors = Array.from({ length: entries }, (_, i) => ({
@@ -189,19 +193,19 @@ export const NewPurchaseOrders: React.FC = () => {
                     </button>
                     <button
                       className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen2(true)}
+                      onClick={() => setIsModalOpen2(true)}
                     >
                       Chat
                     </button>
                     <button
                       className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen3(true)}
+                      onClick={() => setIsModalOpen3(true)}
                     >
                       Accept
                     </button>
                     <button
                       className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen4(true)}
+                      onClick={() => setIsModalOpen4(true)}
                     >
                       Reject
                     </button>
@@ -220,6 +224,14 @@ export const NewPurchaseOrders: React.FC = () => {
           isOpen={isModalOpen1}
           onClose={() => setIsModalOpen1(false)}
         />
+        <ConfirmQuotationConfirmationModal
+          isOpen={isModalOpen3}
+          onClose={() => setIsModalOpen3(false)}
+          onConfirm={() => {
+            alert("in development");
+            setIsModalOpen3(false);
+          }}
+        />
         {/*
       <NewPriceChatAlert
         isOpen={isModalOpen2}
@@ -227,11 +239,6 @@ export const NewPurchaseOrders: React.FC = () => {
         onConfirm={handleChatAlert}
       />
 
-      <ConfirmPurchaseOrderAlert
-        isOpen={isModalOpen3}
-        onClose={() => setIsModalOpen3(false)}
-        onConfirm={handleConfirmAlert}
-      />
 
       <RejectPurchaseOrderModal
         isOpen={isModalOpen4}
