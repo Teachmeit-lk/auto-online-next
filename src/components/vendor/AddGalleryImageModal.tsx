@@ -7,12 +7,12 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 
-interface GalleryModalProps {
+interface IAddGalleryImageModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const AddGalleryImageModal: React.FC<GalleryModalProps> = ({
+export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
   isOpen,
   onClose,
 }) => {
