@@ -4,12 +4,12 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 
-interface EstimateModalProps {
+interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ViewPurchaseOrderModal: React.FC<EstimateModalProps> = ({
+export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   isOpen,
   onClose,
 }) => {
