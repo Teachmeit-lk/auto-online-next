@@ -209,3 +209,4 @@ export const QuotationsFromVendors: React.FC = () => {
     </div>
   );
 };
+export default QuotationsFromVendors;
