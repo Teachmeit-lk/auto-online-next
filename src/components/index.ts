@@ -1,1 +1,2 @@
-export * from "./layouts";
+// Main Components
+export * from "./Header";

@@ -1,7 +1,14 @@
 import { FC } from "react";
 
+import { Header } from "@/components";
+
 const Home: FC = () => {
-  return <div>home page</div>;
+  return (
+    <div>
+      <Header />
+      <p>home page</p>
+    </div>
+  );
 };
 
 export default Home;

@@ -21,6 +21,7 @@ export default {
       fontFamily: {
         title: ["Russo One, serif"],
         body: ["Lato, serif"],
+        sebino: ['"Sebino Medium"', "sans-serif"],
       },
     },
   },
