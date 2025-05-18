@@ -1,13 +1,7 @@
 import { FC } from "react";
 
-import VendorLogin from "./vendorlogin/page";
-
 const Home: FC = () => {
-  return (
-    <div>
-      <VendorLogin />
-    </div>
-  );
+  return <div>home page</div>;
 };
 
 export default Home;
