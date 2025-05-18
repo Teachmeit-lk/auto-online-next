@@ -6,7 +6,7 @@ import {
   ProductCategories,
   InfoComponent,
   ServiceCategories,
-  StatsSection,
+  OurStatusSection,
   AboutUs,
   ContactUsSection,
   ContactForm,
@@ -21,7 +21,7 @@ const Home: FC = () => {
       <ProductCategories />
       <InfoComponent />
       <ServiceCategories />
-      <StatsSection />
+      <OurStatusSection />
       <AboutUs />
       <ContactUsSection />
       <ScrollToTopButton />

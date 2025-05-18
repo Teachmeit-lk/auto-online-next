@@ -44,7 +44,7 @@ export const VendorTabList = [
 
 export const CustomerTabList = [
   // {
-  //   label: "Profile",
+  //   label:CustomerTabs.Profile,
   //   path: "/user/profile",
   // },
   {
@@ -57,7 +57,7 @@ export const CustomerTabList = [
   },
   {
     label: CustomerTabs.QuotationsFromVendors,
-    path: "/quotations-from-vendors",
+    path: "/user/quotations-from-vendors",
   },
   {
     label: CustomerTabs.AcceptedPOs,
