@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 
-interface AddProductModalProps {
+interface IAddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
@@ -22,7 +22,7 @@ interface FormValues {
   description: string;
 }
 
-const AddProductModal: React.FC<AddProductModalProps> = ({
+const AddProductModal: React.FC<IAddProductModalProps> = ({
   isOpen,
   onClose,
 }) => {
