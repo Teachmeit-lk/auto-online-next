@@ -1,13 +1,7 @@
 import { FC } from "react";
 
-import { UserProfile } from "@/components/user";
-
 const Home: FC = () => {
-  return (
-    <div>
-      <UserProfile />
-    </div>
-  );
+  return <div>home page</div>;
 };
 
 export default Home;
