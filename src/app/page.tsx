@@ -1,11 +1,31 @@
 import { FC } from "react";
 
-import RegisterPage from "@/app/register/page";
+import {
+  AutoServices,
+  HeroSection,
+  ProductCategories,
+  InfoComponent,
+  ServiceCategories,
+  StatsSection,
+  AboutUs,
+  ContactUsSection,
+  ContactForm,
+  ScrollToTopButton,
+} from "@/components";
 
 const Home: FC = () => {
   return (
     <div>
-      <RegisterPage />
+      <HeroSection />
+      <AutoServices />
+      <ProductCategories />
+      <InfoComponent />
+      <ServiceCategories />
+      <StatsSection />
+      <AboutUs />
+      <ContactUsSection />
+      <ScrollToTopButton />
+      <ContactForm />
     </div>
   );
 };
