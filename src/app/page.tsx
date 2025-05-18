@@ -1,11 +1,11 @@
 import { FC } from "react";
 
-import { Footer } from "@/components";
+import { Header } from "@/components";
 
 const Home: FC = () => {
   return (
     <div>
-      <Footer />
+      <p>home page</p>
     </div>
   );
 };
