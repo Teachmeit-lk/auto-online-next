@@ -30,11 +30,11 @@ export const VendorTabList = [
   },
   {
     label: VendorTabs.NewPriceRequests,
-    path: "/vendor/new-price-requests",
+    path: "/vendor/price-requests",
   },
   {
     label: VendorTabs.NewPurchaseOrders,
-    path: "/vendor/new-purchase-orders",
+    path: "/vendor/purchase-orders",
   },
   {
     label: VendorTabs.Gallery,
