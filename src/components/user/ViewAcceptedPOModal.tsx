@@ -6,12 +6,12 @@ import Image from "next/image";
 
 import { ViewEstimate1 } from "@/app/assets/images";
 
-interface PurchaseOrderModalProps {
+interface IViewAcceptedPOModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const PurchaseOrderModal: React.FC<PurchaseOrderModalProps> = ({
+export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
   isOpen,
   onClose,
 }) => {
