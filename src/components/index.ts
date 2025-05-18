@@ -1,3 +1,6 @@
+export * from "./Footer";
+export * from "./Header";
+export * from "./layouts";
 // Main Components
 export * from "./HeroSection";
 export * from "./AutoServices";

@@ -23,11 +23,22 @@ body {
 
 @font-face {
   font-family: "Sebino Medium";
-  src: url("../assets/font/sebino-medium.ttf") format("truetype");
+  src: url("../assets/fonts/sebino-medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
