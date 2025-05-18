@@ -1,11 +1,31 @@
 import { FC } from "react";
 
-import { NewPriceRequests } from "@/components/vendor";
+import {
+  AutoServices,
+  HeroSection,
+  ProductCategories,
+  InfoComponent,
+  ServiceCategories,
+  OurStatusSection,
+  AboutUs,
+  ContactUsSection,
+  ContactForm,
+  ScrollToTopButton,
+} from "@/components";
 
 const Home: FC = () => {
   return (
     <div>
-      <NewPriceRequests />
+      <HeroSection />
+      <AutoServices />
+      <ProductCategories />
+      <InfoComponent />
+      <ServiceCategories />
+      <OurStatusSection />
+      <AboutUs />
+      <ContactUsSection />
+      <ScrollToTopButton />
+      <ContactForm />
     </div>
   );
 };
