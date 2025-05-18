@@ -7,7 +7,11 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 
-const LoginPage: React.FC = () => {
+interface ICommonLoginPageProps {
+  type: "buyer" | "vendor";
+}
+
+export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   // Yup schema for validation
@@ -52,14 +56,18 @@ const LoginPage: React.FC = () => {
     >
       <div className="absolute top-4 md:right-12 right-5 flex md:space-x-6 space-x-3">
         <Link
-          href="/login"
-          className="text-[#F9C301] font-bold font-body text-[12px] md:text-[16px]"
+          href="/user/login"
+          className={`
+            ${type === "buyer" ? "text-[#F9C301]" : "text-[#111102]"}
+            font-bold font-body text-[12px] md:text-[16px]`}
         >
           Buyer
         </Link>
         <Link
-          href="/vendorlogin"
-          className="text-[#111102] font-bold font-body text-[12px] md:text-[16px]"
+          href="/vendor/login"
+          className={`
+            ${type === "vendor" ? "text-[#F9C301]" : "text-[#111102]"}
+            font-bold font-body text-[12px] md:text-[16px]`}
         >
           Vendor
         </Link>
@@ -191,5 +199,3 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
-
-export default LoginPage;
