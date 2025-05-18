@@ -7,12 +7,12 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 
-interface QuotationModalProps {
+interface IViewQuotationRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface FormValues {
+interface IFormValues {
   itemName: string;
   serialNumber: string;
   stockAvailability: string;
@@ -31,10 +31,9 @@ interface FormValues {
   validityDays: number;
 }
 
-export const RequestedQuotationModal: React.FC<QuotationModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const ViewQuotationRequestModal: React.FC<
+  IViewQuotationRequestModalProps
+> = ({ isOpen, onClose }) => {
   const [fileName, setFileName] = useState<string>("");
 
   const schema = Yup.object().shape({
@@ -82,12 +81,12 @@ export const RequestedQuotationModal: React.FC<QuotationModalProps> = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<IFormValues>({
     resolver: yupResolver(schema),
   });
 
   // Form submission handler
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: IFormValues) => {
     console.log("Form submitted:", data);
     // submit logic here
   };
