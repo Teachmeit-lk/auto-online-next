@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { AddProductModal, TabLayout } from "@/components";
 
 export const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // const [isModalOpen2, setIsModalOpen2] = useState(false);
   // const [isModalOpen3, setIsModalOpen3] = useState(false);
 
@@ -83,7 +83,7 @@ export const VendorProducts: React.FC = () => {
             {/* Add Now Button */}
             <button
               className="px-4 py-1 w-[89px] h-[28px]  mt-[25px] rounded-[5px] bg-[#F9C301] font-body text-[#111102] hover:bg-yellow-500 text-[12px] "
-              // onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsModalOpen(true)}
             >
               Add now
             </button>
@@ -169,11 +169,12 @@ export const VendorProducts: React.FC = () => {
           Showing 1-{entries} of {entries} Entries
         </div>
 
-        {/* <AddProductModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+        <AddProductModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
 
+        {/*
       <ViewProductModal
         isOpen={isModalOpen2}
         onClose={() => setIsModalOpen2(false)}
