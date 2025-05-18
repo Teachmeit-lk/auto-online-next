@@ -76,7 +76,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
       {/* Buyer Login Heading */}
       <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
         <h1 className="text-center text-[16px] md:text-[24px] font-body font-bold text-[#111102]">
-          Buyer Login
+          {type === "buyer" ? "Buyer" : "Vendor"} Login
         </h1>
       </div>
 
@@ -179,7 +179,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             <p>
               Don’t have an account?{" "}
               <Link
-                href={"/#register"}
+                href={`/${type === "buyer" ? "user" : "vendor"}/register`}
                 className="text-[#F9C301] text-[8px] md:text-[12px] underline"
               >
                 Signup
