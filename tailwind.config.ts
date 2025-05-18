@@ -23,6 +23,9 @@ export default {
         body: ["Lato, serif"],
         sebino: ['"Sebino Medium"', "sans-serif"],
       },
+      screens: {
+        xs: "580px",
+      },
     },
   },
   plugins: [],
