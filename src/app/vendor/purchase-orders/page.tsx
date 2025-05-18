@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import {
   ConfirmQuotationConfirmationModal,
+  OpenChatConfirmationModal,
+  RejectPurchaseOrderModal,
   TabLayout,
   ViewPurchaseOrderModal,
 } from "@/components";
@@ -232,6 +234,24 @@ export const NewPurchaseOrders: React.FC = () => {
             setIsModalOpen3(false);
           }}
         />
+
+        <RejectPurchaseOrderModal
+          isOpen={isModalOpen4}
+          onClose={() => setIsModalOpen4(false)}
+          onConfirm={() => {
+            alert("in development");
+            setIsModalOpen4(false);
+          }}
+        />
+
+        <OpenChatConfirmationModal
+          isOpen={isModalOpen2}
+          onClose={() => setIsModalOpen2(false)}
+          onConfirm={() => {
+            alert("in development");
+            setIsModalOpen2(false);
+          }}
+        />
         {/*
       <NewPriceChatAlert
         isOpen={isModalOpen2}
@@ -239,12 +259,7 @@ export const NewPurchaseOrders: React.FC = () => {
         onConfirm={handleChatAlert}
       />
 
-
-      <RejectPurchaseOrderModal
-        isOpen={isModalOpen4}
-        onClose={() => setIsModalOpen4(false)}
-        onConfirm={handleDeleteAlert}
-      /> */}
+ */}
       </div>
     </TabLayout>
   );
