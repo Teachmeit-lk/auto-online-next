@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import {
+  ConfirmQuotationConfirmationModal,
   OpenChatConfirmationModal,
   TabLayout,
   ViewQuotationModal,
@@ -25,6 +26,8 @@ export const QuotationsFromVendors: React.FC = () => {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [ViewQuotationModalOpen, setViewQuotationModalOpen] = useState(false);
   const [openChatOpenConfirmation, setOpenChatOpenConfirmation] =
+    useState(false);
+  const [openQuotationConfirmation, setOpenQuotationConfirmation] =
     useState(false);
   // const [isModalOpen1, setIsModalOpen1] = useState(false);
   // const [isModalOpen2, setIsModalOpen2] = useState(false);
@@ -186,7 +189,7 @@ export const QuotationsFromVendors: React.FC = () => {
                     </button>
                     <button
                       className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      // onClick={() => setIsModalOpen3(true)}
+                      onClick={() => setOpenQuotationConfirmation(true)}
                     >
                       Confirm
                     </button>
@@ -229,6 +232,14 @@ export const QuotationsFromVendors: React.FC = () => {
           alert("In development");
           setOpenChatOpenConfirmation(false);
         }}
+      />
+      <ConfirmQuotationConfirmationModal
+        onClose={() => setOpenQuotationConfirmation(false)}
+        onConfirm={() => {
+          alert("in development");
+          setOpenQuotationConfirmation(false);
+        }}
+        isOpen={openQuotationConfirmation}
       />
     </TabLayout>
   );

@@ -3,6 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
+import { ConfirmQuotationConfirmationModal } from "./ConfirmQuotationConfirmationModal";
 
 interface IViewQuotationModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
       comment: "N/A",
     }))
   );
+  const [openQuotationConfirmation, setOpenQuotationConfirmation] =
+    useState(false);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -158,6 +161,10 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
               <button
                 type="button"
                 className="w-[164px] h-[36px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[14px] rounded-[3px] hover:bg-yellow-500"
+                onClick={() => {
+                  onClose();
+                  setOpenQuotationConfirmation(true);
+                }}
               >
                 Confirm Estimate
               </button>
@@ -175,6 +182,15 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <ConfirmQuotationConfirmationModal
+        onClose={() => setOpenQuotationConfirmation(false)}
+        onConfirm={() => {
+          alert("in development");
+          setOpenQuotationConfirmation(false);
+        }}
+        isOpen={openQuotationConfirmation}
+      />
     </Dialog.Root>
   );
 };
