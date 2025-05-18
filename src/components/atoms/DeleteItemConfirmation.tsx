@@ -3,13 +3,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 
-interface AlertModalProps {
+interface iDeleteItemConfirmationProps {
   isOpen: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
 
-export const DeleteTableItemAlert: React.FC<AlertModalProps> = ({
+export const DeleteItemConfirmation: React.FC<iDeleteItemConfirmationProps> = ({
   isOpen,
   onConfirm,
   onClose,

@@ -2,13 +2,18 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { AddProductModal, TabLayout, ViewProductModal } from "@/components";
+import {
+  AddProductModal,
+  DeleteItemConfirmation,
+  TabLayout,
+  ViewProductModal,
+} from "@/components";
 
 export const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
+  const [isModalOpen3, setIsModalOpen3] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -153,7 +158,7 @@ export const VendorProducts: React.FC = () => {
                     </button>
                     <button
                       className="bg-[#D1D1D1]  py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen3(true)}
+                      onClick={() => setIsModalOpen3(true)}
                     >
                       Delete
                     </button>
@@ -178,12 +183,15 @@ export const VendorProducts: React.FC = () => {
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
         />
-        {/*
-      <DeleteTableItemAlert
-        isOpen={isModalOpen3}
-        onClose={() => setIsModalOpen3(false)}
-        onConfirm={handleConfirmAlert}
-      /> */}
+
+        <DeleteItemConfirmation
+          isOpen={isModalOpen3}
+          onClose={() => setIsModalOpen3(false)}
+          onConfirm={() => {
+            alert("in development");
+            setIsModalOpen3(false);
+          }}
+        />
       </div>
     </TabLayout>
   );
