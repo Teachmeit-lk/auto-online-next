@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { TabLayout, ViewQuotationModal } from "@/components";
 
 // import { EstimateModal,AlertModal, ChatModal } from "@/app/modal";
 
@@ -19,6 +19,7 @@ interface Vendor {
 export const QuotationsFromVendors: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [ViewQuotationModalOpen, setViewQuotationModalOpen] = useState(false);
   // const [isModalOpen1, setIsModalOpen1] = useState(false);
   // const [isModalOpen2, setIsModalOpen2] = useState(false);
   // const [isModalOpen3, setIsModalOpen3] = useState(false);
@@ -166,6 +167,7 @@ export const QuotationsFromVendors: React.FC = () => {
                     <button
                       className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                       // onClick={() => setIsModalOpen1(true)}
+                      onClick={() => setViewQuotationModalOpen(true)}
                     >
                       View
                     </button>
@@ -209,6 +211,10 @@ export const QuotationsFromVendors: React.FC = () => {
         onConfirm={handleConfirmAlert}
       /> */}
       </div>
+      <ViewQuotationModal
+        isOpen={ViewQuotationModalOpen}
+        onClose={() => setViewQuotationModalOpen(false)}
+      />
     </TabLayout>
   );
 };

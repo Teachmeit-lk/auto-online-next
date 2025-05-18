@@ -1,1 +1,2 @@
-export * from "./getQuotationModal";
+export * from "./GetQuotationModal";
+export * from "./ViewQuotationModal";
