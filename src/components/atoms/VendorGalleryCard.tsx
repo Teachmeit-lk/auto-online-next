@@ -1,12 +1,15 @@
 import Image from "next/image";
-import React from "react";
+import React, { FC } from "react";
 
-interface Galleryprops {
+interface IGalleryProps {
   image: string;
   productname: string;
 }
 
-export const VendorGalleryCard = ({ image, productname }: Galleryprops) => {
+export const VendorGalleryCard: FC<IGalleryProps> = ({
+  image,
+  productname,
+}) => {
   return (
     <div className="flex flex-col  rounded-[5px] bg-[#FEFEFE] w-[126px] h-[137px]">
       <div className="w-full h-[109px] overflow-hidden rounded-t-[5px]">
