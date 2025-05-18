@@ -1,14 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Plus } from "lucide-react";
 
 import { VendorgalleryCardImage } from "@/app/assets/images";
-import { TabLayout, VendorGalleryCard } from "@/components/";
+import {
+  AddGalleryImageModal,
+  TabLayout,
+  VendorGalleryCard,
+} from "@/components/";
 // import { AddGalleryImageModal } from "@/app/modal";
 
 export const VendorGallery: React.FC = () => {
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const vendors = Array.from({ length: 12 }, (_, i) => ({
     image: VendorgalleryCardImage.src,
@@ -28,7 +32,7 @@ export const VendorGallery: React.FC = () => {
         <div className="grid grid-cols-8 pl-12">
           <div
             className="flex flex-col justify-center mb-4 text-[#F9C301] font-body font-bold text-[12px] items-center w-[126px] cursor-pointer h-[137px] border-2 border-[#F9C301] rounded-[10px] transform transition-transform duration-150 hover:scale-105 active:scale-95"
-            // onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsModalOpen(true)}
           >
             <Plus color="#F9C301" size="30px" />
             <div>Add New</div>
@@ -43,10 +47,10 @@ export const VendorGallery: React.FC = () => {
             </div>
           ))}
         </div>
-        {/* <AddGalleryImageModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
+        <AddGalleryImageModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </TabLayout>
   );
