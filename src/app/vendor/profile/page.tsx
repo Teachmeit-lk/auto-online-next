@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Select from "react-select";
+import { VendorLayout } from "@/components";
 
 interface UserProfileFormData {
   companyName: string;
@@ -140,396 +141,381 @@ export const VendorProfile = () => {
     });
   };
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white py-20">
-      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">
-        Vendor Profile - {control._formValues.companyName}
-      </h1>
-      <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl px-12 pt-12 pb-14">
-        <form
-          onSubmit={
-            isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
-          }
-          className="grid grid-cols-2 gap-6"
-        >
-          {/* First Name */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Company Name
-            </label>
-            <Controller
-              name="companyName"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2  ${
-                    errors.companyName
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+    <VendorLayout>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white py-20">
+        <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">
+          Vendor Profile - {control._formValues.companyName}
+        </h1>
+        <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl px-12 pt-12 pb-14">
+          <form
+            onSubmit={
+              isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
+            }
+            className="grid grid-cols-2 gap-6"
+          >
+            {/* First Name */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Company Name
+              </label>
+              <Controller
+                name="companyName"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2  ${
+                      errors.companyName
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.companyName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.companyName.message}
+                </p>
               )}
-            />
-            {errors.companyName && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.companyName.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Last Name */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Contact Person
-            </label>
-            <Controller
-              name="contactPerson"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.contactPerson
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* Last Name */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Contact Person
+              </label>
+              <Controller
+                name="contactPerson"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.contactPerson
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.contactPerson && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.contactPerson.message}
+                </p>
               )}
-            />
-            {errors.contactPerson && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.contactPerson.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* NIC */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Company Mobile Number
-            </label>
-            <Controller
-              name="companyMobileNumber"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.companyMobileNumber
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* NIC */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Company Mobile Number
+              </label>
+              <Controller
+                name="companyMobileNumber"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.companyMobileNumber
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.companyMobileNumber && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.companyMobileNumber.message}
+                </p>
               )}
-            />
-            {errors.companyMobileNumber && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.companyMobileNumber.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Whatsapp Number
-            </label>
-            <Controller
-              name="whatsappNumber"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.whatsappNumber
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* Email */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Whatsapp Number
+              </label>
+              <Controller
+                name="whatsappNumber"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.whatsappNumber
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.whatsappNumber && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.whatsappNumber.message}
+                </p>
               )}
-            />
-            {errors.whatsappNumber && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.whatsappNumber.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Mobile Number */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Email Address
-            </label>
-            <Controller
-              name="email"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.email
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* Mobile Number */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Email Address
+              </label>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.email
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
               )}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Whatsapp Number */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Company BR
-            </label>
-            <Controller
-              name="conmpanyBR"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.conmpanyBR
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* Whatsapp Number */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Company BR
+              </label>
+              <Controller
+                name="conmpanyBR"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.conmpanyBR
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.conmpanyBR && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.conmpanyBR.message}
+                </p>
               )}
-            />
-            {errors.conmpanyBR && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.conmpanyBR.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Current Password */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Current Password
-            </label>
-            <Controller
-              name="currentPassword"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="text"
-                  readOnly
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.currentPassword
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* Current Password */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Current Password
+              </label>
+              <Controller
+                name="currentPassword"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    readOnly
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.currentPassword
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.currentPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.currentPassword.message}
+                </p>
               )}
-            />
-            {errors.currentPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.currentPassword.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* New Password */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              New Password
-            </label>
-            <Controller
-              name="newPassword"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="text"
-                  value={field.value || ""}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.newPassword
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            {/* New Password */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                New Password
+              </label>
+              <Controller
+                name="newPassword"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    type="text"
+                    value={field.value || ""}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.newPassword
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.newPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.newPassword.message}
+                </p>
               )}
-            />
-            {errors.newPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.newPassword.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* District */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              District
-            </label>
-            <Controller
-              name="district"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.district
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B] pointer-events-none"
-                      : "bg-white text-[#111102]"
-                  }`}
-                >
-                  <option value="Colombo">Colombo</option>
-                  <option value="Kandy">Kandy</option>
-                  <option value="Galle">Galle</option>
-                </select>
+            {/* District */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                District
+              </label>
+              <Controller
+                name="district"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.district
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B] pointer-events-none"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  >
+                    <option value="Colombo">Colombo</option>
+                    <option value="Kandy">Kandy</option>
+                    <option value="Galle">Galle</option>
+                  </select>
+                )}
+              />
+              {errors.district && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.district.message}
+                </p>
               )}
-            />
-            {errors.district && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.district.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Location Link
-            </label>
-            <Controller
-              name="locationLink"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  value={field.value || ""}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.locationLink
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Location Link
+              </label>
+              <Controller
+                name="locationLink"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    {...field}
+                    value={field.value || ""}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.locationLink
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.locationLink && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.locationLink.message}
+                </p>
               )}
-            />
-            {errors.locationLink && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.locationLink.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          <div className="col-span-2">
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Description
-            </label>
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <textarea
-                  {...field}
-                  readOnly={!isEditable}
-                  className={`mt-1 block w-full h-[108px] rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.description
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+            <div className="col-span-2">
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Description
+              </label>
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    {...field}
+                    readOnly={!isEditable}
+                    className={`mt-1 block w-full h-[108px] rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.description
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description.message}
+                </p>
               )}
-            />
-            {errors.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Main Categories */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Main Categories
-            </label>
-            <Controller
-              name="mainCategories"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={categoryOptions}
-                  isMulti
-                  isDisabled={!isEditable}
-                  styles={{
-                    control: (provided, state) => ({
-                      ...provided,
-                      borderColor: errors.mainCategories
-                        ? "#ef4444"
-                        : state.isFocused
-                        ? "#eab308"
-                        : "transparent",
-
-                      boxShadow: errors.mainCategories
-                        ? "0 0 0 1px #ef4444"
-                        : state.isFocused
-                        ? "0 0 0 1px #eab308"
-                        : "none",
-
-                      backgroundColor: "#ffffff",
-                      width: "100%",
-                      borderRadius: "8px",
-                      "&:hover": {
+            {/* Main Categories */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Main Categories
+              </label>
+              <Controller
+                name="mainCategories"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={categoryOptions}
+                    isMulti
+                    isDisabled={!isEditable}
+                    styles={{
+                      control: (provided, state) => ({
+                        ...provided,
                         borderColor: errors.mainCategories
                           ? "#ef4444"
                           : state.isFocused
@@ -541,88 +527,88 @@ export const VendorProfile = () => {
                           : state.isFocused
                           ? "0 0 0 1px #eab308"
                           : "none",
-                      },
-                    }),
 
-                    menu: (provided) => ({
-                      ...provided,
-                      borderRadius: "8px",
-                      backgroundColor: "#ffffff",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    }),
+                        backgroundColor: "#ffffff",
+                        width: "100%",
+                        borderRadius: "8px",
+                        "&:hover": {
+                          borderColor: errors.mainCategories
+                            ? "#ef4444"
+                            : state.isFocused
+                            ? "#eab308"
+                            : "transparent",
 
-                    multiValue: (provided) => ({
-                      ...provided,
-                      backgroundColor: "#F8F8F8",
-                      color: "#111102",
-                    }),
+                          boxShadow: errors.mainCategories
+                            ? "0 0 0 1px #ef4444"
+                            : state.isFocused
+                            ? "0 0 0 1px #eab308"
+                            : "none",
+                        },
+                      }),
 
-                    multiValueLabel: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                    }),
+                      menu: (provided) => ({
+                        ...provided,
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      }),
 
-                    multiValueRemove: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                      "&:hover": {
+                      multiValue: (provided) => ({
+                        ...provided,
+                        backgroundColor: "#F8F8F8",
                         color: "#111102",
-                        backgroundColor: "#e5e7eb",
-                      },
-                    }),
-                  }}
-                  className={`mt-1 block w-full rounded-md shadow-sm font-body text-sm focus:outline-none ${
-                    errors.mainCategories
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+                      }),
+
+                      multiValueLabel: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                      }),
+
+                      multiValueRemove: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                        "&:hover": {
+                          color: "#111102",
+                          backgroundColor: "#e5e7eb",
+                        },
+                      }),
+                    }}
+                    className={`mt-1 block w-full rounded-md shadow-sm font-body text-sm focus:outline-none ${
+                      errors.mainCategories
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.mainCategories && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.mainCategories.message}
+                </p>
               )}
-            />
-            {errors.mainCategories && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.mainCategories.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Vehicle Brand */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Vehicle Brand
-            </label>
-            <Controller
-              name="vehicleBrand"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={brandOptions}
-                  isMulti
-                  isDisabled={!isEditable}
-                  styles={{
-                    control: (provided, state) => ({
-                      ...provided,
-                      borderColor: errors.vehicleBrand
-                        ? "#ef4444"
-                        : state.isFocused
-                        ? "#eab308"
-                        : "transparent",
-
-                      boxShadow: errors.vehicleBrand
-                        ? "0 0 0 1px #ef4444"
-                        : state.isFocused
-                        ? "0 0 0 1px #eab308"
-                        : "none",
-
-                      backgroundColor: "#ffffff",
-                      width: "100%",
-                      borderRadius: "8px",
-                      "&:hover": {
+            {/* Vehicle Brand */}
+            <div>
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Vehicle Brand
+              </label>
+              <Controller
+                name="vehicleBrand"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={brandOptions}
+                    isMulti
+                    isDisabled={!isEditable}
+                    styles={{
+                      control: (provided, state) => ({
+                        ...provided,
                         borderColor: errors.vehicleBrand
                           ? "#ef4444"
                           : state.isFocused
@@ -634,88 +620,88 @@ export const VendorProfile = () => {
                           : state.isFocused
                           ? "0 0 0 1px #eab308"
                           : "none",
-                      },
-                    }),
 
-                    menu: (provided) => ({
-                      ...provided,
-                      borderRadius: "8px",
-                      backgroundColor: "#ffffff",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    }),
+                        backgroundColor: "#ffffff",
+                        width: "100%",
+                        borderRadius: "8px",
+                        "&:hover": {
+                          borderColor: errors.vehicleBrand
+                            ? "#ef4444"
+                            : state.isFocused
+                            ? "#eab308"
+                            : "transparent",
 
-                    multiValue: (provided) => ({
-                      ...provided,
-                      backgroundColor: "#F8F8F8",
-                      color: "#111102",
-                    }),
+                          boxShadow: errors.vehicleBrand
+                            ? "0 0 0 1px #ef4444"
+                            : state.isFocused
+                            ? "0 0 0 1px #eab308"
+                            : "none",
+                        },
+                      }),
 
-                    multiValueLabel: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                    }),
+                      menu: (provided) => ({
+                        ...provided,
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      }),
 
-                    multiValueRemove: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                      "&:hover": {
+                      multiValue: (provided) => ({
+                        ...provided,
+                        backgroundColor: "#F8F8F8",
                         color: "#111102",
-                        backgroundColor: "#e5e7eb",
-                      },
-                    }),
-                  }}
-                  className={`mt-1 block w-full rounded-md shadow-sm  font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.vehicleBrand
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
+                      }),
+
+                      multiValueLabel: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                      }),
+
+                      multiValueRemove: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                        "&:hover": {
+                          color: "#111102",
+                          backgroundColor: "#e5e7eb",
+                        },
+                      }),
+                    }}
+                    className={`mt-1 block w-full rounded-md shadow-sm  font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.vehicleBrand
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.vehicleBrand && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.vehicleBrand.message}
+                </p>
               )}
-            />
-            {errors.vehicleBrand && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.vehicleBrand.message}
-              </p>
-            )}
-          </div>
+            </div>
 
-          {/* Vehicle Model */}
-          <div className="">
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Vehicle Model
-            </label>
-            <Controller
-              name="vehicleModel"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={modelOptions}
-                  isMulti
-                  isDisabled={!isEditable}
-                  styles={{
-                    control: (provided, state) => ({
-                      ...provided,
-                      borderColor: errors.vehicleModel
-                        ? "#ef4444"
-                        : state.isFocused
-                        ? "#eab308"
-                        : "transparent",
-
-                      boxShadow: errors.vehicleModel
-                        ? "0 0 0 1px #ef4444"
-                        : state.isFocused
-                        ? "0 0 0 1px #eab308"
-                        : "none",
-
-                      backgroundColor: "#ffffff",
-                      width: "100%",
-                      borderRadius: "8px",
-                      "&:hover": {
+            {/* Vehicle Model */}
+            <div className="">
+              <label className="block text-[16px] font-medium font-body text-[#111102]">
+                Vehicle Model
+              </label>
+              <Controller
+                name="vehicleModel"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={modelOptions}
+                    isMulti
+                    isDisabled={!isEditable}
+                    styles={{
+                      control: (provided, state) => ({
+                        ...provided,
                         borderColor: errors.vehicleModel
                           ? "#ef4444"
                           : state.isFocused
@@ -727,68 +713,85 @@ export const VendorProfile = () => {
                           : state.isFocused
                           ? "0 0 0 1px #eab308"
                           : "none",
-                      },
-                    }),
 
-                    menu: (provided) => ({
-                      ...provided,
-                      borderRadius: "8px",
-                      backgroundColor: "#ffffff",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    }),
+                        backgroundColor: "#ffffff",
+                        width: "100%",
+                        borderRadius: "8px",
+                        "&:hover": {
+                          borderColor: errors.vehicleModel
+                            ? "#ef4444"
+                            : state.isFocused
+                            ? "#eab308"
+                            : "transparent",
 
-                    multiValue: (provided) => ({
-                      ...provided,
-                      backgroundColor: "#F8F8F8",
-                      color: "#111102",
-                    }),
+                          boxShadow: errors.vehicleModel
+                            ? "0 0 0 1px #ef4444"
+                            : state.isFocused
+                            ? "0 0 0 1px #eab308"
+                            : "none",
+                        },
+                      }),
 
-                    multiValueLabel: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                    }),
+                      menu: (provided) => ({
+                        ...provided,
+                        borderRadius: "8px",
+                        backgroundColor: "#ffffff",
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                      }),
 
-                    multiValueRemove: (provided) => ({
-                      ...provided,
-                      color: "#111102",
-                      "&:hover": {
+                      multiValue: (provided) => ({
+                        ...provided,
+                        backgroundColor: "#F8F8F8",
                         color: "#111102",
-                        backgroundColor: "#e5e7eb",
-                      },
-                    }),
-                  }}
-                  className={`mt-1 block w-full rounded-md shadow-sm  font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.vehicleModel
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
-                />
-              )}
-            />
-            {errors.vehicleModel && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.vehicleModel.message}
-              </p>
-            )}
-          </div>
+                      }),
 
-          {/* Edit / Save Button */}
-          <div className="col-span-1 mt-6">
-            <button
-              type="button"
-              onClick={handleEditToggle}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102]"
-            >
-              {isEditable ? "Save Profile" : "Edit Profile"}
-            </button>
-          </div>
-        </form>
+                      multiValueLabel: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                      }),
+
+                      multiValueRemove: (provided) => ({
+                        ...provided,
+                        color: "#111102",
+                        "&:hover": {
+                          color: "#111102",
+                          backgroundColor: "#e5e7eb",
+                        },
+                      }),
+                    }}
+                    className={`mt-1 block w-full rounded-md shadow-sm  font-body text-sm focus:outline-none focus:ring-2 ${
+                      errors.vehicleModel
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    } ${
+                      !isEditable
+                        ? "bg-white text-[#5B5B5B]"
+                        : "bg-white text-[#111102]"
+                    }`}
+                  />
+                )}
+              />
+              {errors.vehicleModel && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.vehicleModel.message}
+                </p>
+              )}
+            </div>
+
+            {/* Edit / Save Button */}
+            <div className="col-span-1 mt-6">
+              <button
+                type="button"
+                onClick={handleEditToggle}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102]"
+              >
+                {isEditable ? "Save Profile" : "Edit Profile"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </VendorLayout>
   );
 };
 export default VendorProfile;
