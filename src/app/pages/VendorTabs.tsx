@@ -7,20 +7,20 @@ import React from "react";
 //   VendorGallery,
 //   CompletedOrders,
 // } from "@/components/vendor";
-// import { VendorLayout } from "@/app/layout/VendorLayout";
+import { VendorLayout } from "@/app/layout/VendorLayout";
 
 export const VendorTabs: React.FC = () => {
-  // const tabs = [
-  //   // { label: "Vendor Products", component: <VendorProducts /> },
-  //   // { label: "Completed Orders", component: <CompletedOrders /> },
-  //   // { label: "New Price Requests", component: <NewPriceRequests /> },
-  //   // { label: "New Purchase Orders", component: <NewPurchaseOrders /> },
-  //   // { label: "Vendor Gallery", component: <VendorGallery /> },
-  // ];
+  const tabs = [
+    { label: "Vendor Products", component: <>sample</> },
+    { label: "Completed Orders", component: <>sample</> },
+    { label: "New Price Requests", component: <>sample</> },
+    { label: "New Purchase Orders", component: <>sample</> },
+    { label: "Vendor Gallery", component: <>sample</> },
+  ];
 
   return (
     <div className="container mx-auto" id="tabspage">
-      {/* <VendorLayout tabs={tabs} /> */}
+      <VendorLayout tabs={tabs} />
     </div>
   );
 };

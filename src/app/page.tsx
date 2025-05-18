@@ -1,13 +1,7 @@
 import { FC } from "react";
 
-import { VendorTabs } from "@/app/pages";
-
 const Home: FC = () => {
-  return (
-    <div>
-      <VendorTabs />
-    </div>
-  );
+  return <div>HomePage</div>;
 };
 
 export default Home;
