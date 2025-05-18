@@ -1,2 +1,3 @@
-// Main Components
+export * from "./Footer";
 export * from "./Header";
+export * from "./layouts";
