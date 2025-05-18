@@ -5,7 +5,7 @@ import { Search, ClipboardCheck } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 
 import { CarImage1 } from "@/app/assets/images";
-import { TabLayout } from "@/components";
+import { TabLayout, ViewQuotationRequestModal } from "@/components";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -15,10 +15,10 @@ import { TabLayout } from "@/components";
 
 export const NewPriceRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
-  // const [isModalOpen4, setIsModalOpen4] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isModalOpen3, setIsModalOpen3] = useState(false);
+  const [isModalOpen4, setIsModalOpen4] = useState(false);
 
   const [popupImage, setPopupImage] = useState<string | StaticImageData | null>(
     null
@@ -225,7 +225,7 @@ export const NewPriceRequests: React.FC = () => {
                       <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen2(true)}
+                          onClick={() => setIsModalOpen2(true)}
                         >
                           Quotation
                         </button>
@@ -289,16 +289,17 @@ export const NewPriceRequests: React.FC = () => {
           Showing 1-{entries} of {entries} Entries
         </div>
 
+        <ViewQuotationRequestModal
+          isOpen={isModalOpen2}
+          onClose={() => setIsModalOpen2(false)}
+        />
+
         {/* <NewPriceChatAlert
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmChat}
       />
 
-      <RequestedQuotationModal
-        isOpen={isModalOpen2}
-        onClose={() => setIsModalOpen2(false)}
-      />
 
       <SentQuotationModal
         isOpen={isModalOpen3}
