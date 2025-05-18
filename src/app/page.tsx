@@ -1,13 +1,7 @@
 import { FC } from "react";
 
-import { VendorProducts } from "@/components/vendor";
-
 const Home: FC = () => {
-  return (
-    <div>
-      <VendorProducts />
-    </div>
-  );
+  return <div>home page</div>;
 };
 
 export default Home;
