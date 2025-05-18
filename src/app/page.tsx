@@ -1,10 +1,35 @@
 "use client";
 
 import { FC } from "react";
-import { AddProductModal } from "./modal/AddProductModal";
+
+import {
+  AutoServices,
+  HeroSection,
+  ProductCategories,
+  InfoComponent,
+  ServiceCategories,
+  OurStatusSection,
+  AboutUs,
+  ContactUsSection,
+  ContactForm,
+  ScrollToTopButton,
+} from "@/components";
 
 const Home: FC = () => {
-  return <AddProductModal isOpen={true} onClose={() => {}} />;
+  return (
+    <div>
+      <HeroSection />
+      <AutoServices />
+      <ProductCategories />
+      <InfoComponent />
+      <ServiceCategories />
+      <OurStatusSection />
+      <AboutUs />
+      <ContactUsSection />
+      <ScrollToTopButton />
+      <ContactForm />
+    </div>
+  );
 };
 
 export default Home;
