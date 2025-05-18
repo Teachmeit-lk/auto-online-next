@@ -6,12 +6,12 @@ import Image from "next/image";
 
 import { ViewEstimate1 } from "@/app/assets/images";
 
-interface ViewProductModalProps {
+interface IViewProductModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ViewProductModal: React.FC<ViewProductModalProps> = ({
+export const ViewProductModal: React.FC<IViewProductModalProps> = ({
   isOpen,
   onClose,
 }) => {

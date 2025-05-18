@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { AddProductModal, TabLayout } from "@/components";
+import { AddProductModal, TabLayout, ViewProductModal } from "@/components";
 
 export const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isModalOpen2, setIsModalOpen2] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
   // const [isModalOpen3, setIsModalOpen3] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
@@ -147,7 +147,7 @@ export const VendorProducts: React.FC = () => {
                   <td className="grid grid-cols-2 text-center w-full h-full">
                     <button
                       className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen2(true)}
+                      onClick={() => setIsModalOpen2(true)}
                     >
                       View
                     </button>
@@ -174,12 +174,11 @@ export const VendorProducts: React.FC = () => {
           onClose={() => setIsModalOpen(false)}
         />
 
+        <ViewProductModal
+          isOpen={isModalOpen2}
+          onClose={() => setIsModalOpen2(false)}
+        />
         {/*
-      <ViewProductModal
-        isOpen={isModalOpen2}
-        onClose={() => setIsModalOpen2(false)}
-      />
-
       <DeleteTableItemAlert
         isOpen={isModalOpen3}
         onClose={() => setIsModalOpen3(false)}
