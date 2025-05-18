@@ -1,1 +1,1 @@
-export * from "./VendorLayout";
+export * from "./TabLayout";

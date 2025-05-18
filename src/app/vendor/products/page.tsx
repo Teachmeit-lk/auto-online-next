@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { VendorLayout } from "@/components";
+import { TabLayout } from "@/components";
 
 export const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -25,7 +25,7 @@ export const VendorProducts: React.FC = () => {
   // };
 
   return (
-    <VendorLayout>
+    <TabLayout type="vendor">
       <div
         className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
         id="searchvendors"
@@ -185,7 +185,7 @@ export const VendorProducts: React.FC = () => {
         onConfirm={handleConfirmAlert}
       /> */}
       </div>
-    </VendorLayout>
+    </TabLayout>
   );
 };
 export default VendorProducts;

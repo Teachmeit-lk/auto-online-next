@@ -49,11 +49,11 @@ export const CustomerTabList = [
   // },
   {
     label: CustomerTabs.SearchVendors,
-    path: "/search-vendors",
+    path: "/user/search-vendors",
   },
   {
     label: CustomerTabs.QuotationRequests,
-    path: "/quotation-requests",
+    path: "/user/quotation-requests",
   },
   {
     label: CustomerTabs.QuotationsFromVendors,
@@ -61,10 +61,10 @@ export const CustomerTabList = [
   },
   {
     label: CustomerTabs.AcceptedPOs,
-    path: "/accepted-po",
+    path: "/user/accepted-po-list",
   },
   {
     label: CustomerTabs.CompletedOrders,
-    path: "/completed-orders",
+    path: "/user/completed-orders",
   },
 ];
