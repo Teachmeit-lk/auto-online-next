@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { TabLayout, ViewPurchaseOrderModal } from "@/components";
 
 // import {
 //   NewPriceChatAlert,
@@ -24,7 +24,7 @@ interface Vendor {
 export const NewPurchaseOrders: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  // const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [isModalOpen1, setIsModalOpen1] = useState(false);
   // const [isModalOpen2, setIsModalOpen2] = useState(false);
   // const [isModalOpen3, setIsModalOpen3] = useState(false);
   // const [isModalOpen4, setIsModalOpen4] = useState(false);
@@ -183,7 +183,7 @@ export const NewPurchaseOrders: React.FC = () => {
                   <td className="grid grid-cols-4 text-center w-full h-full font-body">
                     <button
                       className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      // onClick={() => setIsModalOpen1(true)}
+                      onClick={() => setIsModalOpen1(true)}
                     >
                       View
                     </button>
@@ -216,11 +216,11 @@ export const NewPurchaseOrders: React.FC = () => {
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
           Showing 1-{entries} of {entries} Entries
         </div>
-
-        {/* <ViewPurchaseOrderModal
-        isOpen={isModalOpen1}
-        onClose={() => setIsModalOpen1(false)}
-      />
+        <ViewPurchaseOrderModal
+          isOpen={isModalOpen1}
+          onClose={() => setIsModalOpen1(false)}
+        />
+        {/*
       <NewPriceChatAlert
         isOpen={isModalOpen2}
         onClose={() => setIsModalOpen2(false)}
