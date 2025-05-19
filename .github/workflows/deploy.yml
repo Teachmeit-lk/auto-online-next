@@ -1,7 +1,9 @@
 name: Build and Deploy to Server
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - develop
 
@@ -9,6 +11,7 @@ jobs:
   # 1. BUILD JOB
   build:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
