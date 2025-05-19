@@ -4,7 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import Image from "next/image";
 
-import { ViewEstimate1 } from "@/app/assets/images";
+import { ViewEstimate1 } from "@/assets/Images";
 
 interface IViewVendorProfileModalProps {
   isOpen: boolean;

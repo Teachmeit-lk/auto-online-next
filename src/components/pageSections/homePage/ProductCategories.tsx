@@ -19,7 +19,7 @@ import {
   Product3,
   Product4,
   Product5,
-} from "@/assets/images";
+} from "@/assets/Images";
 
 const initialProducts = [
   {

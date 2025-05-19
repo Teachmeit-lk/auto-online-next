@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import { People } from "@/assets/images";
+import { People } from "@/assets/Images";
 
 export const VendorsCard: React.FC = () => {
   return (

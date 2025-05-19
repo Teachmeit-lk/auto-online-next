@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import { Lorry } from "@/assets/images";
+import { Lorry } from "@/assets/Images";
 
 export const OrdersCard: React.FC = () => {
   return (

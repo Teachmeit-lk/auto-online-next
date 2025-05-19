@@ -10,7 +10,7 @@ import {
   TwitterIcon,
   YoutubeIcon,
   HeaderLogo,
-} from "@/assets/images";
+} from "@/assets/Images";
 
 export const Footer: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);

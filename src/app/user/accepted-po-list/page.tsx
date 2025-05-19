@@ -6,7 +6,7 @@ import { TabLayout, ViewAcceptedPOModal } from "@/components";
 
 // import { PurchaseOrderModal } from "@/app/modal";
 
-export const AcceptedPO: React.FC = () => {
+const AcceptedPO: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

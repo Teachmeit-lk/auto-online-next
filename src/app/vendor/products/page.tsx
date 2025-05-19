@@ -9,7 +9,7 @@ import {
   ViewProductModal,
 } from "@/components";
 
-export const VendorProducts: React.FC = () => {
+const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);

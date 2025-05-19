@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Plus } from "lucide-react";
 
-import { VendorgalleryCardImage } from "@/app/assets/images";
+import { VendorgalleryCardImage } from "@/assets/Images";
 import {
   AddGalleryImageModal,
   TabLayout,
@@ -11,7 +11,7 @@ import {
 } from "@/components/";
 // import { AddGalleryImageModal } from "@/app/modal";
 
-export const VendorGallery: React.FC = () => {
+const VendorGallery: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const vendors = Array.from({ length: 12 }, (_, i) => ({

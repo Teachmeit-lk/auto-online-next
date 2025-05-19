@@ -10,7 +10,7 @@ import {
   HeroImg1,
   HeroImg2,
   HeroImg3,
-} from "@/assets/images";
+} from "@/assets/Images";
 import HeaderLogo from "@/assets/Images/HeaderLogo.png";
 
 export const HeroSection: React.FC = () => {

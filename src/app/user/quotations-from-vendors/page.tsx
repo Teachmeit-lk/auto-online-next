@@ -21,7 +21,7 @@ interface Vendor {
   status: string;
 }
 
-export const QuotationsFromVendors: React.FC = () => {
+const QuotationsFromVendors: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [ViewQuotationModalOpen, setViewQuotationModalOpen] = useState(false);

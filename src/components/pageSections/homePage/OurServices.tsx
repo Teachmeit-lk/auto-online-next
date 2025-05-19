@@ -18,7 +18,7 @@ import {
   OService3,
   OService4,
   OService5,
-} from "@/assets/images";
+} from "@/assets/Images";
 
 const initialProducts = [
   {

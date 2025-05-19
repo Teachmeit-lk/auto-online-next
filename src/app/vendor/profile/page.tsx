@@ -40,7 +40,7 @@ const modelOptions = [
   { value: "model3", label: "Model3" },
 ];
 
-export const VendorProfile = () => {
+const VendorProfile = () => {
   const [isEditable, setIsEditable] = useState(false);
   const [defaultValues, setDefaultValues] =
     useState<UserProfileFormData | null>(null);

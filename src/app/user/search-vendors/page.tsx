@@ -6,7 +6,7 @@ import { TabLayout, ViewVendorProfileModal } from "@/components";
 
 import { GetQuotationModal } from "@/components/";
 
-export const SearchVendors: React.FC = () => {
+const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
   const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
   const [ViewVendorProfileModalOpen, setViewVendorProfileModalOpen] =

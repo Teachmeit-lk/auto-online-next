@@ -27,7 +27,7 @@ interface Vendor {
   status: string;
 }
 
-export const NewPurchaseOrders: React.FC = () => {
+const NewPurchaseOrders: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isModalOpen1, setIsModalOpen1] = useState(false);

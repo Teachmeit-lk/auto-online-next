@@ -6,7 +6,7 @@ import { TabLayout } from "@/components";
 
 // import { ViewEstimateModal } from "@/app/modal";
 
-export const QuotationRequests: React.FC = () => {
+const QuotationRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
   //   const [isModalOpen, setIsModalOpen] = useState(false);
 

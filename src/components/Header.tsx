@@ -13,7 +13,7 @@ import {
   AlignLeft,
 } from "lucide-react";
 
-import { HeaderLogo } from "@/assets/images";
+import { HeaderLogo } from "@/assets/Images";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");

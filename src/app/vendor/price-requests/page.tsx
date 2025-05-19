@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 
-import { CarImage1 } from "@/app/assets/images";
+import { CarImage1 } from "@/assets/Images";
 import {
   OpenChatConfirmationModal,
   TabLayout,
@@ -17,12 +17,12 @@ import {
 //   SentQuotationModal,
 // } from "@/app/modal";
 
-export const NewPriceRequests: React.FC = () => {
+const NewPriceRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
-  const [isModalOpen3, setIsModalOpen3] = useState(false);
-  const [isModalOpen4, setIsModalOpen4] = useState(false);
+  // const [isModalOpen3, setIsModalOpen3] = useState(false);
+  // const [isModalOpen4, setIsModalOpen4] = useState(false);
 
   const [popupImage, setPopupImage] = useState<string | StaticImageData | null>(
     null

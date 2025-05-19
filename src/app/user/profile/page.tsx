@@ -17,7 +17,7 @@ interface UserProfileFormData {
   district: string;
 }
 
-export const UserProfile = () => {
+const UserProfile = () => {
   const [isEditable, setIsEditable] = useState(false);
 
   // Yup schema for validation

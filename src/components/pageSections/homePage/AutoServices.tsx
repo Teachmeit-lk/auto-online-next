@@ -11,7 +11,7 @@ import {
   Service1,
   Service2,
   Service3,
-} from "@/assets/images";
+} from "@/assets/Images";
 
 const brands = [
   { name: "TOYOTA", logo: Toyota },
