@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 interface ICommonLoginPageProps {
   type: "buyer" | "vendor";
@@ -13,6 +14,7 @@ interface ICommonLoginPageProps {
 
 export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -42,7 +44,11 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   // Form submission handler
   const onSubmit = (data: { mobile: string; password: string }) => {
     console.log("Form submitted:", data);
-    // login logic here
+    if (type === "buyer") {
+      router.push("/user/search-vendors");
+    } else {
+      router.push("/vendor/products");
+    }
   };
 
   const togglePasswordVisibility = () => {

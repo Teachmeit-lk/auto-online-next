@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import { TabLayout } from "@/components";
 
-// import { ViewEstimateModal } from "@/app/modal";
+import { ViewEstimateModal } from "@/components/user/ViewEstimateModal";
 
 const QuotationRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
-  //   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const vendors = Array.from({ length: entries }, (_, i) => ({
     no: i + 1,
@@ -126,7 +126,7 @@ const QuotationRequests: React.FC = () => {
                   <td className="grid grid-cols-1 text-center w-full h-full">
                     <button
                       className="bg-[#D1D1D1] px-3 font-body py-3 hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500 text-[#111102] text-[12px] w-full h-full"
-                      // onClick={() => setIsModalOpen(true)}
+                      onClick={() => setIsModalOpen(true)}
                     >
                       View
                     </button>
@@ -142,10 +142,10 @@ const QuotationRequests: React.FC = () => {
           Showing 1-{entries} Entries
         </div>
 
-        {/* <ViewEstimateModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
+        <ViewEstimateModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </TabLayout>
   );
