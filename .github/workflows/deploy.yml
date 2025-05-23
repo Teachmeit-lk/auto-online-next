@@ -239,33 +239,33 @@ jobs:
             echo "====== DEPLOYMENT COMPLETED SUCCESSFULLY ======"
 
   # # 3. NOTIFICATION JOB
-  # notify:
-  #   needs: [build, deploy]
-  #   runs-on: ubuntu-latest
-  #   if: always()
-  #   steps:
-  #     - name: Send deployment notification
-  #       uses: slackapi/slack-github-action@v1.25.0
-  #       with:
-  #         payload: |
-  #           {
-  #             "text": "Auto-Online-Next Deployment Status",
-  #             "blocks": [
-  #               {
-  #                 "type": "section",
-  #                 "text": {
-  #                   "type": "mrkdwn",
-  #                   "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}\n• *Web Application URL:* http://autoonline.teachmeit.lk/"
-  #                 }
-  #               },                {
-  #                 "type": "section",
-  #                 "text": {
-  #                   "type": "mrkdwn",
-  #                   "text": "${{ needs.deploy.result == 'success' && 'Application has been deployed and is now running.' || format('Please check the <{0}/{1}/actions/runs/{2}|workflow run> for details.', github.server_url, github.repository, github.run_id) }}"
-  #                 }
-  #               }
-  #             ]
-  #           }
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  #         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+  notify:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send deployment notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "Auto-Online-Next Deployment Status",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}\n• *Web Application URL:* http://autoonline.teachmeit.lk/"
+                  }
+                },                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ needs.deploy.result == 'success' && 'Application has been deployed and is now running.' || format('Please check the <{0}/{1}/actions/runs/{2}|workflow run> for details.', github.server_url, github.repository, github.run_id) }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
