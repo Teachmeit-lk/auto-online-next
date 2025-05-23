@@ -6,12 +6,15 @@ on:
       - closed
     branches:
       - develop
+  push:
+    branches:
+      - develop
 
 jobs:
   # 1. BUILD JOB
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
