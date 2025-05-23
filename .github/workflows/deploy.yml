@@ -27,6 +27,12 @@ jobs:
       - name: Install sharp and optional dependencies
         run: npm install --include=optional sharp
 
+      - name: Create production env file
+        run: |
+          echo "NODE_ENV=production" > .env.production
+          echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
+          echo "PORT=4001" >> .env.production
+
       - name: Build Next.js project
         run: npm run build
 
@@ -77,16 +83,19 @@ jobs:
             sudo rm -rf /var/www/auto-online-next-tmp
             cd /var/www/auto-online-next
 
-            # Install dependencies properly for production
+            # Install dependencies for production (without dev dependencies)
             npm ci --production
 
-            # Ensure .env.production exists with necessary variables
-            touch .env.production
-            echo "NODE_ENV=production" >> .env.production
-            echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
-            echo "PORT=4001" >> .env.production
-
-            # Remove the duplicate build step - we're using the pre-built files from GitHub Actions
+            # Verify we have the .env.production (it should have been copied from the artifacts)
+            if [ ! -f .env.production ]; then
+              echo "Creating .env.production file as it wasn't found"
+              touch .env.production
+              echo "NODE_ENV=production" >> .env.production
+              echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
+              echo "PORT=4001" >> .env.production
+            else
+              echo ".env.production file exists"
+            fi
 
             # Stop and delete all auto-online-next processes (by name only)
             pm2 stop auto-online-next || true
@@ -98,34 +107,34 @@ jobs:
             # Start only one instance in fork mode
             cd /var/www/auto-online-next
             pm2 start npm --name "auto-online-next" -- run start -- -p 4001
-  # 3. NOTIFICATION JOB
-  notify:
-    needs: [build, deploy]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Send deployment notification
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "text": "Auto-Online-Next Deployment Status",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}\n• *Web Application URL:* http://autoonline.teachmeit.lk/"
-                  }
-                },                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ needs.deploy.result == 'success' && 'Application has been deployed and is now running.' || format('Please check the <{0}/{1}/actions/runs/{2}|workflow run> for details.', github.server_url, github.repository, github.run_id) }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+  # 3. NOTIFICATION JOB - Currently disabled
+  # notify:
+  #   needs: [build, deploy]
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   steps:
+  #     - name: Send deployment notification
+  #       uses: slackapi/slack-github-action@v1.25.0
+  #       with:
+  #         payload: |
+  #           {
+  #             "text": "Auto-Online-Next Deployment Status",
+  #             "blocks": [
+  #               {
+  #                 "type": "section",
+  #                 "text": {
+  #                   "type": "mrkdwn",
+  #                   "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}\n• *Web Application URL:* http://autoonline.teachmeit.lk/"
+  #                 }
+  #               },                {
+  #                 "type": "section",
+  #                 "text": {
+  #                   "type": "mrkdwn",
+  #                   "text": "${{ needs.deploy.result == 'success' && 'Application has been deployed and is now running.' || format('Please check the <{0}/{1}/actions/runs/{2}|workflow run> for details.', github.server_url, github.repository, github.run_id) }}"
+  #                 }
+  #               }
+  #             ]
+  #           }
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  #         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
