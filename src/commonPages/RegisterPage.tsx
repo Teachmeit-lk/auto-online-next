@@ -8,6 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ICommonRegisterPageProps {
   type: "buyer" | "vendor";
@@ -18,6 +19,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setshowConfirmPassword] = useState(false);
+  const router = useRouter();
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -67,7 +69,11 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     confirmPassword: string;
   }) => {
     console.log("Form submitted:", data);
-    // login logic here
+    if (type === "buyer") {
+      router.push("/user/search-vendors");
+    } else {
+      router.push("/vendor/products");
+    }
   };
 
   const togglePasswordVisibility = () => {

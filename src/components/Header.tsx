@@ -50,7 +50,7 @@ export const Header: React.FC = () => {
 
           {/* Small Login Button (Right Corner) */}
           <Link
-            href="/#login"
+            href="/user/login"
             className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
           >
             LOGIN
@@ -72,7 +72,7 @@ export const Header: React.FC = () => {
         {/* Login Button - Hidden on Small Screens */}
         <div className="hidden md:block">
           <Link
-            href="/#login"
+            href="/user/login"
             className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
           >
             LOGIN
