@@ -86,61 +86,113 @@ jobs:
             sudo rm -rf /var/www/auto-online-next-tmp
             cd /var/www/auto-online-next
 
+            # Debug: List contents including hidden files
+            echo "Listing all files (including hidden):"
+            ls -la
+
+            # Check for .next directory
+            if [ ! -d ".next" ]; then
+              echo "WARNING: .next directory is missing! Attempting to rebuild..."
+              
+              # Install all dependencies (including dev dependencies) to enable rebuilding
+              npm ci
+              
+              # Recreate environment file if needed
+              if [ ! -f .env.production ]; then
+                echo "Creating .env.production file"
+                echo "NODE_ENV=production" > .env.production
+                echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
+                echo "PORT=4001" >> .env.production
+              fi
+              
+              # Rebuild the application
+              npm run build
+            else
+              echo ".next directory exists"
+            fi
+
             # Set proper ownership and permissions
             sudo chown -R $(whoami):$(whoami) /var/www/auto-online-next
+            sudo chmod -R 755 .next 2>/dev/null || echo "No .next directory to chmod"
 
-            # Install dependencies for production (without dev dependencies)
+            # Install production dependencies
             npm ci --production
 
-            # Verify we have the .env.production (it should have been copied from the artifacts)
-            if [ ! -f .env.production ]; then
-              echo "Creating .env.production file as it wasn't found"
-              touch .env.production
-              echo "NODE_ENV=production" >> .env.production
-              echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
-              echo "PORT=4001" >> .env.production
-            else
-              echo ".env.production file exists"
-            fi
+            # Update NGINX configuration with buffer settings
+            echo "Updating NGINX configuration with proper buffer settings..."
+            sudo tee /etc/nginx/sites-available/autoonline.teachmeit.lk > /dev/null << EOT
+          server {
+            listen 80;
+            server_name autoonline.teachmeit.lk;
 
-            # Create a systemd service file if it doesn't exist
-            if [ ! -f /etc/systemd/system/autoonline.service ]; then
-              echo "Creating systemd service file"
-              sudo tee /etc/systemd/system/autoonline.service > /dev/null << EOT
-            [Unit]
-            Description=Auto Online Next.js Application
-            After=network.target
+            location / {
+              proxy_pass http://localhost:4001;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade \$http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host \$host;
+              proxy_cache_bypass \$http_upgrade;
+              
+              # Add buffer settings to fix 502 errors
+              proxy_buffer_size 128k;
+              proxy_buffers 4 256k;
+              proxy_busy_buffers_size 256k;
+              
+              # Add timeout settings
+              proxy_connect_timeout 300;
+              proxy_read_timeout 300;
+              proxy_send_timeout 300;
+            }
+          }
+          EOT
 
-            [Service]
-            Environment=NODE_ENV=production
-            Type=simple
-            User=$(whoami)
-            WorkingDirectory=/var/www/auto-online-next
-            ExecStart=$(which node) /var/www/auto-online-next/node_modules/.bin/next start -p 4001
-            Restart=on-failure
+            # Verify NGINX config
+            sudo nginx -t
 
-            [Install]
-            WantedBy=multi-user.target
-            EOT
-            fi
+            # Update systemd service for better reliability
+            echo "Updating systemd service for Next.js..."
+            sudo tee /etc/systemd/system/autoonline.service > /dev/null << EOT
+          [Unit]
+          Description=Auto Online Next.js Application
+          After=network.target
+
+          [Service]
+          Environment=NODE_ENV=production
+          Type=simple
+          User=$(whoami)
+          WorkingDirectory=/var/www/auto-online-next
+          ExecStart=$(which node) /var/www/auto-online-next/node_modules/.bin/next start -p 4001
+          Restart=always
+          RestartSec=10
+          StandardOutput=syslog
+          StandardError=syslog
+          SyslogIdentifier=autoonline
+
+          [Install]
+          WantedBy=multi-user.target
+          EOT
 
             # Kill any process still using port 4001
             sudo fuser -k 4001/tcp || true
 
-            # Reload systemd to apply changes
+            # Reload systemd
             sudo systemctl daemon-reload
 
-            # Restart the service
+            # Start service
             sudo systemctl restart autoonline.service
-
-            # Enable the service to start on boot
+            
+            # Enable on boot
             sudo systemctl enable autoonline.service
 
-            # Check status to verify
+            # Check service status
             sudo systemctl status autoonline.service --no-pager
 
-            # Reload NGINX (if needed)
-            sudo systemctl reload nginx || true
+            # Reload NGINX
+            sudo systemctl reload nginx
+
+            # Verify the app is running
+            echo "Testing application response:"
+            curl -I http://localhost:4001 || echo "ERROR: Application not responding locally!"
 
             echo "Deployment completed at $(date)"
 
