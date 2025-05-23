@@ -58,7 +58,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
-          target: "~/auto-online-next-tmp"
+          target: "/var/www/auto-online-next-tmp"
           overwrite: true
           rm: true
 
@@ -71,11 +71,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Move to proper directory (create if doesn't exist)
-            mkdir -p ~/auto-online-next
-            rm -rf ~/auto-online-next/*
-            cp -r ~/auto-online-next-tmp/* ~/auto-online-next/
-            rm -rf ~/auto-online-next-tmp
-            cd ~/auto-online-next
+            sudo mkdir -p /var/www/auto-online-next
+            sudo rm -rf /var/www/auto-online-next/*
+            sudo cp -r /var/www/auto-online-next-tmp/* /var/www/auto-online-next/
+            sudo rm -rf /var/www/auto-online-next-tmp
+            cd /var/www/auto-online-next
 
             # Install dependencies properly for production
             npm ci --production
@@ -89,15 +89,15 @@ jobs:
             # Build Next.js project for production
             npm run build
 
-            # Stop and delete all auto-online-next processes (by name and id)
+            # Stop and delete all auto-online-next processes (by name only)
             pm2 stop auto-online-next || true
             pm2 delete auto-online-next || true
-            pm2 delete all || true # Optional: only if you want to clear all PM2 processes (remove if you have other apps!)
 
             # Extra: Kill any process still using port 4001
             fuser -k 4001/tcp || true
 
             # Start only one instance in fork mode
+            cd /var/www/auto-online-next
             pm2 start npm --name "auto-online-next" -- run start -- -p 4001
   # 3. NOTIFICATION JOB
   notify:
