@@ -86,8 +86,7 @@ jobs:
             echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
             echo "PORT=4001" >> .env.production
 
-            # Build Next.js project for production
-            npm run build
+            # Remove the duplicate build step - we're using the pre-built files from GitHub Actions
 
             # Stop and delete all auto-online-next processes (by name only)
             pm2 stop auto-online-next || true
