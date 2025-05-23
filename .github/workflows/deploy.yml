@@ -76,9 +76,23 @@ jobs:
             cp -r ~/auto-online-next-tmp/* ~/auto-online-next/
             rm -rf ~/auto-online-next-tmp
             cd ~/auto-online-next
-            npm install --production
+
+            # Install dependencies properly for production
+            npm ci --production
+
+            # Ensure .env.production exists with necessary variables
+            touch .env.production
+            echo "NODE_ENV=production" >> .env.production
+
+            # Build Next.js project for production
             npm run build
-            pm2 restart auto-online-next || pm2 start npm --name "auto-online-next" -- run start
+
+            # Stop the process if it exists and delete PM2 process if needed
+            pm2 stop auto-online-next || true
+            pm2 delete auto-online-next || true
+
+            # Start with the correct command and working directory
+            cd ~/auto-online-next && pm2 start npm --name "auto-online-next" -- run start -- -p 3000
   # 3. NOTIFICATION JOB
   notify:
     needs: [build, deploy]
