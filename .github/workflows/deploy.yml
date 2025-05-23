@@ -1,7 +1,9 @@
 name: Build and Deploy to Server
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - develop
 
@@ -9,6 +11,7 @@ jobs:
   # 1. BUILD JOB
   build:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,7 +96,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}\n• *Initiated by:* <@${{ secrets.SLACK_USER_ID }}>"
+                    "text": "${{ needs.deploy.result == 'success' && '*Deployment Successful* :white_check_mark:' || '*Deployment Failed* :x:' }}\n• *Project:* Auto-Online-Next\n• *Branch:* develop\n• *Status:* ${{ needs.deploy.result == 'success' && 'Success ✅' || 'Failed ❌' }}"
                   }
                 },                {
                   "type": "section",
