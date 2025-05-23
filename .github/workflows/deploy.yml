@@ -104,9 +104,17 @@ jobs:
             # Extra: Kill any process still using port 4001
             fuser -k 4001/tcp || true
 
-            # Start only one instance in fork mode
+            # Make sure we're in the correct directory before starting PM2
             cd /var/www/auto-online-next
-            pm2 start npm --name "auto-online-next" -- run start -- -p 4001
+
+            # Start with explicit working directory to fix the package.json lookup issue
+            pm2 start npm --name "auto-online-next" --cwd "/var/www/auto-online-next" -- run start
+
+            # Save PM2 configuration so it persists after reboot
+            pm2 save
+
+            # List running processes to verify
+            pm2 list
   # 3. NOTIFICATION JOB - Currently disabled
   # notify:
   #   needs: [build, deploy]
