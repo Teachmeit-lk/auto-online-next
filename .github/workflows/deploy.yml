@@ -89,10 +89,10 @@ jobs:
             # Set proper ownership and permissions
             sudo chown -R $(whoami):$(whoami) /var/www/auto-online-next
 
-            # Install dependencies for production (without dev dependencies)
-            npm ci --production
+            # Install ALL dependencies (including dev dependencies) for the build
+            npm install
 
-            # Verify we have the .env.production (it should have been copied from the artifacts)
+            # Verify we have the .env.production
             if [ ! -f .env.production ]; then
               echo "Creating .env.production file as it wasn't found"
               touch .env.production
@@ -102,11 +102,20 @@ jobs:
             else
               echo ".env.production file exists"
             fi
+            
+            # Rebuild the application on the server to ensure .next directory is properly populated
+            echo "Building Next.js application..."
+            npm run build
+            
+            # Now install only production dependencies
+            npm ci --production
 
-            # Create a systemd service file if it doesn't exist
-            if [ ! -f /etc/systemd/system/autoonline.service ]; then
-              echo "Creating systemd service file"
-              sudo tee /etc/systemd/system/autoonline.service > /dev/null << EOT
+            # Kill any process still using port 4001
+            sudo fuser -k 4001/tcp || true
+            
+            # Create a systemd service file
+            echo "Creating/updating systemd service file"
+            sudo tee /etc/systemd/system/autoonline.service > /dev/null << EOT
             [Unit]
             Description=Auto Online Next.js Application
             After=network.target
@@ -118,30 +127,28 @@ jobs:
             WorkingDirectory=/var/www/auto-online-next
             ExecStart=$(which node) /var/www/auto-online-next/node_modules/.bin/next start -p 4001
             Restart=on-failure
+            RestartSec=10
 
             [Install]
             WantedBy=multi-user.target
             EOT
-            fi
-
-            # Kill any process still using port 4001
-            sudo fuser -k 4001/tcp || true
 
             # Reload systemd to apply changes
             sudo systemctl daemon-reload
-
+            
             # Restart the service
-            sudo systemctl restart autoonline.service
-
+            sudo systemctl stop autoonline.service || true
+            sudo systemctl start autoonline.service
+            
             # Enable the service to start on boot
             sudo systemctl enable autoonline.service
-
+            
             # Check status to verify
             sudo systemctl status autoonline.service --no-pager
-
+            
             # Reload NGINX (if needed)
             sudo systemctl reload nginx || true
-
+            
             echo "Deployment completed at $(date)"
 
   # # 3. NOTIFICATION JOB
