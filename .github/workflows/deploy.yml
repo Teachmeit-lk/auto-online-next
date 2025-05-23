@@ -27,23 +27,18 @@ jobs:
           node-version: "18"
           cache: "npm" # Cache npm dependencies
 
-      # Add timestamp for cache busting
-      - name: Generate Build Timestamp
-        id: timestamp
-        run: echo "BUILD_TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
       - name: Install dependencies
         run: npm install
 
       - name: Install sharp and optional dependencies
         run: npm install --include=optional sharp
 
-      - name: Create production env file with timestamp
+      - name: Create production env file
         run: |
           echo "NODE_ENV=production" > .env.production
           echo "NEXT_PUBLIC_APP_URL=http://autoonline.teachmeit.lk" >> .env.production
           echo "PORT=4001" >> .env.production
-          echo "BUILD_ID=${{ steps.timestamp.outputs.BUILD_TIMESTAMP }}" >> .env.production
+          echo "BUILD_ID=$(date +'%Y%m%d%H%M%S')" >> .env.production
 
       # Force clean build
       - name: Clean previous build
@@ -52,20 +47,33 @@ jobs:
       - name: Build Next.js project
         run: npm run build
 
-      - name: List build directory contents
+      - name: Verify build output
         run: |
           echo "Listing .next directory..."
           ls -la .next/
+
+          # Check if .next directory has required files
+          if [ ! -d ".next" ]; then
+            echo "ERROR: .next directory is missing!"
+            exit 1
+          fi
+
+          if [ ! -d ".next/server" ] || [ ! -d ".next/static" ]; then
+            echo "ERROR: Build output is missing critical directories!"
+            exit 1
+          fi
+
+          echo "Build verification successful."
           find .next -type f | head -n 10
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-build-${{ steps.timestamp.outputs.BUILD_TIMESTAMP }}
+          name: nextjs-build
           path: |
             .
             !node_modules
-            .next/**
+            .next/
           include-hidden-files: true
           retention-days: 1
 
@@ -74,14 +82,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Build Timestamp
-        id: timestamp
-        run: echo "BUILD_TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: nextjs-build-${{ steps.timestamp.outputs.BUILD_TIMESTAMP }}
+          name: nextjs-build
           path: .
 
       - name: Verify artifact contents
@@ -94,7 +98,7 @@ jobs:
             # Show a few files in .next to verify content
             find .next -type f | head -n 10
           else
-            echo "WARNING: .next directory missing from artifacts!"
+            echo "ERROR: .next directory missing from artifacts!"
             exit 1
           fi
 
@@ -109,7 +113,7 @@ jobs:
           overwrite: true
           rm: true
 
-      - name: Deploy on server and rebuild
+      - name: Deploy on server
         id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -117,14 +121,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e  # Fail on any error
+
+            echo "====== DEPLOYMENT STARTED ======"
+
             # Stop existing service first
-            sudo systemctl stop autoonline.service || true
+            sudo systemctl stop autoonline.service || echo "No service to stop."
 
             # Move to proper directory
             sudo mkdir -p /var/www/auto-online-next
             sudo rm -rf /var/www/auto-online-next/*
+            echo "Copying files to target directory..."
             sudo cp -r /var/www/auto-online-next-tmp/* /var/www/auto-online-next/
-            sudo cp -r /var/www/auto-online-next-tmp/.next /var/www/auto-online-next/ || echo "Failed to copy .next directory"
+            sudo cp -r /var/www/auto-online-next-tmp/.next /var/www/auto-online-next/ || { echo "ERROR: Failed to copy .next directory!"; exit 1; }
+            sudo cp -r /var/www/auto-online-next-tmp/.env* /var/www/auto-online-next/ || echo "No .env files to copy"
             sudo rm -rf /var/www/auto-online-next-tmp
             cd /var/www/auto-online-next
 
@@ -132,22 +142,25 @@ jobs:
             echo "Contents of /var/www/auto-online-next:"
             ls -la
 
-            if [ -d ".next" ]; then
-              echo ".next directory exists"
+            if [ -d ".next" ] && [ -d ".next/server" ] && [ -d ".next/static" ]; then
+              echo ".next directory exists with required content"
+              find .next -type d | head -n 5
               find .next -type f | head -n 10
             else
-              echo "ERROR: .next directory is missing after transfer!"
+              echo "ERROR: .next directory is missing or incomplete after transfer!"
               exit 1
             fi
 
             # Set proper ownership and permissions
-            sudo chown -R $(whoami):$(whoami) /var/www/auto-online-next
+            echo "Setting permissions..."
+            sudo chown -R $(whoami):$(whoami) /var/www/auto-online-next || { echo "ERROR: Failed to set ownership!"; exit 1; }
 
             # Install production dependencies
-            npm ci --production
+            echo "Installing production dependencies..."
+            npm ci --production || { echo "ERROR: Failed to install dependencies!"; exit 1; }
 
             # Create systemd service file
-            echo "Creating systemd service file"
+            echo "Creating systemd service file..."
             sudo tee /etc/systemd/system/autoonline.service > /dev/null << EOT
             [Unit]
             Description=Auto Online Next.js Application
@@ -161,22 +174,31 @@ jobs:
             ExecStart=$(which node) /var/www/auto-online-next/node_modules/.bin/next start -p 4001
             Restart=always
             RestartSec=10
+            # Adding error log for debugging issues
+            StandardOutput=append:/var/log/autoonline.log
+            StandardError=append:/var/log/autoonline.error.log
 
             [Install]
             WantedBy=multi-user.target
             EOT
 
+            # Kill any process still using port 4001
+            echo "Clearing port 4001..."
+            sudo fuser -k 4001/tcp || echo "No process using port 4001"
+
             # Reload systemd and start service
-            sudo systemctl daemon-reload
-            sudo systemctl start autoonline.service
+            echo "Reloading systemd and starting service..."
+            sudo systemctl daemon-reload || { echo "ERROR: Failed to reload systemd!"; exit 1; }
+            sudo systemctl start autoonline.service || { echo "ERROR: Failed to start service!"; exit 1; }
             sudo systemctl enable autoonline.service
 
             # Verify service is running
-            echo "Service status:"
+            echo "Verifying service status..."
+            sudo systemctl is-active autoonline.service || { echo "ERROR: Service failed to start!"; exit 1; }
             sudo systemctl status autoonline.service --no-pager
 
             # Update NGINX configuration with cache control headers
-            echo "Updating NGINX configuration"
+            echo "Updating NGINX configuration..."
             sudo tee /etc/nginx/sites-available/autoonline.teachmeit.lk > /dev/null << EOT
             server {
                 listen 80;
@@ -193,14 +215,28 @@ jobs:
                     # Disable caching to ensure latest content is always served
                     add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0";
                     expires -1;
+                    
+                    # Add extra headers for better debugging
+                    add_header X-Deployed-At "$(date +'%Y%m%d%H%M%S')";
                 }
+                
+                # Add error logs
+                error_log /var/log/nginx/autoonline.error.log;
+                access_log /var/log/nginx/autoonline.access.log;
             }
             EOT
 
-            # Test and reload NGINX
-            sudo nginx -t && sudo systemctl reload nginx
+            # Create symlink if it doesn't exist
+            if [ ! -f /etc/nginx/sites-enabled/autoonline.teachmeit.lk ]; then
+              sudo ln -s /etc/nginx/sites-available/autoonline.teachmeit.lk /etc/nginx/sites-enabled/
+            fi
 
-            echo "Deployment completed at $(date)"
+            # Test and reload NGINX
+            echo "Testing and reloading NGINX..."
+            sudo nginx -t || { echo "ERROR: NGINX configuration test failed!"; exit 1; }
+            sudo systemctl reload nginx || { echo "ERROR: Failed to reload NGINX!"; exit 1; }
+
+            echo "====== DEPLOYMENT COMPLETED SUCCESSFULLY ======"
 
   # # 3. NOTIFICATION JOB
   # notify:
