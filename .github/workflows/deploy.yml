@@ -89,12 +89,16 @@ jobs:
             # Build Next.js project for production
             npm run build
 
-            # Stop the process if it exists and delete PM2 process if needed
+            # Stop and delete all auto-online-next processes (by name and id)
             pm2 stop auto-online-next || true
             pm2 delete auto-online-next || true
+            pm2 delete all || true # Optional: only if you want to clear all PM2 processes (remove if you have other apps!)
 
-            # Start with PM2 in cluster mode to handle routing properly
-            cd ~/auto-online-next && pm2 start npm --name "auto-online-next" --update-env -- run start -- -p 4001
+            # Extra: Kill any process still using port 4001
+            fuser -k 4001/tcp || true
+
+            # Start only one instance in fork mode
+            pm2 start npm --name "auto-online-next" -- run start -- -p 4001
   # 3. NOTIFICATION JOB
   notify:
     needs: [build, deploy]
