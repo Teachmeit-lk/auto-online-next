@@ -39,6 +39,13 @@ jobs:
       - name: Build Next.js project
         run: npm run build
 
+      - name: List build directory contents
+        run: |
+          echo "Listing .next directory..."
+          ls -la .next/
+          echo "Listing root directory..."
+          ls -la
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,6 +53,7 @@ jobs:
           path: |
             .
             !node_modules
+            .next/
           include-hidden-files: true
           retention-days: 1
 
@@ -59,6 +67,17 @@ jobs:
         with:
           name: nextjs-build
           path: .
+
+      - name: Verify artifact contents
+        run: |
+          echo "Checking for .next directory..."
+          ls -la
+          if [ -d ".next" ]; then
+            echo ".next directory exists in artifacts"
+            ls -la .next/
+          else
+            echo "WARNING: .next directory missing from artifacts!"
+          fi
 
       - name: Copy project files to server
         uses: appleboy/scp-action@v0.1.7
@@ -83,14 +102,27 @@ jobs:
             sudo mkdir -p /var/www/auto-online-next
             sudo rm -rf /var/www/auto-online-next/*
             sudo cp -r /var/www/auto-online-next-tmp/* /var/www/auto-online-next/
+            sudo cp -r /var/www/auto-online-next-tmp/.next /var/www/auto-online-next/ 2>/dev/null || echo ".next directory not found in source"
             sudo rm -rf /var/www/auto-online-next-tmp
             cd /var/www/auto-online-next
+
+            # List contents to verify transfer
+            echo "Contents of /var/www/auto-online-next:"
+            ls -la
+            
+            # Check if .next directory exists and has content
+            if [ -d ".next" ]; then
+              echo ".next directory exists"
+              ls -la .next/
+            else
+              echo ".next directory is missing! Need to rebuild."
+            fi
 
             # Set proper ownership and permissions
             sudo chown -R $(whoami):$(whoami) /var/www/auto-online-next
 
-            # Install ALL dependencies (including dev dependencies) for the build
-            npm install
+            # Install production dependencies
+            npm ci --production
 
             # Verify we have the .env.production
             if [ ! -f .env.production ]; then
@@ -103,13 +135,6 @@ jobs:
               echo ".env.production file exists"
             fi
             
-            # Rebuild the application on the server to ensure .next directory is properly populated
-            echo "Building Next.js application..."
-            npm run build
-            
-            # Now install only production dependencies
-            npm ci --production
-
             # Kill any process still using port 4001
             sudo fuser -k 4001/tcp || true
             
@@ -126,7 +151,7 @@ jobs:
             User=$(whoami)
             WorkingDirectory=/var/www/auto-online-next
             ExecStart=$(which node) /var/www/auto-online-next/node_modules/.bin/next start -p 4001
-            Restart=on-failure
+            Restart=always
             RestartSec=10
 
             [Install]
