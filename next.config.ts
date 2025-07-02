@@ -18,6 +18,18 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${
+          process.env.NODE_ENV === 'development' 
+            ? process.env.API_BASE_URL 
+            : 'http://api.autoonline.lk'
+        }/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

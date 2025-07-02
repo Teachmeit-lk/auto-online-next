@@ -29,13 +29,13 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     mobileNumber: Yup.string()
       .required("Mobile number is required.")
       .matches(
-        /^0\d{9}$/,
+        /(^0\d{9}$)|^\+94\d{9}$/,
         "Mobile number must start with 0 and contain exactly 10 digits."
       ),
     whatsappNumber: Yup.string()
       .required("WhatsApp number is required.")
       .matches(
-        /^0\d{9}$/,
+        /(^0\d{9}$)|^\+94\d{9}$/,
         "WhatsApp number must start with 0 and contain exactly 10 digits."
       ),
     password: Yup.string()
