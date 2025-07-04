@@ -9,6 +9,7 @@ import {
   TabLayout,
   VendorGalleryCard,
 } from "@/components/";
+import { withAuth } from "@/components/authGuard/withAuth";
 // import { AddGalleryImageModal } from "@/app/modal";
 
 const VendorGallery: React.FC = () => {
@@ -55,4 +56,4 @@ const VendorGallery: React.FC = () => {
     </TabLayout>
   );
 };
-export default VendorGallery;
+export default withAuth(VendorGallery);

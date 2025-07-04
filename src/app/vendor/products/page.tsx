@@ -8,6 +8,7 @@ import {
   TabLayout,
   ViewProductModal,
 } from "@/components";
+import { withAuth } from "@/components/authGuard/withAuth";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -196,4 +197,4 @@ const VendorProducts: React.FC = () => {
     </TabLayout>
   );
 };
-export default VendorProducts;
+export default withAuth(VendorProducts);

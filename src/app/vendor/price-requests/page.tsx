@@ -10,6 +10,7 @@ import {
   TabLayout,
   ViewQuotationRequestModal,
 } from "@/components";
+import { withAuth } from "@/components/authGuard/withAuth";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -328,4 +329,4 @@ const NewPriceRequests: React.FC = () => {
     </TabLayout>
   );
 };
-export default NewPriceRequests;
+export default withAuth(NewPriceRequests);

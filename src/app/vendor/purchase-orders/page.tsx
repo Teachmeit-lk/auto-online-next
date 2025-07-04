@@ -9,6 +9,7 @@ import {
   TabLayout,
   ViewPurchaseOrderModal,
 } from "@/components";
+import { withAuth } from "@/components/authGuard/withAuth";
 
 // import {
 //   NewPriceChatAlert,
@@ -264,4 +265,4 @@ const NewPurchaseOrders: React.FC = () => {
     </TabLayout>
   );
 };
-export default NewPurchaseOrders;
+export default withAuth(NewPurchaseOrders);
