@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,13 +11,20 @@ import {
   CircleHelp,
   UsersRound,
   AlignLeft,
+  User,
 } from "lucide-react";
-
+import { useSelector, useDispatch } from "react-redux";
 import { HeaderLogo } from "@/assets/Images";
+import { RootState } from "@/app/store/store";
+import { logout } from "@/app/store/slice/authslice";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
+  const userButtonRef = useRef<HTMLButtonElement>(null);
+  const [modalPosition, setModalPosition] = useState({ top: 0, right: 0 });
+
   const data = [
     { name: "home", path: "/#home", icon: LayoutGrid },
     { name: "services", path: "/#services", icon: UsersRound },
@@ -25,10 +32,29 @@ export const Header: React.FC = () => {
     { name: "contact", path: "/#contact", icon: CircleHelp },
   ];
 
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsUserModalOpen(false);
+  };
+
+  const handleUserModalToggle = () => {
+    if (userButtonRef.current) {
+      const rect = userButtonRef.current.getBoundingClientRect();
+      setModalPosition({
+        top: rect.bottom + window.scrollY + 10,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setIsUserModalOpen(!isUserModalOpen);
+  };
+
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 bg-white shadow-md">
+      <header className="flex justify-between items-center p-4 bg-white shadow-md relative">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Image
@@ -48,13 +74,23 @@ export const Header: React.FC = () => {
             <AlignLeft size="18px" color="#111102" />
           </button>
 
-          {/* Small Login Button (Right Corner) */}
-          <Link
-            href="/user/login"
-            className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
-          >
-            LOGIN
-          </Link>
+          {/* Conditional Rendering for Small Screens */}
+          {isAuthenticated ? (
+            <button
+              ref={userButtonRef}
+              onClick={handleUserModalToggle}
+              className="absolute right-0 flex items-center justify-center w-[24px] h-[24px]"
+            >
+              <User size="18px" color="#111102" />
+            </button>
+          ) : (
+            <Link
+              href="/user/login"
+              className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          )}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
@@ -69,15 +105,61 @@ export const Header: React.FC = () => {
           </button>
         </div>
 
-        {/* Login Button - Hidden on Small Screens */}
-        <div className="hidden md:block">
-          <Link
-            href="/user/login"
-            className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+        {/* Conditional Rendering for Larger Screens */}
+        {isAuthenticated ? (
+          <div className="hidden md:flex items-center relative">
+            <button
+              ref={userButtonRef}
+              onClick={handleUserModalToggle}
+              className="flex items-center mr-[30px]"
+            >
+              <User size="24px" color="#111102" />
+            </button>
+          </div>
+        ) : (
+          <div className="hidden md:block">
+            <Link
+              href="/user/login"
+              className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          </div>
+        )}
+
+        {/* User Pop-up Menu positioned below the icon */}
+        {isUserModalOpen && (
+          <div 
+            className="fixed z-50 bg-white rounded-lg shadow-lg w-[200px] border border-gray-200"
+            style={{
+              top: `${modalPosition.top}px`,
+              right: `${modalPosition.right}px`,
+            }}
           >
-            LOGIN
-          </Link>
-        </div>
+            <div className="p-4">
+              <div className="flex justify-center mb-4">
+                <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <User className="text-black" size={24} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Link
+                  href="/user/profile"
+                  className="block w-full text-left px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-black text-sm"
+                  onClick={() => setIsUserModalOpen(false)}
+                >
+                  My Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-black text-sm"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Search Bar for Small Screens */}
