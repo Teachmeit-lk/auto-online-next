@@ -1,4 +1,5 @@
 export * from "./GetQuotationModal";
+export * from "./FirebaseGetQuotationModal";
 export * from "./ViewQuotationModal";
 export * from "./ViewVendorProfileModal";
 export * from "./OpenChatConfirmationModal";

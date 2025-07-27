@@ -16,7 +16,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { HeaderLogo } from "@/assets/Images";
 import { RootState } from "@/app/store/store";
-import { logout } from "@/app/store/slice/authslice";
+import { logoutUserAsync } from "@/app/store/slice/authslice";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -32,11 +32,11 @@ export const Header: React.FC = () => {
     { name: "contact", path: "/#contact", icon: CircleHelp },
   ];
 
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUserAsync() as any);
     setIsUserModalOpen(false);
   };
 
