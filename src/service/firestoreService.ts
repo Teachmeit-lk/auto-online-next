@@ -507,6 +507,77 @@ export class QuotationService {
       "desc"
     );
   }
+
+  static async getQuotationRequestsByBuyer(buyerId: string): Promise<QuotationRequest[]> {
+    return FirestoreService.getAll<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      [{ field: "buyerId", operator: "==", value: buyerId }],
+      "createdAt",
+      "desc"
+    );
+  }
+
+  static async getQuotationRequestsByStatus(status: string): Promise<QuotationRequest[]> {
+    return FirestoreService.getAll<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      [{ field: "status", operator: "==", value: status }],
+      "createdAt",
+      "desc"
+    );
+  }
+
+  // Real-time listeners
+  static onQuotationRequestsByBuyerChange(
+    buyerId: string,
+    callback: (requests: QuotationRequest[]) => void
+  ) {
+    return FirestoreService.onCollectionChange<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      callback,
+      [{ field: "buyerId", operator: "==", value: buyerId }],
+      "createdAt",
+      "desc"
+    );
+  }
+
+  static onQuotationRequestsByStatusChange(
+    status: string,
+    callback: (requests: QuotationRequest[]) => void
+  ) {
+    return FirestoreService.onCollectionChange<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      callback,
+      [{ field: "status", operator: "==", value: status }],
+      "createdAt",
+      "desc"
+    );
+  }
+
+  static onQuotationsByBuyerChange(
+    buyerId: string,
+    callback: (quotations: Quotation[]) => void
+  ) {
+    return FirestoreService.onCollectionChange<Quotation>(
+      COLLECTIONS.QUOTATIONS,
+      callback,
+      [{ field: "buyerId", operator: "==", value: buyerId }],
+      "createdAt",
+      "desc"
+    );
+  }
+
+  static onQuotationsByVendorChange(
+    vendorId: string,
+    callback: (quotations: Quotation[]) => void
+  ) {
+    return FirestoreService.onCollectionChange<Quotation>(
+      COLLECTIONS.QUOTATIONS,
+      callback,
+      [{ field: "vendorId", operator: "==", value: vendorId }],
+      "createdAt",
+      "desc"
+    );
+  }
 }
 
 export class OrderService {

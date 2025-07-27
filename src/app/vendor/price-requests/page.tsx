@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, ClipboardCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, ClipboardCheck, Eye } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 
 import { CarImage1 } from "@/assets/Images";
@@ -10,7 +10,9 @@ import {
   TabLayout,
   ViewQuotationRequestModal,
 } from "@/components";
-import { withAuth } from "@/components/authGuard/withAuth";
+import { withFirebaseAuth, useAuth } from "@/components/authGuard/FirebaseAuthGuard";
+import { QuotationService, QuotationRequest } from "@/service/firestoreService";
+import { FirebaseViewQuotationModal } from "@/components/user/FirebaseViewQuotationModal";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -19,49 +21,91 @@ import { withAuth } from "@/components/authGuard/withAuth";
 // } from "@/app/modal";
 
 const NewPriceRequests: React.FC = () => {
+  const { user } = useAuth();
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
-  // const [isModalOpen4, setIsModalOpen4] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<QuotationRequest | null>(null);
+  const [quotationRequests, setQuotationRequests] = useState<QuotationRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<QuotationRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("pending");
 
-  const [popupImage, setPopupImage] = useState<string | StaticImageData | null>(
-    null
-  );
-  const [filter, setFilter] = useState<string>("New Quotations Requested");
+  const [popupImage, setPopupImage] = useState<string | null>(null);
 
-  const vendors = Array.from({ length: entries }, (_, i) => ({
-    no: i + 1,
-    cname: "Praharsha",
-    mcategory: "Filters",
-    vtype: "Car",
-    vbrand: "Japanese",
-    image: CarImage1,
-    minformation: "Click to View",
-    date: "November 13, 2024",
-    qrequests:
-      Math.random() > 0.5 ? "New Quotations Requested" : "Quotations Sent",
-  }));
+  // Fetch quotation requests from Firebase with real-time updates
+  useEffect(() => {
+    setLoading(true);
+    
+    // Set up real-time listener based on status filter
+    const unsubscribe = QuotationService.onQuotationRequestsByStatusChange(
+      statusFilter,
+      (requests) => {
+        setQuotationRequests(requests);
+        setFilteredRequests(requests.slice(0, entries));
+        setLoading(false);
+      }
+    );
 
-  const newQuotationsCount = vendors.filter(
-    (vendor) => vendor.qrequests === "New Quotations Requested"
-  ).length;
+    // Cleanup listener on unmount or filter change
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [entries, statusFilter]);
 
-  const quotationsSentCount = vendors.filter(
-    (vendor) => vendor.qrequests === "Quotations Sent"
-  ).length;
+  // Filter requests based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredRequests(quotationRequests.slice(0, entries));
+    } else {
+      const filtered = quotationRequests.filter(request =>
+        request.buyerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.vehicleType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredRequests(filtered.slice(0, entries));
+    }
+  }, [searchTerm, quotationRequests, entries]);
 
-  // Filter the vendors based on the selected quotation type
-  const filteredVendors = filter
-    ? vendors.filter((vendor) => vendor.qrequests === filter)
-    : vendors;
+  const handleViewRequest = (request: QuotationRequest) => {
+    setSelectedRequest(request);
+    setIsViewModalOpen(true);
+  };
 
-  const handleImageClick = (imageSrc: StaticImageData) => {
-    setPopupImage(imageSrc.src);
+  const handleImageClick = (imageUrl: string) => {
+    setPopupImage(imageUrl);
   };
 
   const closePopup = () => {
     setPopupImage(null);
+  };
+
+  const formatDate = (date: any) => {
+    if (!date) return "N/A";
+    try {
+      const dateObj = date.toDate ? date.toDate() : new Date(date);
+      return dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'received_quotes': return 'text-blue-600 bg-blue-100';
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
   };
 
   // const handleConfirmChat = () => {
@@ -77,18 +121,7 @@ const NewPriceRequests: React.FC = () => {
   return (
     <TabLayout type="vendor">
       <div
-        className={`w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] ${
-          newQuotationsCount < 3 ||
-          (quotationsSentCount < 3 &&
-            newQuotationsCount > 0 &&
-            quotationsSentCount > 0)
-            ? "mb-[94px]"
-            : ""
-        }     ${
-          newQuotationsCount == 0 || quotationsSentCount == 0
-            ? "mb-[164px]"
-            : ""
-        }`}
+        className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px]"
         id="quotationrequests"
       >
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
@@ -115,18 +148,16 @@ const NewPriceRequests: React.FC = () => {
             </div>
             <div className="ml-10">
               <div className="font-body font-[500] text-[14px]  text-[#111102] mb-1 ">
-                Quotations
+                Status Filter
               </div>
               <div className="flex space-x-4">
                 <select
                   className="rounded-[5px] px-3 font-body  text-[12px] text-gray-600 w-auto h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
-                  onChange={(e) => setFilter(e.target.value)}
-                  defaultValue="New Quotations Requested"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={statusFilter}
                 >
-                  <option value="New Quotations Requested">
-                    New Quotations Requested
-                  </option>
-                  <option value="Quotations Sent">Quotations Sent</option>
+                  <option value="pending">New Requests</option>
+                  <option value="received_quotes">Quoted Requests</option>
                 </select>
               </div>
             </div>
@@ -139,7 +170,9 @@ const NewPriceRequests: React.FC = () => {
             <div className="relative flex items-center rounded-[5px] text-sm text-gray-600 w-[263px] h-[28px]">
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search by customer, model, type..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -154,136 +187,144 @@ const NewPriceRequests: React.FC = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse ">
-            <thead>
-              <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
-                <th className="border border-r-2 border-b-2 border-white px-1  py-2 ">
-                  No.
-                </th>
-                <th className="border border-r-2 border-b-2  border-white  py-2">
-                  Customer Name
-                </th>
-                <th className="border border-r-2 border-b-2 border-white py-2">
-                  Main Category
-                </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
-                  Vehicle Type
-                </th>
-                <th className="border border-r-2 border-b-2 border-white py-2">
-                  Vehicle Brand
-                </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
-                  More Information
-                </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
-                  Date
-                </th>
-                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
-                  <ClipboardCheck size="19px" />
-                  <span>Action</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredVendors.map((vendor, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-gray-50 bg-white text-[12px] font-body text-[#111102] "
-                >
-                  <td className="border border-r-2 border-b-2  border-[#F8F8F8]   py-2 text-center">
-                    {vendor.no}
-                  </td>
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.cname}
-                  </td>
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.mcategory}
-                  </td>
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.vtype}
-                  </td>
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.vbrand}
-                  </td>
-                  <td
-                    className="border border-r-2 border-b-2 border-[#F8F8F8] text-center py-2 text-[8px] cursor-pointer"
-                    onClick={() => handleImageClick(vendor.image)}
-                  >
-                    <div className="flex justify-center">
-                      <Image
-                        src={vendor.image}
-                        alt="carImage"
-                        className="h-[42px] w-[62px]"
-                      />
-                    </div>
-                    {vendor.minformation}
-                  </td>
-
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.date}
-                  </td>
-
-                  {vendor.qrequests === "New Quotations Requested" ? (
-                    <>
-                      <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          onClick={() => setIsModalOpen2(true)}
-                        >
-                          Quotation
-                        </button>
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          onClick={() => setIsModalOpen(true)}
-                        >
-                          Chat
-                        </button>
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+          </div>
+        ) : (
+          <>
+            {/* Table */}
+            <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500]">
+                    <th className="border border-r-2 border-b-2 border-white px-1 py-2">
+                      No.
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Customer Name
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Vehicle Model
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Vehicle Type
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Vehicle Country
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Status
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Images
+                    </th>
+                    <th className="border border-r-2 border-b-2 border-white py-2">
+                      Date
+                    </th>
+                    <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                      <ClipboardCheck size="19px" />
+                      <span>Action</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="text-center py-8 text-gray-500">
+                        {quotationRequests.length === 0
+                          ? `No ${statusFilter === 'pending' ? 'new' : 'quoted'} quotation requests found.`
+                          : "No requests match your search criteria."
+                        }
                       </td>
-                    </>
+                    </tr>
                   ) : (
-                    <>
-                      <td className="grid grid-cols-3 gap-1 text-center w-full h-full">
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen3(true)}
-                        >
-                          Quotation
-                        </button>
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen(true)}
-                        >
-                          Chat
-                        </button>
-
-                        <button
-                          className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen4(true)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </>
+                    filteredRequests.map((request, index) => (
+                      <tr
+                        key={request.id}
+                        className="hover:bg-gray-50 bg-white text-[12px] font-body text-[#111102]"
+                      >
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] py-2 text-center">
+                          {index + 1}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          {request.buyerName}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          {request.model}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          {request.vehicleType}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          {request.country}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-[500] ${getStatusColor(request.status)}`}>
+                            {request.status.charAt(0).toUpperCase() + request.status.slice(1).replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] text-center py-2">
+                          {request.attachedImages && request.attachedImages.length > 0 ? (
+                            <div className="flex justify-center">
+                              <button
+                                onClick={() => handleImageClick(request.attachedImages[0])}
+                                className="relative group"
+                              >
+                                <img
+                                  src={request.attachedImages[0]}
+                                  alt="Request Image"
+                                  className="h-[42px] w-[62px] object-cover rounded border"
+                                />
+                                {request.attachedImages.length > 1 && (
+                                  <div className="absolute -top-1 -right-1 bg-yellow-500 text-black rounded-full h-5 w-5 flex items-center justify-center text-[8px] font-bold">
+                                    +{request.attachedImages.length - 1}
+                                  </div>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-[10px]">No images</span>
+                          )}
+                        </td>
+                        <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                          {formatDate(request.createdAt)}
+                        </td>
+                        <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
+                          <button
+                            className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 transition-colors"
+                            onClick={() => handleViewRequest(request)}
+                          >
+                            <Eye size={14} className="inline mr-1" />
+                            View
+                          </button>
+                          <button
+                            className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 transition-colors"
+                            onClick={() => setIsModalOpen(true)}
+                          >
+                            Quote
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                   )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {popupImage && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
             onClick={closePopup}
           >
-            <div className="relative h-[400px] w-[500px]">
-              <Image
+            <div className="relative max-h-[80vh] max-w-[80vw]">
+              <img
                 src={popupImage}
-                alt="Popup Image"
-                layout="fill"
-                objectFit="contain"
+                alt="Request Image"
+                className="max-h-full max-w-full object-contain"
               />
             </div>
           </div>
@@ -291,19 +332,21 @@ const NewPriceRequests: React.FC = () => {
 
         {/* Pagination */}
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
-          Showing 1-{entries} of {entries} Entries
+          Showing {filteredRequests.length > 0 ? 1 : 0}-{filteredRequests.length} of {quotationRequests.length} Entries
         </div>
 
-        <ViewQuotationRequestModal
-          isOpen={isModalOpen2}
-          onClose={() => setIsModalOpen2(false)}
+        {/* Firebase View Quotation Modal */}
+        <FirebaseViewQuotationModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          quotationRequest={selectedRequest}
         />
 
         <OpenChatConfirmationModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={() => {
-            alert("in development");
+            alert("Quotation feature in development");
             setIsModalOpen(false);
           }}
         />
@@ -329,4 +372,7 @@ const NewPriceRequests: React.FC = () => {
     </TabLayout>
   );
 };
-export default withAuth(NewPriceRequests);
+export default withFirebaseAuth(NewPriceRequests, {
+  requiredRole: "vendor",
+  redirectTo: "/vendor/login"
+});
