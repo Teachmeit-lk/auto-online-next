@@ -1,0 +1,250 @@
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  User as FirebaseUser,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateEmail,
+  updatePassword,
+} from "firebase/auth";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "@/config/firebase";
+import { SignupRequest, LoginRequest } from "@/interfaces/requests/authRequests";
+import { User } from "@/app/store/slice/authslice";
+
+// Firestore collections
+const USERS_COLLECTION = "users";
+const BUYERS_COLLECTION = "buyers";
+const VENDORS_COLLECTION = "vendors";
+
+export interface FirebaseAuthError {
+  code: string;
+  message: string;
+}
+
+export interface UserProfile extends User {
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+  profileImage?: string;
+  whatsApp?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  zipCode?: string;
+  NIC?: string;
+}
+
+// Register new user with email/password
+export const registerUser = async (
+  userData: SignupRequest,
+  userType: "buyer" | "vendor"
+): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
+  try {
+    // Create user with Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      userData.email,
+      userData.password
+    );
+    const user = userCredential.user;
+
+    // Update display name
+    await updateProfile(user, {
+      displayName: `${userData.firstName} ${userData.lastName}`,
+    });
+
+    // Create user profile in Firestore
+    const userProfile: UserProfile = {
+      id: user.uid,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      phone: userData.phone,
+      role: userType,
+      whatsApp: userData.whatsApp,
+      address: userData.address,
+      city: userData.city,
+      district: userData.district,
+      zipCode: userData.zipCode,
+      NIC: userData.NIC,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isActive: true,
+    };
+
+    // Save to main users collection
+    await setDoc(doc(db, USERS_COLLECTION, user.uid), userProfile);
+
+    // Save to role-specific collection
+    const roleCollection = userType === "buyer" ? BUYERS_COLLECTION : VENDORS_COLLECTION;
+    await setDoc(doc(db, roleCollection, user.uid), {
+      ...userProfile,
+      userId: user.uid,
+      [`${userType}Id`]: user.uid,
+    });
+
+    return { user, profile: userProfile };
+  } catch (error: any) {
+    console.error("Firebase registration error:", error);
+    throw {
+      code: error.code,
+      message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Login user with email/password
+export const loginUser = async (
+  credentials: LoginRequest,
+  userType: "buyer" | "vendor"
+): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
+  try {
+    let email: string;
+    
+    // Handle different login formats
+    if ("email" in credentials) {
+      email = credentials.email;
+    } else {
+      // For phone login, we need to find the email first
+      // This is a simplified approach - in production, you might want to use phone auth
+      throw new Error("Phone login not implemented yet. Please use email login.");
+    }
+
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      credentials.password
+    );
+    const user = userCredential.user;
+
+    // Get user profile from Firestore
+    const userDoc = await getDoc(doc(db, USERS_COLLECTION, user.uid));
+    if (!userDoc.exists()) {
+      throw new Error("User profile not found");
+    }
+
+    const profile = userDoc.data() as UserProfile;
+
+    // Verify user type matches
+    if (profile.role !== userType) {
+      await signOut(auth);
+      throw new Error(`Invalid user type. Expected ${userType}, got ${profile.role}`);
+    }
+
+    return { user, profile };
+  } catch (error: any) {
+    console.error("Firebase login error:", error);
+    throw {
+      code: error.code || "auth/invalid-credentials",
+      message: error.message || getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Logout user
+export const logoutUser = async (): Promise<void> => {
+  try {
+    await signOut(auth);
+  } catch (error: any) {
+    console.error("Firebase logout error:", error);
+    throw {
+      code: error.code,
+      message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Get current user profile
+export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
+  try {
+    const user = auth.currentUser;
+    if (!user) return null;
+
+    const userDoc = await getDoc(doc(db, USERS_COLLECTION, user.uid));
+    if (!userDoc.exists()) return null;
+
+    return userDoc.data() as UserProfile;
+  } catch (error: any) {
+    console.error("Error getting user profile:", error);
+    return null;
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (
+  userId: string,
+  updates: Partial<UserProfile>
+): Promise<void> => {
+  try {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    // Update main users collection
+    await updateDoc(doc(db, USERS_COLLECTION, userId), updateData);
+
+    // Update role-specific collection
+    const userDoc = await getDoc(doc(db, USERS_COLLECTION, userId));
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserProfile;
+      const roleCollection = userData.role === "buyer" ? BUYERS_COLLECTION : VENDORS_COLLECTION;
+      await updateDoc(doc(db, roleCollection, userId), updateData);
+    }
+  } catch (error: any) {
+    console.error("Error updating user profile:", error);
+    throw {
+      code: error.code,
+      message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Reset password
+export const resetPassword = async (email: string): Promise<void> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error: any) {
+    console.error("Password reset error:", error);
+    throw {
+      code: error.code,
+      message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Listen to auth state changes
+export const onAuthStateChange = (callback: (user: FirebaseUser | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};
+
+// Helper function to map Firebase error codes to user-friendly messages
+const getFirebaseErrorMessage = (errorCode: string): string => {
+  switch (errorCode) {
+    case "auth/email-already-in-use":
+      return "This email is already registered. Please use a different email or try logging in.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/operation-not-allowed":
+      return "Email/password accounts are not enabled. Please contact support.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters long.";
+    case "auth/user-disabled":
+      return "This account has been disabled. Please contact support.";
+    case "auth/user-not-found":
+      return "No account found with this email. Please check your email or register.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again.";
+    case "auth/invalid-credential":
+      return "Invalid email or password. Please check your credentials.";
+    case "auth/too-many-requests":
+      return "Too many failed attempts. Please try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection.";
+    default:
+      return "An error occurred during authentication. Please try again.";
+  }
+};

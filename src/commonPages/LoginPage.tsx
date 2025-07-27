@@ -7,10 +7,10 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { LoginRequest } from "@/interfaces/requests/authRequests";
-import { login } from "@/service/authService";
-import { setUser } from "@/app/store/slice/authslice";
+import { loginUserAsync } from "@/app/store/slice/authslice";
+import { RootState } from "@/app/store/store";
 
 interface ICommonLoginPageProps {
   type: "buyer" | "vendor";
@@ -18,18 +18,15 @@ interface ICommonLoginPageProps {
 
 export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
 
   // Define validation schemas
   const buyerSchema = Yup.object().shape({
-    mobile: Yup.string()
-      .required("Mobile number is required.")
-      .matches(
-        /(^0\d{9}$)|^\+94\d{9}$/,
-        "Mobile number must either start with 0 and contain exactly 10 digits or start with +94 and contain exactly 11 digits."
-      ),
+    email: Yup.string()
+      .required("Email is required.")
+      .email("Invalid email address."),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -65,60 +62,31 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   // Form submission handler
   const onSubmit = async (data: any) => {
     try {
-      setErrorMessage(null);
-      console.log(`Login attempt for ${type} with:`, data);
+      console.log(`Firebase login attempt for ${type} with:`, data);
 
-      // Construct loginData based on user type
-      const loginData: LoginRequest = type === "buyer"
-        ? { phone: data.mobile, password: data.password }
-        : { email: data.email, password: data.password };
+      // Construct loginData - both buyer and vendor use email for Firebase Auth
+      const loginData: LoginRequest = { 
+        email: data.email, 
+        password: data.password 
+      };
 
-      const response = await login(loginData, type);
-      console.log("Login successful:", response);
+      const result = await dispatch(loginUserAsync({ 
+        credentials: loginData, 
+        userType: type 
+      }) as any);
 
-      const { user } = response.data;
-      const normalizedRole = user.role?.toLowerCase();
-
-      dispatch(
-        setUser({
-          id: user.userId || user.buyerId,
-          userId: user.userId,
-          buyerId: user.buyerId,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: normalizedRole as "admin" | "buyer" | "vendor",
-          phone: user.phone,
-        })
-      );
-
-      if (type === "buyer") {
-        router.push("/user/search-vendors");
-      } else {
-        router.push("/vendor/products");
+      if (loginUserAsync.fulfilled.match(result)) {
+        console.log("Firebase login successful");
+        
+        // Redirect based on user type
+        if (type === "buyer") {
+          router.push("/user/search-vendors");
+        } else {
+          router.push("/vendor/products");
+        }
       }
     } catch (error: any) {
-      console.error("Login submission error:", error);
-
-      let errorMsg = "Login failed. Please try again.";
-
-      if (error.isServerError) {
-        errorMsg = error.message;
-      } else if (error.code === 521) {
-        errorMsg = "Server is unavailable. Please try again later.";
-      } else if (error.message?.includes("Network error")) {
-        errorMsg = "Network error. Please check your internet connection.";
-      } else if (error.code === 401) {
-        errorMsg = error.message || "Invalid credentials. Please check your input.";
-      } else if (error.code === 500) {
-        errorMsg = "Server error. We are working on a fix, please try again later.";
-      } else if (error.code === 404) {
-        errorMsg = "The login endpoint was not found. Please contact support.";
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-
-      setErrorMessage(errorMsg);
+      console.error("Firebase login submission error:", error);
     }
   };
 
@@ -160,10 +128,10 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
       {/* Login Form */}
       <div className="flex justify-center">
         <div className="bg-[#F8F8F8] md:w-[459px] w-[328px] h-auto rounded-[15px] shadow-md md:p-8 p-6 flex flex-col justify-center items-center">
-          {errorMessage && (
+          {error && (
             <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-red-500 text-[12px] md:text-[14px] text-center">
-                {errorMessage}
+                {error}
               </p>
             </div>
           )}
@@ -174,33 +142,33 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             {type === "buyer" ? (
               <div>
                 <label
-                  htmlFor="mobile"
+                  htmlFor="email"
                   className="block text-[12px] md:text-[16px] font-[500] font-body text-[#111102] mb-2"
                 >
-                  Mobile Number
+                  Email Address
                 </label>
                 <Controller
-                  name="mobile"
+                  name="email"
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
                     <input
                       {...field}
-                      type="text"
-                      id="mobile"
+                      type="email"
+                      id="email"
                       className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                        errors.mobile
+                        errors.email
                           ? "focus:ring-red-500 border-red-300"
                           : "focus:ring-yellow-500 border-gray-300"
                       } border`}
-                      placeholder="Enter mobile number"
-                      disabled={isSubmitting}
+                      placeholder="Enter your email address"
+                      disabled={loading}
                     />
                   )}
                 />
-                {errors.mobile && (
+                {errors.email && (
                   <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.mobile.message}
+                    {errors.email.message}
                   </p>
                 )}
               </div>
@@ -227,7 +195,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                           : "focus:ring-yellow-500 border-gray-300"
                       } border`}
                       placeholder="Enter email address"
-                      disabled={isSubmitting}
+                      disabled={loading}
                     />
                   )}
                 />
@@ -262,13 +230,13 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                           : "focus:ring-yellow-500 border-gray-300"
                       } border`}
                       placeholder="Enter password"
-                      disabled={isSubmitting}
+                      disabled={loading}
                     />
                     <button
                       type="button"
                       onClick={togglePasswordVisibility}
                       className="absolute right-3 top-[52%] transform -translate-y-1/2 text-gray-500"
-                      disabled={isSubmitting}
+                      disabled={loading}
                     >
                       {showPassword ? (
                         <EyeOff className="size-[12px] md:size-[16px]" />
@@ -288,11 +256,11 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={loading}
               className={`w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] md:text-[16px] text-[12px] font-bold font-body py-2 rounded-[5px] transition
-                ${isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-500"}`}
+                ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-500"}`}
             >
-              {isSubmitting ? "LOGGING IN..." : "LOGIN"}
+              {loading ? "LOGGING IN..." : "LOGIN"}
             </button>
           </form>
 
