@@ -55,7 +55,7 @@ export class FirebaseStorageService {
       const filePath = `${path}/${fileName}`;
       const storageRef = ref(storage, filePath);
 
-      let uploadTask;
+      let uploadTask: any;
       
       if (onProgress) {
         uploadTask = uploadBytesResumable(storageRef, file);
@@ -63,7 +63,7 @@ export class FirebaseStorageService {
         return new Promise((resolve, reject) => {
           uploadTask.on(
             "state_changed",
-            (snapshot) => {
+            (snapshot: any) => {
               const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
               onProgress({
                 progress,
@@ -71,7 +71,7 @@ export class FirebaseStorageService {
                 totalBytes: snapshot.totalBytes,
               });
             },
-            (error) => {
+            (error: any) => {
               console.error("Upload error:", error);
               reject(error);
             },

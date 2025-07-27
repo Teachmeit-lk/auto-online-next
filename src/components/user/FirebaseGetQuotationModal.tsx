@@ -67,7 +67,7 @@ export const FirebaseGetQuotationModal: React.FC<IFirebaseGetQuotationModalProps
     watch,
     formState: { errors },
   } = useForm<QuotationFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
   });
 
   const selectedImages = watch("images");
