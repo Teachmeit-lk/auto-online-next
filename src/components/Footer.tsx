@@ -44,7 +44,8 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="bg-[#F8F8F8] py-10 px-6 md:px-[100px]">
+    <footer className="bg-[#F8F8F8] py-10">
+      <div className="max-w-screen-xl mx-auto w-full px-6 md:px-10">
       {/* Top Section */}
       <div
         className={`flex ${
@@ -240,6 +241,7 @@ export const Footer: React.FC = () => {
             Sitemap
           </a>
         </div>
+      </div>
       </div>
     </footer>
   );
