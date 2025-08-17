@@ -54,7 +54,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 bg-white shadow-md relative">
+      <header className="flex justify-between items-center p-4 bg-white shadow-md relative max-w-screen-xl mx-auto w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Image
@@ -177,8 +177,8 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Black Bar Section with Links */}
-      <div className="hidden md:flex w-full h-[42px] bg-black justify-center items-center">
-        <div className="flex space-x-2">
+      <div className="hidden md:flex w-full bg-black justify-center items-center">
+        <div className="flex space-x-2 max-w-screen-xl mx-auto w-full justify-center h-[42px]">
           {data.map(({ name }) => (
             <Link
               key={name}

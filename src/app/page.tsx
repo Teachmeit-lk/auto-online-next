@@ -17,7 +17,7 @@ import {
 
 const Home: FC = () => {
   return (
-    <div>
+    <div className="max-w-screen-xl mx-auto w-full px-4 md:px-6">
       <HeroSection />
       <AutoServices />
       <ProductCategories />
