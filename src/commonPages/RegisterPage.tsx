@@ -573,11 +573,11 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
             </button>
           </form>
 
-          <p className="text-center font-body text-[8px] md:text-[12px] md:mt-4 mt-2 text-[#111102]">
+          <p className="text-center font-body text-xs md:text-sm md:mt-4 mt-2 text-[#111102]">
             Already have an account?{" "}
             <Link
               href={`/${type === "buyer" ? "user" : "vendor"}/login`}
-              className="text-[#F9C301] text-[8px] md:text-[12px] underline"
+              className="text-[#F9C301] underline"
             >
               Login
             </Link>

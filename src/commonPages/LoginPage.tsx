@@ -246,12 +246,12 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             </button>
           </form>
 
-          <div className="text-center text-[8px] md:text-[12px] md:mt-4 mt-2 text-[#111102] font-body">
+          <div className="text-center text-xs md:text-sm md:mt-4 mt-2 text-[#111102] font-body">
             <p>
               Don’t have an account?{" "}
               <Link
                 href={`/${type === "buyer" ? "user" : "vendor"}/register`}
-                className="text-[#F9C301] text-[8px] md:text-[12px] underline"
+                className="text-[#F9C301] underline"
               >
                 Signup
               </Link>
@@ -259,7 +259,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             <p>
               <a
                 href="#"
-                className="text-[#111102] text-[8px] md:text-[12px] underline"
+                className="text-[#111102] underline"
               >
                 Forgot Password?
               </a>
