@@ -126,7 +126,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
 
   return (
     <div
-      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10"
+      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10 w-full mx-auto max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"
       id="register"
     >
       <div className="hidden md:flex absolute top-4 right-5 md:right-12 md:space-x-6 space-x-3">
