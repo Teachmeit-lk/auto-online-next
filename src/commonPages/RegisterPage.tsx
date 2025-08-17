@@ -523,8 +523,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               >
                 Password
               </label>
-              <div className="relative flex flex-col">
-                <div className="flex items-center relative">
+              <div className="relative flex flex-col w-full">
+                <div className="flex items-center relative w-full">
                   <Controller
                     name="password"
                     control={control}
@@ -556,8 +556,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               >
                 Confirm Password
               </label>
-              <div className="relative flex flex-col">
-                <div className="flex items-center relative">
+              <div className="relative flex flex-col w-full">
+                <div className="flex items-center relative w-full">
                   <Controller
                     name="confirmPassword"
                     control={control}
