@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,6 +11,7 @@ import { useDispatch } from "react-redux"; // Add this
 import { SignupRequest } from "@/interfaces/requests/authRequests"; // Adjust path
 import { signup } from "@/service/authService";
 import { setUser } from "@/app/store/slice/authslice";
+import { PasswordInput } from "@/components";
 
 interface ICommonRegisterPageProps {
   type: "buyer" | "vendor";
@@ -513,30 +513,13 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     control={control}
                     defaultValue=""
                     render={({ field }) => (
-                      <>
-                        <input
-                          {...field}
-                          type={showPassword ? "text" : "password"}
-                          id="password"
-                          className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                            errors.password
-                              ? "focus:ring-red-500 focus:border-red-500"
-                              : "focus:ring-yellow-500 focus:border-yellow-500"
-                          }`}
-                          placeholder="Password"
-                        />
-                        <button
-                          type="button"
-                          onClick={togglePasswordVisibility}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="w-[12px] md:w-[16px]" />
-                          ) : (
-                            <Eye className="w-[12px] md:w-[16px]" />
-                          )}
-                        </button>
-                      </>
+                      <PasswordInput
+                        {...field}
+                        id="password"
+                        placeholder="Password"
+                        inputClassName="h-[28px] md:h-[40px] py-2"
+                        error={!!errors.password}
+                      />
                     )}
                   />
                 </div>
@@ -563,30 +546,13 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     control={control}
                     defaultValue=""
                     render={({ field }) => (
-                      <>
-                        <input
-                          {...field}
-                          type={showConfirmPassword ? "text" : "password"}
-                          id="confirmPassword"
-                          className={`w-full text-[10px] md:text-[14px] placeholder:text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                            errors.confirmPassword
-                              ? "focus:ring-red-500 focus:border-red-500"
-                              : "focus:ring-yellow-500 focus:border-yellow-500"
-                          }`}
-                          placeholder="Confirm Password"
-                        />
-                        <button
-                          type="button"
-                          onClick={toggleConfirmPasswordVisibility}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="w-[12px] md:w-[16px]" />
-                          ) : (
-                            <Eye className="w-[12px] md:w-[16px]" />
-                          )}
-                        </button>
-                      </>
+                      <PasswordInput
+                        {...field}
+                        id="confirmPassword"
+                        placeholder="Confirm Password"
+                        inputClassName="h-[28px] md:h-[40px] py-2"
+                        error={!!errors.confirmPassword}
+                      />
                     )}
                   />
                 </div>

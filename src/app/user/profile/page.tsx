@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import * as Yup from "yup";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { PasswordInput } from "@/components";
 
 interface UserProfileFormData {
   firstName: string;
@@ -299,19 +300,11 @@ const UserProfile = () => {
               name="currentPassword"
               control={control}
               render={({ field }) => (
-                <input
+                <PasswordInput
                   {...field}
-                  type="text"
                   readOnly
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.currentPassword
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
+                  inputClassName="px-3 py-2"
+                  error={!!errors.currentPassword}
                 />
               )}
             />
@@ -331,20 +324,12 @@ const UserProfile = () => {
               name="newPassword"
               control={control}
               render={({ field }) => (
-                <input
+                <PasswordInput
                   {...field}
-                  type="text"
                   value={field.value || ""}
                   readOnly={!isEditable}
-                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.newPassword
-                      ? "focus:ring-red-500 focus:border-red-500"
-                      : "focus:ring-yellow-500 focus:border-yellow-500"
-                  } ${
-                    !isEditable
-                      ? "bg-white text-[#5B5B5B]"
-                      : "bg-white text-[#111102]"
-                  }`}
+                  inputClassName="px-3 py-2"
+                  error={!!errors.newPassword}
                 />
               )}
             />

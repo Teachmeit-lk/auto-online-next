@@ -6,3 +6,4 @@ export * from "./VendorsCard";
 export * from "./ScrollToTopButton";
 export * from "./VendorGalleryCard";
 export * from "./DeleteItemConfirmation";
+export * from "./PasswordInput";

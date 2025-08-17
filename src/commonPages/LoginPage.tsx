@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { LoginRequest } from "@/interfaces/requests/authRequests";
 import { loginUserAsync } from "@/app/store/slice/authslice";
 import { RootState } from "@/app/store/store";
+import { PasswordInput } from "@/components";
 
 interface ICommonLoginPageProps {
   type: "buyer" | "vendor";
@@ -219,32 +219,14 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                 control={control}
                 defaultValue=""
                 render={({ field }) => (
-                  <div className="relative">
-                    <input
-                      {...field}
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                        errors.password
-                          ? "focus:ring-red-500 border-red-300"
-                          : "focus:ring-yellow-500 border-gray-300"
-                      } border`}
-                      placeholder="Enter password"
-                      disabled={loading}
-                    />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute right-3 top-[52%] transform -translate-y-1/2 text-gray-500"
-                      disabled={loading}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-[12px] md:size-[16px]" />
-                      ) : (
-                        <Eye className="size-[12px] md:size-[16px]" />
-                      )}
-                    </button>
-                  </div>
+                  <PasswordInput
+                    {...field}
+                    id="password"
+                    placeholder="Enter password"
+                    disabled={loading}
+                    inputClassName="md:h-[36px] h-[28px] md:py-1"
+                    error={!!errors.password}
+                  />
                 )}
               />
               {errors.password && (
