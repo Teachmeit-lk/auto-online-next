@@ -126,10 +126,10 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
 
   return (
     <div
-      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-5 py-5 sm:px-16 md:px-4 md:py-10"
+      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10"
       id="register"
     >
-      <div className="absolute top-4 right-5 md:right-12 flex md:space-x-6 space-x-3">
+      <div className="hidden md:flex absolute top-4 right-5 md:right-12 md:space-x-6 space-x-3">
         <Link
           href="/user/register"
           className={`
@@ -148,22 +148,41 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
         </Link>
       </div>
 
-      <div className="w-full max-w-md flex flex-col items-center">
+      <div className="w-full max-w-[420px] md:max-w-[520px] lg:max-w-[560px] flex flex-col items-center">
         <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 mt-5 md:mt-5">
           {type === "buyer" ? "Buyer" : "Vendor"} Register
         </h1>
+        {/* Mobile toggle */}
+        <div className="flex md:hidden justify-center gap-6 mb-3">
+          <Link
+            href="/user/register"
+            className={`
+              ${type === "buyer" ? "text-[#F9C301]" : "text-[#111102]"}
+              font-bold font-body text-xs`}
+          >
+            Buyer
+          </Link>
+          <Link
+            href="/vendor/register"
+            className={`
+              ${type === "vendor" ? "text-[#F9C301]" : "text-[#111102]"}
+              font-bold font-body text-xs`}
+          >
+            Vendor
+          </Link>
+        </div>
 
-        <div className="bg-[#F8F8F8] w-full md:w-full md:py-12 md:px-14 py-6 px-5 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center">
+        <div className="bg-[#F8F8F8] w-full md:w-auto md:min-w-[420px] md:py-10 md:px-10 py-6 px-5 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center">
           {errorMessage && (
             <p className="text-red-500 text-[12px] md:text-[14px] mb-4">{errorMessage}</p>
           )}
           <form className="space-y-4 w-full" onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
-            <div className="flex space-x-4">
-              <div className="w-1/2">
+            <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
+              <div className="w-full md:w-1/2">
                 <label
                   htmlFor="firstName"
-                  className="block text-[12px] RootState md:text-[16px] font-medium font-body text-[#111102] mb-2"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
                 >
                   First Name
                 </label>
@@ -191,7 +210,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   </p>
                 )}
               </div>
-              <div className="w-1/2">
+              <div className="w-full md:w-1/2">
                 <label
                   htmlFor="lastName"
                   className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
@@ -491,8 +510,6 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               />
               {errors.whatsappNumber && (
                 <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
- _
-
                   {errors.whatsappNumber.message}
                 </p>
               )}
