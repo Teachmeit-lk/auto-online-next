@@ -178,8 +178,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
           )}
           <form className="space-y-4 w-full" onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
-            <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
-              <div className="w-full md:w-1/2">
+            <div className="flex flex-row space-x-4">
+              <div className="w-1/2">
                 <label
                   htmlFor="firstName"
                   className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
@@ -210,7 +210,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   </p>
                 )}
               </div>
-              <div className="w-full md:w-1/2">
+              <div className="w-1/2">
                 <label
                   htmlFor="lastName"
                   className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
