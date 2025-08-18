@@ -37,16 +37,36 @@ export interface UserProfile extends User {
   NIC?: string;
 }
 
+// Mobile-as-email domain for buyer auth
+const MOBILE_EMAIL_DOMAIN = "yourapp.com";
+
+const formatMobileAsEmail = (phone: string): string => {
+  // Normalize: keep digits, convert leading 0xxxxxxxxx to 94xxxxxxxxx
+  const digitsOnly = (phone || "").replace(/\D/g, "");
+  let normalized = digitsOnly;
+  if (digitsOnly.startsWith("0") && digitsOnly.length === 10) {
+    normalized = `94${digitsOnly.slice(1)}`;
+  } else if (digitsOnly.startsWith("+")) {
+    normalized = digitsOnly.slice(1);
+  }
+  return `${normalized}@${MOBILE_EMAIL_DOMAIN}`;
+};
+
 // Register new user with email/password
 export const registerUser = async (
   userData: SignupRequest,
   userType: "buyer" | "vendor"
 ): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
   try {
+    // Determine auth email: buyers use mobile-as-email, vendors use provided email
+    const authEmail = userType === "buyer"
+      ? formatMobileAsEmail(userData.phone)
+      : userData.email;
+
     // Create user with Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      userData.email,
+      authEmail,
       userData.password
     );
     const user = userCredential.user;
@@ -56,7 +76,7 @@ export const registerUser = async (
       displayName: `${userData.firstName} ${userData.lastName}`,
     });
 
-    // Create user profile in Firestore
+    // Create user profile in Firestore (store the user's real email if provided)
     const userProfile: UserProfile = {
       id: user.uid,
       firstName: userData.firstName,
@@ -108,9 +128,8 @@ export const loginUser = async (
     if ("email" in credentials) {
       email = credentials.email;
     } else {
-      // For phone login, we need to find the email first
-      // This is a simplified approach - in production, you might want to use phone auth
-      throw new Error("Phone login not implemented yet. Please use email login.");
+      // Buyers login with phone → convert to mobile-as-email
+      email = formatMobileAsEmail(credentials.phone);
     }
 
     const userCredential = await signInWithEmailAndPassword(

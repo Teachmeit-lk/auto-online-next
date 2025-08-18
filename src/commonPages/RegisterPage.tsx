@@ -7,10 +7,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux"; // Add this
-import { SignupRequest } from "@/interfaces/requests/authRequests"; // Adjust path
-import { signup } from "@/service/authService";
-import { setUser } from "@/app/store/slice/authslice";
+import { useDispatch, useSelector } from "react-redux";
+import { SignupRequest } from "@/interfaces/requests/authRequests";
+import { registerUserAsync } from "@/app/store/slice/authslice";
+import { RootState } from "@/app/store/store";
 import { PasswordInput } from "@/components";
 
 interface ICommonRegisterPageProps {
@@ -22,9 +22,10 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setshowConfirmPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Add error state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const dispatch = useDispatch(); // Add Redux dispatch
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state: RootState) => state.auth);
 
   // Updated Yup schema with all required fields
   const schema = Yup.object().shape({
@@ -67,7 +68,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     resolver: yupResolver(schema),
   });
 
-  // Updated onSubmit with API call and state management
+  // Submit using Firebase auth (buyers use mobile-as-email internally)
   const onSubmit = async (data: {
     firstname: string;
     lastname: string;
@@ -83,7 +84,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     confirmPassword: string;
   }) => {
     try {
-      setErrorMessage(null); // Reset error message
+      setErrorMessage(null);
       const signupData: SignupRequest = {
         firstName: data.firstname,
         lastName: data.lastname,
@@ -97,19 +98,17 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
         zipCode: data.zipCode,
         NIC: data.NIC,
       };
-      const response = await signup(signupData, type);
-      const user = {
-        userId: response.data.user.id,
-        firstName: response.data.user.firstName,
-        lastName: response.data.user.lastName,
-        email: response.data.user.email,
-        role: response.data.user.role as "buyer" | "vendor" | "admin",
-      };
-      dispatch(setUser(user));
-      if (type === "buyer") {
-        router.push("/user/search-vendors");
-      } else {
-        router.push("/vendor/products");
+      const result = await dispatch(
+        registerUserAsync({ userData: signupData, userType: type }) as any
+      );
+      if (registerUserAsync.fulfilled.match(result)) {
+        if (type === "buyer") {
+          router.push("/user/search-vendors");
+        } else {
+          router.push("/vendor/products");
+        }
+      } else if (registerUserAsync.rejected.match(result)) {
+        setErrorMessage(result.payload as string);
       }
     } catch (error: any) {
       setErrorMessage(error.message || "Registration failed. Please try again.");
@@ -606,9 +605,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
             {/* Register Button */}
             <button
               type="submit"
-              className="w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] font-bold text-[12px] md:text-[16px] font-body py-2 rounded-md hover:bg-yellow-500 transition"
+              disabled={loading}
+              className={`w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] font-bold text-[12px] md:text-[16px] font-body py-2 rounded-md transition ${
+                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-500"
+              }`}
             >
-              REGISTER
+              {loading ? "REGISTERING..." : "REGISTER"}
             </button>
           </form>
 

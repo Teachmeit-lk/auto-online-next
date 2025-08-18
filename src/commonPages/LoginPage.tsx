@@ -24,9 +24,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
 
   // Define validation schemas
   const buyerSchema = Yup.object().shape({
-    email: Yup.string()
-      .required("Email is required.")
-      .email("Invalid email address."),
+    phone: Yup.string().required("Mobile number is required."),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -50,13 +48,19 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   // Select schema based on user type
   const schema = type === "buyer" ? buyerSchema : vendorSchema;
 
+  type LoginFormFields = {
+    email?: string;
+    phone?: string;
+    password: string;
+  };
+
   // Initialize react-hook-form with dynamic schema
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: yupResolver(schema),
+  } = useForm<LoginFormFields>({
+    resolver: yupResolver(schema as any),
   });
 
   // Form submission handler
@@ -64,11 +68,11 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
     try {
       console.log(`Firebase login attempt for ${type} with:`, data);
 
-      // Construct loginData - both buyer and vendor use email for Firebase Auth
-      const loginData: LoginRequest = { 
-        email: data.email, 
-        password: data.password 
-      };
+      // Construct loginData based on user type
+      const loginData: LoginRequest =
+        type === "buyer"
+          ? { phone: data.phone, password: data.password }
+          : { email: data.email, password: data.password };
 
       const result = await dispatch(loginUserAsync({ 
         credentials: loginData, 
@@ -142,33 +146,33 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             {type === "buyer" ? (
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="phone"
                   className="block text-[12px] md:text-[16px] font-[500] font-body text-[#111102] mb-2"
                 >
-                  Email Address
+                  Mobile Number
                 </label>
                 <Controller
-                  name="email"
+                  name={"phone" as any}
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
                     <input
                       {...field}
-                      type="email"
-                      id="email"
+                      type="tel"
+                      id="phone"
                       className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                        errors.email
+                        (errors as any).phone
                           ? "focus:ring-red-500 border-red-300"
                           : "focus:ring-yellow-500 border-gray-300"
                       } border`}
-                      placeholder="Enter your email address"
+                      placeholder="Enter mobile number"
                       disabled={loading}
                     />
                   )}
                 />
-                {errors.email && (
+                {(errors as any).phone && (
                   <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.email.message}
+                    {(errors as any).phone.message as string}
                   </p>
                 )}
               </div>
