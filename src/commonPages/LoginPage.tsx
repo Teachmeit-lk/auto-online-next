@@ -96,7 +96,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
 
   return (
     <div
-      className="bg-white relative md:px-20 px-5 py-5 md:py-[63px] overflow-hidden min-h-screen w-full mx-auto max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"
+      className="bg-white relative md:px-20 px-5 py-5 md:py-[63px] overflow-hidden min-h-screen w-full mx-auto max-w-screen-xl"
       id="login"
     >
       <div className="absolute top-4 md:right-12 right-5 flex md:space-x-6 space-x-3">
