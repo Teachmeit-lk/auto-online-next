@@ -24,9 +24,11 @@ const VendorProducts: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const selectedProduct = React.useMemo(() => products.find((p: any) => (p as any).id === selectedProductId) || null, [products, selectedProductId]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
+  const [vehicleTypes, setVehicleTypes] = useState<Array<{ id?: string; name: string }>>([]);
 
   const loadProducts = async () => {
     if (!currentUser?.id) return;
@@ -57,6 +59,13 @@ const VendorProducts: React.FC = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      const types = await FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_TYPES, undefined, "name", "asc");
+      setVehicleTypes(types as any);
+    })();
+  }, []);
+
   const categoryLabelMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     categories.forEach((c) => { if ((c as any).id) map[(c as any).id] = c.name; map[c.name] = c.name; });
@@ -78,6 +87,12 @@ const VendorProducts: React.FC = () => {
     models.forEach((m) => { if ((m as any).id) map[(m as any).id] = m.name; map[m.name] = m.name; });
     return map;
   }, [models]);
+
+  const vehicleTypeLabelMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    vehicleTypes.forEach((t: any) => { if (t.id) map[t.id] = t.name; map[t.name] = t.name; });
+    return map;
+  }, [vehicleTypes]);
 
   // const handleConfirmAlert = () => {
   //   console.log("Table Row Deleted!");
@@ -227,7 +242,7 @@ const VendorProducts: React.FC = () => {
                       <td className="grid grid-cols-2 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => setIsModalOpen2(true)}
+                          onClick={() => { setSelectedProductId((p as any).id || null); setIsModalOpen2(true); }}
                         >
                           View
                         </button>
@@ -261,6 +276,11 @@ const VendorProducts: React.FC = () => {
         <ViewProductModal
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
+          product={selectedProduct as any}
+          categoryLabelMap={categoryLabelMap}
+          brandLabelMap={brandLabelMap}
+          modelLabelMap={modelLabelMap}
+          vehicleTypeLabelMap={vehicleTypeLabelMap}
         />
 
         <DeleteItemConfirmation

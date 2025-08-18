@@ -3,18 +3,35 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import Image from "next/image";
-
-import { ViewEstimate1 } from "@/assets/Images";
+import { Product } from "@/service/firestoreService";
 
 interface IViewProductModalProps {
   isOpen: boolean;
   onClose: () => void;
+  product?: Product | null;
+  categoryLabelMap?: Record<string, string>;
+  brandLabelMap?: Record<string, string>;
+  modelLabelMap?: Record<string, string>;
+  vehicleTypeLabelMap?: Record<string, string>;
 }
 
 export const ViewProductModal: React.FC<IViewProductModalProps> = ({
   isOpen,
   onClose,
+  product,
+  categoryLabelMap,
+  brandLabelMap,
+  modelLabelMap,
+  vehicleTypeLabelMap,
 }) => {
+  const mainImage = product?.images?.[0] || "";
+  const partName = product?.partName || "-";
+  const mainCategory = (categoryLabelMap && product?.mainCategory && categoryLabelMap[product.mainCategory]) || product?.mainCategory || "-";
+  const brand = (brandLabelMap && product?.vehicleBrand && brandLabelMap[product.vehicleBrand]) || product?.vehicleBrand || "-";
+  const model = (modelLabelMap && product?.vehicleModel && modelLabelMap[product.vehicleModel]) || product?.vehicleModel || "-";
+  const vehicleType = (vehicleTypeLabelMap && product?.vehicleType && vehicleTypeLabelMap[product.vehicleType]) || product?.vehicleType || "-";
+  const year = product?.yearOfManufacturing || "-";
+  const description = product?.description || "-";
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -28,11 +45,17 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
           <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
             {/* Image Section */}
             <div className="flex justify-center">
-              <Image
-                src={ViewEstimate1}
-                alt="Vehicle Image"
-                className="w-[107px] h-[73px]   rounded-[3px] object-cover"
-              />
+              {mainImage ? (
+                <Image
+                  src={mainImage}
+                  alt="Product Image"
+                  width={160}
+                  height={110}
+                  className="w-[160px] h-[110px] rounded-[3px] object-cover"
+                />
+              ) : (
+                <div className="w-[160px] h-[110px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500">No Image</div>
+              )}
             </div>
 
             {/* Form Section */}
@@ -42,12 +65,7 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Part Name
                 </label>
-                <input
-                  type="text"
-                  placeholder="XYZ"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <input type="text" readOnly value={partName} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* Vehicle Model */}
@@ -55,12 +73,7 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Main Category
                 </label>
-                <input
-                  type="text"
-                  placeholder="Alloy-wheels"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <input type="text" readOnly value={mainCategory} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* District */}
@@ -68,12 +81,7 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Vehicle Brand
                 </label>
-                <input
-                  type="text"
-                  placeholder="Japanese"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <input type="text" readOnly value={brand} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* Year of Manufacturing */}
@@ -81,12 +89,7 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Vehicle Model
                 </label>
-                <input
-                  type="text"
-                  placeholder="Grand Vitara"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <input type="text" readOnly value={model} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* Vehicle Type */}
@@ -94,38 +97,18 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Vehicle Type
                 </label>
-                <input
-                  type="text"
-                  placeholder="Car"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <input type="text" readOnly value={vehicleType} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* Fuel Type */}
               <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Vehicle Made-in
-                </label>
-                <input
-                  type="text"
-                  placeholder="Europe"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <label className="text-[12px] font-body font-[500] text-[#111102]">Year of Manufacturing</label>
+                <input type="text" readOnly value={year} className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
 
               {/* Measurement */}
               <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Year of Manufacturing
-                </label>
-                <input
-                  type="text"
-                  placeholder="1965"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <div />
               </div>
 
               {/* Description */}
@@ -133,12 +116,7 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Description
                 </label>
-                <textarea
-                  rows={3}
-                  readOnly
-                  placeholder="Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups."
-                  className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
+                <textarea rows={3} readOnly value={description} className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]" />
               </div>
             </form>
           </div>
