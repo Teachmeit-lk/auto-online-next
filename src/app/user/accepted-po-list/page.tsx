@@ -1,23 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import { TabLayout, ViewAcceptedPOModal } from "@/components";
-
-// import { PurchaseOrderModal } from "@/app/modal";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirestoreService, COLLECTIONS, Quotation } from "@/service/firestoreService";
 
 const AcceptedPO: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<Quotation[]>([]);
+  const [selected, setSelected] = useState<Quotation | null>(null);
 
-  const vendors = Array.from({ length: entries }, (_, i) => ({
-    no: i + 1,
-    cecode: "83356245921",
-    crcode: "833556272288",
-    cname: "NMK Motors",
-    pname: "NMK Motors",
-    adate: "August 19, 2024",
-  }));
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
+
+  useEffect(() => {
+    const load = async () => {
+      if (!currentUser?.id) return;
+      setLoading(true);
+      try {
+        const list = await FirestoreService.getAll<Quotation>(
+          COLLECTIONS.QUOTATIONS,
+          [
+            { field: "buyerId", operator: "==", value: currentUser.id },
+            { field: "status", operator: "==", value: "accepted" },
+          ]
+        );
+        const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+        const sorted = [...list].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+        setData(sorted);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [currentUser?.id]);
+
+  const rows = useMemo(() => {
+    return (data || []).map((q: any) => {
+      const ts = q.updatedAt || q.createdAt;
+      const d = ts?.seconds ? new Date(ts.seconds * 1000) : (ts instanceof Date ? ts : null);
+      return {
+        id: q.id,
+        cecode: q.id || "-",
+        crcode: q.quotationRequestId || "-",
+        cname: q.vendorName || "-",
+        pname: (q.products?.[0]?.partName) || "-",
+        adate: d ? d.toLocaleDateString() : "-",
+        raw: q as Quotation,
+      };
+    });
+  }, [data]);
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return rows
+      .filter((r) =>
+        !q ||
+        r.cecode.toLowerCase().includes(q) ||
+        r.crcode.toLowerCase().includes(q) ||
+        r.cname.toLowerCase().includes(q) ||
+        r.pname.toLowerCase().includes(q)
+      )
+      .slice(0, entries);
+  }, [rows, search, entries]);
 
   return (
     <TabLayout type="user">
@@ -56,6 +106,8 @@ const AcceptedPO: React.FC = () => {
                 type="text"
                 placeholder="Search"
                 className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <Search
@@ -99,34 +151,38 @@ const AcceptedPO: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {vendors.map((vendor, index) => (
+              {loading ? (
+                <tr><td className="px-4 py-3" colSpan={7}>Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td className="px-4 py-3" colSpan={7}>No accepted quotations.</td></tr>
+              ) : filtered.map((row, index) => (
                 <tr
-                  key={index}
+                  key={row.id || index}
                   className="hover:bg-gray-50 bg-white text-[12px] font-body text-[#111102] "
                 >
                   <td className="border border-r-2 border-b-2  border-[#F8F8F8]  py-2 text-center">
-                    {vendor.no}
+                    {index + 1}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.cecode}
+                    {row.cecode}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.crcode}
+                    {row.crcode}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.cname}
+                    {row.cname}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.pname}
+                    {row.pname}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.adate}
+                    {row.adate}
                   </td>
 
                   <td className="grid grid-cols-1 text-center w-full h-full">
                     <button
                       className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      onClick={() => setIsModalOpen(true)}
+                      onClick={() => { setSelected(row.raw); setIsModalOpen(true); }}
                     >
                       View
                     </button>
@@ -139,16 +195,13 @@ const AcceptedPO: React.FC = () => {
 
         {/* Pagination */}
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
-          Showing 1-{entries} Entries
+          Showing 1-{Math.min(entries, rows.length)} Entries
         </div>
 
-        {/* <PurchaseOrderModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
         <ViewAcceptedPOModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          quotation={selected as any}
         />
       </div>
     </TabLayout>

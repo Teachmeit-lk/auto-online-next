@@ -213,8 +213,9 @@ const QuotationsFromVendors: React.FC = () => {
                       Chat
                     </button>
                     <button
-                      className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      onClick={() => setOpenQuotationConfirmation(true)}
+                      disabled={row.status === "accepted"}
+                      className={`${row.status === "accepted" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[12px] w-full h-full`}
+                      onClick={() => { if (row.status !== "accepted") { setSelectedQuotation(row.raw); setOpenQuotationConfirmation(true); } }}
                     >
                       Confirm
                     </button>
@@ -245,9 +246,13 @@ const QuotationsFromVendors: React.FC = () => {
       />
       <ConfirmQuotationConfirmationModal
         onClose={() => setOpenQuotationConfirmation(false)}
-        onConfirm={() => {
-          alert("in development");
-          setOpenQuotationConfirmation(false);
+        onConfirm={async () => {
+          if (!selectedQuotation?.id) return;
+          try {
+            await FirestoreService.update<Quotation>(COLLECTIONS.QUOTATIONS, (selectedQuotation as any).id!, { status: "accepted" } as any);
+          } finally {
+            setOpenQuotationConfirmation(false);
+          }
         }}
         isOpen={openQuotationConfirmation}
       />
