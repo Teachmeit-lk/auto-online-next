@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import {
   ConfirmQuotationConfirmationModal,
@@ -8,53 +8,76 @@ import {
   TabLayout,
   ViewQuotationModal,
 } from "@/components";
-
-// import { EstimateModal,AlertModal, ChatModal } from "@/app/modal";
-
-interface Vendor {
-  no: number;
-  rcode: string;
-  vcode: string;
-  cname: string;
-  pname: string;
-  idate: string;
-  status: string;
-}
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirestoreService, COLLECTIONS, Quotation } from "@/service/firestoreService";
 
 const QuotationsFromVendors: React.FC = () => {
   const [entries, setEntries] = useState(5);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [ViewQuotationModalOpen, setViewQuotationModalOpen] = useState(false);
-  const [openChatOpenConfirmation, setOpenChatOpenConfirmation] =
-    useState(false);
-  const [openQuotationConfirmation, setOpenQuotationConfirmation] =
-    useState(false);
-  // const [isModalOpen1, setIsModalOpen1] = useState(false);
-  // const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [openChatOpenConfirmation, setOpenChatOpenConfirmation] = useState(false);
+  const [openQuotationConfirmation, setOpenQuotationConfirmation] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
 
   useEffect(() => {
-    const generatedVendors = Array.from({ length: entries }, (_, i) => ({
-      no: i + 1,
-      rcode: "83356245921",
-      vcode: "VD6464512",
-      cname: "NMK Motors",
-      pname: "NMK Motors",
-      idate: "November 13, 2024",
-      status: Math.random() > 0.5 ? "Pending" : "Finished",
-    }));
-    setVendors(generatedVendors);
-  }, [entries]);
+    const load = async () => {
+      if (!currentUser?.id) return;
+      setLoading(true);
+      try {
+        const list = await FirestoreService.getAll<Quotation>(
+          COLLECTIONS.QUOTATIONS,
+          [{ field: "buyerId", operator: "==", value: currentUser.id }]
+        );
+        const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+        const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+        setQuotations(sorted);
+      } catch (e) {
+        console.error("Failed to load quotations", e);
+        setQuotations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [currentUser?.id]);
 
-  // const handleConfirmAlert = () => {
-  //   console.log("Estimate confirmed!");
-  //   setIsModalOpen3(false);
-  // };
+  const rows = useMemo(() => {
+    return (quotations || []).map((q) => {
+      const createdAt: any = (q as any).createdAt;
+      const d = createdAt?.seconds ? new Date(createdAt.seconds * 1000) : (createdAt instanceof Date ? createdAt : null);
+      const idate = d ? d.toLocaleDateString() : "-";
+      const pname = (q.products && q.products[0]?.partName) || "-";
+      return {
+        id: (q as any).id,
+        rcode: q.quotationRequestId,
+        vcode: q.vendorId,
+        cname: q.vendorName || "-",
+        pname,
+        idate,
+        status: q.status,
+        raw: q,
+      };
+    });
+  }, [quotations]);
 
-  // const handleConfirmChat = () => {
-  //   console.log("Chat confirmed!");
-  //   setIsModalOpen2(false);
-  // };
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return rows
+      .filter((r) =>
+        !q ||
+        r.rcode.toLowerCase().includes(q) ||
+        r.vcode.toLowerCase().includes(q) ||
+        r.cname.toLowerCase().includes(q) ||
+        r.pname.toLowerCase().includes(q)
+      )
+      .slice(0, entries);
+  }, [rows, search, entries]);
 
   return (
     <TabLayout type="user">
@@ -93,6 +116,8 @@ const QuotationsFromVendors: React.FC = () => {
                 type="text"
                 placeholder="Search"
                 className="w-full h-full pl-3 pr-8 rounded-[5px] text-[12px] font-body text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <Search
@@ -139,50 +164,50 @@ const QuotationsFromVendors: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {vendors.map((vendor, index) => (
+              {loading ? (
+                <tr><td className="px-4 py-3" colSpan={8}>Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td className="px-4 py-3" colSpan={8}>No quotations found.</td></tr>
+              ) : filtered.map((row, index) => (
                 <tr
-                  key={index}
+                  key={row.id || index}
                   className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] font-body"
                 >
                   <td className="border border-r-2 border-b-2  border-[#F8F8F8]  py-2 text-center">
-                    {vendor.no}
+                    {index + 1}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.rcode}
+                    {row.rcode}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.vcode}
+                    {row.vcode}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.cname}
+                    {row.cname}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.pname}
+                    {row.pname}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {vendor.idate}
+                    {row.idate}
                   </td>
                   <td
                     className={`border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ${
-                      vendor.status === "Pending"
-                        ? "text-[#F9C301]"
-                        : "text-blue-600"
+                      row.status === "pending" ? "text-[#F9C301]" : row.status === "accepted" ? "text-blue-600" : "text-gray-700"
                     }`}
                   >
-                    {vendor.status}
+                    {row.status}
                   </td>
 
                   <td className="grid grid-cols-3 text-center w-full h-full font-body">
                     <button
                       className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      // onClick={() => setIsModalOpen1(true)}
-                      onClick={() => setViewQuotationModalOpen(true)}
+                      onClick={() => { setSelectedQuotation(row.raw); setViewOpen(true); }}
                     >
                       View
                     </button>
                     <button
                       className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      // onClick={() => setIsModalOpen2(true)}
                       onClick={() => setOpenChatOpenConfirmation(true)}
                     >
                       Chat
@@ -202,28 +227,13 @@ const QuotationsFromVendors: React.FC = () => {
 
         {/* Pagination */}
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
-          Showing 1-{entries} Entries
+          Showing 1-{Math.min(entries, rows.length)} Entries
         </div>
-
-        {/* <EstimateModal
-        isOpen={isModalOpen1}
-        onClose={() => setIsModalOpen1(false)}
-      />
-      <ChatModal
-        isOpen={isModalOpen2}
-        onClose={() => setIsModalOpen2(false)}
-        onConfirm={handleConfirmChat}
-      />
-
-      <AlertModal
-        isOpen={isModalOpen3}
-        onClose={() => setIsModalOpen3(false)}
-        onConfirm={handleConfirmAlert}
-      /> */}
       </div>
       <ViewQuotationModal
-        isOpen={ViewQuotationModalOpen}
-        onClose={() => setViewQuotationModalOpen(false)}
+        isOpen={viewOpen}
+        onClose={() => setViewOpen(false)}
+        quotation={selectedQuotation as any}
       />
       <OpenChatConfirmationModal
         isOpen={openChatOpenConfirmation}

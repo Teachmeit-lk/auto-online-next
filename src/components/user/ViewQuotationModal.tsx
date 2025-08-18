@@ -2,31 +2,35 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConfirmQuotationConfirmationModal } from "./ConfirmQuotationConfirmationModal";
+import { Quotation } from "@/service/firestoreService";
 
 interface IViewQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  quotation?: Quotation | null;
 }
 
 export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
   isOpen,
   onClose,
+  quotation,
 }) => {
-  const [tableData] = useState(
-    Array.from({ length: 10 }, (_, index) => ({
-      id: index + 1,
-      itemName: `Item ${index + 1}`,
+  const tableData = useMemo(() => {
+    const items = quotation?.products || [];
+    return items.map((p, idx) => ({
+      id: idx + 1,
+      itemName: p.partName,
       unit: "Unit",
-      description: "Item description",
-      unitPrice: "1,000",
-      totalPrice: "3,000",
-      netTotal: "2,500",
-      stock: "Available",
-      comment: "N/A",
-    }))
-  );
+      description: p.description || "-",
+      unitPrice: p.unitPrice,
+      totalPrice: p.totalPrice,
+      netTotal: p.totalPrice,
+      stock: "-",
+      comment: p.warranty || "-",
+    }));
+  }, [quotation]);
   const [openQuotationConfirmation, setOpenQuotationConfirmation] =
     useState(false);
 
@@ -36,7 +40,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            NMK Motors Company Estimate
+            {quotation?.vendorName || "Vendor"} Estimate
           </Dialog.Title>
 
           {/* Gray Container */}
@@ -51,6 +55,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="200212904000"
+                  value={quotation?.vendorId || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -64,6 +69,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="Shehan Maduranga"
+                  value={quotation?.vendorName || ""}
                   readOnly
                   className="w-full h-[36px]  placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -90,6 +96,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="500.00"
+                  value={quotation?.deliveryTimeframe || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -103,6 +110,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="14,500.00"
+                  value={quotation?.totalAmount?.toString() || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
