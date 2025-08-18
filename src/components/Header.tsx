@@ -41,7 +41,11 @@ export const Header: React.FC = () => {
   const { initialized } = useFirebase();
 
   const navLinks = isAuthenticated
-    ? [...data, { name: "my requests", path: "/user/search-vendors", icon: LayoutGrid }]
+    ? [
+        ...data,
+        { name: "my requests", path: "/user/search-vendors", icon: LayoutGrid },
+        ...(user?.role === "admin" ? [{ name: "admin", path: "/admin", icon: LayoutGrid }] : []),
+      ]
     : data;
 
   const handleLogout = () => {

@@ -124,7 +124,7 @@ export const registerUser = async (
 // Login user with email/password
 export const loginUser = async (
   credentials: LoginRequest,
-  userType: "buyer" | "vendor"
+  userType: "buyer" | "vendor" | "admin"
 ): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
   try {
     let userCredential;

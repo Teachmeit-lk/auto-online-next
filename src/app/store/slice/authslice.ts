@@ -71,7 +71,7 @@ export const registerUserAsync = createAsyncThunk(
 export const loginUserAsync = createAsyncThunk(
   "auth/login",
   async (
-    { credentials, userType }: { credentials: LoginRequest; userType: "buyer" | "vendor" },
+    { credentials, userType }: { credentials: LoginRequest; userType: "buyer" | "vendor" | "admin" },
     { rejectWithValue }
   ) => {
     try {
