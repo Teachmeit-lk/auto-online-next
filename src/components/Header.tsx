@@ -98,16 +98,12 @@ export const Header: React.FC = () => {
             >
               <User size="18px" color="#111102" />
             </button>
-          ) : initialized && !loading ? (
-            <Link
-              href="/user/login"
-              className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
-            >
-              LOGIN
-            </Link>
-          ) : (
-            <div className="absolute right-0 w-[70px] h-[24px]" />
-          )}
+          ) : <Link
+          href="/user/login"
+          className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
+        >
+          LOGIN
+        </Link>}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
@@ -133,18 +129,14 @@ export const Header: React.FC = () => {
               <User size="24px" color="#111102" />
             </button>
           </div>
-        ) : initialized && !loading ? (
-          <div className="hidden md:block">
-            <Link
-              href="/user/login"
-              className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
-            >
-              LOGIN
-            </Link>
-          </div>
-        ) : (
-          <div className="hidden md:block w-[120px] h-[42px] mr-[30px]" />
-        )}
+        ) : (<div className="hidden md:block">
+          <Link
+            href="/user/login"
+            className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+          >
+            LOGIN
+          </Link>
+        </div>)}
 
         {/* User Pop-up Menu positioned below the icon */}
         {isUserModalOpen && (
