@@ -28,6 +28,11 @@ export type User = {
   district?: string;
   zipCode?: string;
   NIC?: string;
+  conmpanyBR?: string;
+  locationLink?: string;
+  mainCategories?: string[];
+  vehicleBrand?: string[];
+  vehicleModel?: string[];
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -138,6 +143,11 @@ const authSlice = createSlice({
         district: profile.district,
         zipCode: profile.zipCode,
         NIC: profile.NIC,
+        conmpanyBR: (profile as any).conmpanyBR,
+        locationLink: (profile as any).locationLink,
+        mainCategories: (profile as any).mainCategories,
+        vehicleBrand: (profile as any).vehicleBrand,
+        vehicleModel: (profile as any).vehicleModel,
         isActive: profile.isActive,
         createdAt: profile.createdAt instanceof Date ? profile.createdAt : new Date(),
         updatedAt: profile.updatedAt instanceof Date ? profile.updatedAt : new Date(),
@@ -186,6 +196,11 @@ const authSlice = createSlice({
           district: action.payload.profile.district,
           zipCode: action.payload.profile.zipCode,
           NIC: action.payload.profile.NIC,
+          conmpanyBR: (action.payload.profile as any).conmpanyBR,
+          locationLink: (action.payload.profile as any).locationLink,
+          mainCategories: (action.payload.profile as any).mainCategories,
+          vehicleBrand: (action.payload.profile as any).vehicleBrand,
+          vehicleModel: (action.payload.profile as any).vehicleModel,
           isActive: action.payload.profile.isActive,
           createdAt: action.payload.profile.createdAt instanceof Date ? action.payload.profile.createdAt : new Date(),
           updatedAt: action.payload.profile.updatedAt instanceof Date ? action.payload.profile.updatedAt : new Date(),
@@ -225,6 +240,11 @@ const authSlice = createSlice({
           district: action.payload.profile.district,
           zipCode: action.payload.profile.zipCode,
           NIC: action.payload.profile.NIC,
+          conmpanyBR: (action.payload.profile as any).conmpanyBR,
+          locationLink: (action.payload.profile as any).locationLink,
+          mainCategories: (action.payload.profile as any).mainCategories,
+          vehicleBrand: (action.payload.profile as any).vehicleBrand,
+          vehicleModel: (action.payload.profile as any).vehicleModel,
           isActive: action.payload.profile.isActive,
           createdAt: action.payload.profile.createdAt instanceof Date ? action.payload.profile.createdAt : new Date(),
           updatedAt: action.payload.profile.updatedAt instanceof Date ? action.payload.profile.updatedAt : new Date(),
@@ -280,6 +300,11 @@ const authSlice = createSlice({
             district: action.payload.district,
             zipCode: action.payload.zipCode,
             NIC: action.payload.NIC,
+            conmpanyBR: (action.payload as any).conmpanyBR,
+            locationLink: (action.payload as any).locationLink,
+            mainCategories: (action.payload as any).mainCategories,
+            vehicleBrand: (action.payload as any).vehicleBrand,
+            vehicleModel: (action.payload as any).vehicleModel,
             isActive: action.payload.isActive,
             createdAt: action.payload.createdAt instanceof Date ? action.payload.createdAt : new Date(),
             updatedAt: action.payload.updatedAt instanceof Date ? action.payload.updatedAt : new Date(),

@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { updateUserProfile, changePassword } from "@/service/firebaseAuthService";
 import { refreshUserProfile } from "@/app/store/slice/authslice";
-import { FirestoreService, COLLECTIONS, Category, VehicleBrand } from "@/service/firestoreService";
+import { FirestoreService, COLLECTIONS, Category, VehicleBrand, VehicleModel } from "@/service/firestoreService";
 
 interface UserProfileFormData {
   companyName: string;
@@ -53,6 +53,7 @@ const VendorProfile = () => {
   const currentUser = authState?.user;
   const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>(categoryOptionsStatic);
   const [brandOptionsDynamic, setBrandOptionsDynamic] = useState<{ value: string; label: string }[]>([]);
+  const [modelOptionsDynamic, setModelOptionsDynamic] = useState<{ value: string; label: string }[]>([]);
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -108,6 +109,7 @@ const VendorProfile = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<UserProfileFormData>({
     resolver: yupResolver(schema),
     defaultValues: {},
@@ -115,21 +117,22 @@ const VendorProfile = () => {
 
   // Set default values from Firebase profile
   useEffect(() => {
+    const mapStringArrayToOptions = (arr?: string[]) => (arr || []).map((v) => ({ value: v, label: v }));
     const initialValues: UserProfileFormData = {
       companyName: currentUser?.firstName || "",
       contactPerson: currentUser?.lastName || "",
       companyMobileNumber: currentUser?.phone || "",
       whatsappNumber: currentUser?.whatsApp || "",
       email: currentUser?.email || "",
-      conmpanyBR: "",
-      locationLink: "",
+      conmpanyBR: currentUser?.conmpanyBR || "",
+      locationLink: currentUser?.locationLink || "",
       description: currentUser?.address || "",
       currentPassword: "",
       newPassword: "",
       district: currentUser?.district || "",
-      mainCategories: [],
-      vehicleBrand: [],
-      vehicleModel: [],
+      mainCategories: mapStringArrayToOptions(currentUser?.mainCategories),
+      vehicleBrand: mapStringArrayToOptions(currentUser?.vehicleBrand),
+      vehicleModel: mapStringArrayToOptions(currentUser?.vehicleModel),
     };
 
     setDefaultValues(initialValues);
@@ -152,6 +155,37 @@ const VendorProfile = () => {
     return () => { mounted = false; };
   }, []);
 
+  // Re-map saved IDs to option labels once options are loaded
+  useEffect(() => {
+    if (!currentUser) return;
+    if (categoryOptions.length) {
+      const selected = (currentUser.mainCategories || [])
+        .map((id: string) => categoryOptions.find((o) => o.value === id))
+        .filter(Boolean) as { value: string; label: string }[];
+      setValue("mainCategories", selected, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [categoryOptions, currentUser, setValue]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (brandOptionsDynamic.length) {
+      const selected = (currentUser.vehicleBrand || [])
+        .map((id: string) => brandOptionsDynamic.find((o) => o.value === id))
+        .filter(Boolean) as { value: string; label: string }[];
+      setValue("vehicleBrand", selected, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [brandOptionsDynamic, currentUser, setValue]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    if (modelOptionsDynamic.length) {
+      const selected = (currentUser.vehicleModel || [])
+        .map((id: string) => modelOptionsDynamic.find((o) => o.value === id))
+        .filter(Boolean) as { value: string; label: string }[];
+      setValue("vehicleModel", selected, { shouldValidate: false, shouldDirty: false });
+    }
+  }, [modelOptionsDynamic, currentUser, setValue]);
+
   // Load vehicle brands from Firestore
   useEffect(() => {
     let mounted = true;
@@ -164,6 +198,22 @@ const VendorProfile = () => {
           label: b.country ? `${b.name} - ${b.country}` : b.name,
         }));
         setBrandOptionsDynamic(opts);
+      } catch (e) {
+        // silent fail
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Load vehicle models from Firestore
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await FirestoreService.getAll<VehicleModel>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc");
+        if (!mounted) return;
+        const opts = (list || []).map((m) => ({ value: m.id || m.name, label: m.name }));
+        setModelOptionsDynamic(opts);
       } catch (e) {
         // silent fail
       }
@@ -196,7 +246,11 @@ const VendorProfile = () => {
           whatsApp: data.whatsappNumber,
           district: data.district,
           address: data.description || "",
+          conmpanyBR: data.conmpanyBR || "",
+          locationLink: data.locationLink || "",
           mainCategories: (data.mainCategories || []).map((o) => o.value),
+          vehicleBrand: (data.vehicleBrand || []).map((o) => o.value),
+          vehicleModel: (data.vehicleModel || []).map((o) => o.value),
         };
         await updateUserProfile(userId, updates);
         await (dispatch as any)(refreshUserProfile());
@@ -776,7 +830,7 @@ const VendorProfile = () => {
               render={({ field }) => (
                 <Select
                   {...field}
-                  options={modelOptions}
+                  options={modelOptionsDynamic}
                   isMulti
                   isDisabled={!isEditable}
                   styles={{

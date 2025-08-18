@@ -41,6 +41,7 @@ export interface FileMetadata {
   updated: string;
   contentType: string;
   downloadURL: string;
+  title?: string;
 }
 
 export class FirebaseStorageService {
@@ -48,7 +49,8 @@ export class FirebaseStorageService {
   static async uploadFile(
     file: File,
     path: string,
-    onProgress?: (progress: UploadProgress) => void
+    onProgress?: (progress: UploadProgress) => void,
+    metadata?: { contentType?: string; customMetadata?: Record<string, string> }
   ): Promise<UploadResult> {
     try {
       const fileName = `${Date.now()}_${file.name}`;
@@ -58,7 +60,7 @@ export class FirebaseStorageService {
       let uploadTask;
       
       if (onProgress) {
-        uploadTask = uploadBytesResumable(storageRef, file);
+        uploadTask = uploadBytesResumable(storageRef, file, metadata);
         
         return new Promise((resolve, reject) => {
           uploadTask.on(
@@ -92,7 +94,7 @@ export class FirebaseStorageService {
           );
         });
       } else {
-        const snapshot = await uploadBytes(storageRef, file);
+        const snapshot = await uploadBytes(storageRef, file, metadata);
         const downloadURL = await getDownloadURL(snapshot.ref);
         
         return {
@@ -113,14 +115,16 @@ export class FirebaseStorageService {
   static async uploadMultipleFiles(
     files: File[],
     path: string,
-    onProgress?: (fileIndex: number, progress: UploadProgress) => void
+    onProgress?: (fileIndex: number, progress: UploadProgress) => void,
+    metadataPerFile?: Array<{ contentType?: string; customMetadata?: Record<string, string> }>
   ): Promise<UploadResult[]> {
     try {
       const uploadPromises = files.map((file, index) =>
         this.uploadFile(
           file,
           path,
-          onProgress ? (progress) => onProgress(index, progress) : undefined
+          onProgress ? (progress) => onProgress(index, progress) : undefined,
+          metadataPerFile ? metadataPerFile[index] : undefined
         )
       );
 
@@ -221,6 +225,7 @@ export class FirebaseStorageService {
         updated: metadata.updated,
         contentType: metadata.contentType || "",
         downloadURL,
+        title: (metadata as any).customMetadata?.title,
       };
     } catch (error) {
       console.error("Error getting file metadata:", error);
@@ -246,6 +251,7 @@ export class FirebaseStorageService {
           updated: metadata.updated,
           contentType: metadata.contentType || "",
           downloadURL,
+          title: (metadata as any).customMetadata?.title,
         };
       });
 

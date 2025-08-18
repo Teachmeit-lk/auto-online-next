@@ -1,23 +1,29 @@
 "use client";
 
+import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import Select from "react-select";
+import { FirestoreService, COLLECTIONS, Category, VehicleBrand, VehicleModel, GalleryImage } from "@/service/firestoreService";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { ProductService, Product } from "@/service/firestoreService";
 
 interface IAddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreated?: () => void | Promise<void>;
 }
 
 interface FormValues {
   partName: string;
-  mainCategory: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  vehicleType: string;
-  vehicleMadeIn: string;
+  mainCategory: { value: string; label: string } | null;
+  vehicleBrand: { value: string; label: string } | null;
+  vehicleModel: { value: string; label: string } | null;
+  vehicleType: { value: string; label: string } | null;
   yearOfManufacturing: string;
   description: string;
 }
@@ -25,14 +31,14 @@ interface FormValues {
 const AddProductModal: React.FC<IAddProductModalProps> = ({
   isOpen,
   onClose,
+  onCreated,
 }) => {
   const schema = Yup.object().shape({
     partName: Yup.string().required("Part Name is required"),
-    mainCategory: Yup.string().required("Main Category is required"),
-    vehicleBrand: Yup.string().required("Vehicle Brand is required"),
-    vehicleModel: Yup.string().required("Vehicle Model is required"),
-    vehicleType: Yup.string().required("Vehicle Type is required"),
-    vehicleMadeIn: Yup.string().required("Vehicle Made In is required"),
+    mainCategory: Yup.mixed().required("Main Category is required"),
+    vehicleBrand: Yup.mixed().required("Vehicle Brand is required"),
+    vehicleModel: Yup.mixed().required("Vehicle Model is required"),
+    vehicleType: Yup.mixed().required("Vehicle Type is required"),
     yearOfManufacturing: Yup.string().required(
       "Year of Manufacturing is required"
     ),
@@ -48,12 +54,82 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log("Form submitted:", data);
-    reset();
-    onClose();
-    // Add form submission logic here
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
+
+  const [categoryOptions, setCategoryOptions] = React.useState<{ value: string; label: string }[]>([]);
+  const [brandOptions, setBrandOptions] = React.useState<{ value: string; label: string }[]>([]);
+  const [modelOptions, setModelOptions] = React.useState<{ value: string; label: string }[]>([]);
+  const [vehicleTypeOptions, setVehicleTypeOptions] = React.useState<{ value: string; label: string }[]>([]);
+  const [galleryImages, setGalleryImages] = React.useState<GalleryImage[]>([]);
+  const [selectedImageUrls, setSelectedImageUrls] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    (async () => {
+      const [cats, brands, models, types] = await Promise.all([
+        FirestoreService.getAll<Category>(COLLECTIONS.CATEGORIES, undefined, "sortOrder", "asc"),
+        FirestoreService.getAll<VehicleBrand>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc"),
+        FirestoreService.getAll<VehicleModel>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_TYPES, undefined, "name", "asc"),
+      ]);
+      setCategoryOptions((cats || []).map((c) => ({ value: c.id || c.name, label: c.name })));
+      setBrandOptions((brands || []).map((b) => ({ value: b.id || b.name, label: b.country ? `${b.name} - ${b.country}` : b.name })));
+      setModelOptions((models || []).map((m) => ({ value: m.id || m.name, label: m.name })));
+      setVehicleTypeOptions((types || []).map((t) => ({ value: (t as any).id || (t as any).name, label: (t as any).name })));
+    })();
+  }, []);
+
+  React.useEffect(() => {
+    (async () => {
+      if (!currentUser?.id) return;
+      const imgs = await FirestoreService.getAll<GalleryImage>(
+        COLLECTIONS.GALLERY,
+        [{ field: "vendorId", operator: "==", value: currentUser.id }]
+      );
+      setGalleryImages(imgs);
+    })();
+  }, [currentUser?.id]);
+
+  const toggleSelectImage = (url: string) => {
+    setSelectedImageUrls((prev) =>
+      prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]
+    );
   };
+
+  const onSubmit = async (data: FormValues) => {
+    if (!currentUser?.id) return;
+    const product: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
+      vendorId: currentUser.id,
+      partName: data.partName,
+      mainCategory: data.mainCategory?.value || "",
+      subCategory: "",
+      vehicleBrand: data.vehicleBrand?.value || "",
+      vehicleModel: data.vehicleModel?.value || "",
+      vehicleType: data.vehicleType?.value || "",
+      yearOfManufacturing: data.yearOfManufacturing,
+      description: data.description,
+      images: selectedImageUrls,
+      tags: [],
+      condition: "new",
+      views: 0,
+      isApproved: false,
+      isActive: true,
+    } as any;
+
+    await ProductService.createProduct(product);
+    if (onCreated) await onCreated();
+    reset();
+    setSelectedImageUrls([]);
+    onClose();
+  };
+
+  const currentYear = new Date().getFullYear();
+  const years = React.useMemo(() => {
+    const start = 1945;
+    const arr: string[] = [];
+    for (let y = currentYear; y >= start; y--) arr.push(String(y));
+    return arr;
+  }, [currentYear]);
 
   const handleModalClose = () => {
     reset();
@@ -109,17 +185,15 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               <Controller
                 name="mainCategory"
                 control={control}
-                defaultValue=""
+                defaultValue={null}
                 render={({ field }) => (
-                  <input
+                  <Select
                     {...field}
-                    type="text"
-                    placeholder="Enter Main Category"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.mainCategory
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
-                    }`}
+                    value={field.value}
+                    onChange={(val) => field.onChange(val)}
+                    options={categoryOptions}
+                    classNamePrefix="react-select"
+                    className="mt-1 text-[10px]"
                   />
                 )}
               />
@@ -138,17 +212,15 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               <Controller
                 name="vehicleBrand"
                 control={control}
-                defaultValue=""
+                defaultValue={null}
                 render={({ field }) => (
-                  <input
+                  <Select
                     {...field}
-                    type="text"
-                    placeholder="Enter Vehicle Brand"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102]  focus:outline-none focus:ring-2 ${
-                      errors.vehicleBrand
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
-                    }`}
+                    value={field.value}
+                    onChange={(val) => field.onChange(val)}
+                    options={brandOptions}
+                    classNamePrefix="react-select"
+                    className="mt-1 text-[10px]"
                   />
                 )}
               />
@@ -167,17 +239,15 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               <Controller
                 name="vehicleModel"
                 control={control}
-                defaultValue=""
+                defaultValue={null}
                 render={({ field }) => (
-                  <input
+                  <Select
                     {...field}
-                    type="text"
-                    placeholder="Enter Vehicle Model"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102]  focus:outline-none focus:ring-2 ${
-                      errors.vehicleModel
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
-                    }`}
+                    value={field.value}
+                    onChange={(val) => field.onChange(val)}
+                    options={modelOptions}
+                    classNamePrefix="react-select"
+                    className="mt-1 text-[10px]"
                   />
                 )}
               />
@@ -196,17 +266,15 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               <Controller
                 name="vehicleType"
                 control={control}
-                defaultValue=""
+                defaultValue={null}
                 render={({ field }) => (
-                  <input
+                  <Select
                     {...field}
-                    type="text"
-                    placeholder="Enter Vehicle Type"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.vehicleType
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
-                    }`}
+                    value={field.value}
+                    onChange={(val) => field.onChange(val)}
+                    options={vehicleTypeOptions}
+                    classNamePrefix="react-select"
+                    className="mt-1 text-[10px]"
                   />
                 )}
               />
@@ -217,34 +285,7 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               )}
             </div>
 
-            {/* Vehicle Made In */}
-            <div className="col-span-1">
-              <label className="block text-[12px] font-body font-medium text-[#111102]">
-                Vehicle Made in
-              </label>
-              <Controller
-                name="vehicleMadeIn"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    placeholder="Enter Country of Manufacture"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102]  focus:outline-none focus:ring-2 ${
-                      errors.vehicleMadeIn
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
-                    }`}
-                  />
-                )}
-              />
-              {errors.vehicleMadeIn && (
-                <p className="text-red-500 text-[10px] mt-1">
-                  {errors.vehicleMadeIn.message}
-                </p>
-              )}
-            </div>
+            {/* Vehicle Made In - removed per request */}
 
             {/* Year of Manufacturing */}
             <div className="col-span-1">
@@ -256,16 +297,21 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                 control={control}
                 defaultValue=""
                 render={({ field }) => (
-                  <input
+                  <select
                     {...field}
-                    type="date"
-                    placeholder="Enter Year"
-                    className={`w-full mt-1 p-2  rounded-md text-[10px] font-body  text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.yearOfManufacturing
-                        ? "focus:ring-red-500"
-                        : "focus:ring-yellow-500"
+                    className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
+                      errors.yearOfManufacturing ? "focus:ring-red-500" : "focus:ring-yellow-500"
                     }`}
-                  />
+                  >
+                    <option value="" disabled>
+                      Select Year
+                    </option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
                 )}
               />
               {errors.yearOfManufacturing && (
@@ -301,6 +347,51 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                 <p className="text-red-500 text-[10px] mt-1">
                   {errors.description.message}
                 </p>
+              )}
+            </div>
+
+            {/* Images from Gallery */}
+            <div className="col-span-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-[12px] font-body font-medium text-[#111102]">
+                  Images (select from gallery)
+                </label>
+                <span className="text-[10px] text-gray-500">Selected: {selectedImageUrls.length}</span>
+              </div>
+              <div className="mt-2 grid grid-cols-6 gap-2 max-h-40 overflow-auto bg-white p-2 rounded border">
+                {galleryImages.map((g) => (
+                  <button
+                    type="button"
+                    key={(g as any).id || g.imageUrl}
+                    onClick={() => toggleSelectImage(g.imageUrl)}
+                    className={`relative w-full h-16 border rounded overflow-hidden ${selectedImageUrls.includes(g.imageUrl) ? "ring-2 ring-yellow-500" : ""}`}
+                    title={g.title}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={g.imageUrl} alt={g.title} className="w-full h-full object-cover" />
+                    {selectedImageUrls.includes(g.imageUrl) && (
+                      <div className="absolute inset-0 bg-black/30" />
+                    )}
+                  </button>
+                ))}
+                {galleryImages.length === 0 && (
+                  <div className="col-span-6 text-[10px] text-gray-500">No images in gallery. Use Vendor Gallery to upload.</div>
+                )}
+              </div>
+
+              {selectedImageUrls.length > 0 && (
+                <div className="mt-2">
+                  <div className="text-[11px] text-gray-600 mb-1">Selected thumbnails</div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedImageUrls.map((url) => (
+                      <div key={url} className="relative w-12 h-12 border rounded overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="selected" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => toggleSelectImage(url)} className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded px-1">x</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 

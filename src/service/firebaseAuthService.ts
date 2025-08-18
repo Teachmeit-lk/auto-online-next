@@ -37,6 +37,11 @@ export interface UserProfile extends User {
   district?: string;
   zipCode?: string;
   NIC?: string;
+  conmpanyBR?: string;
+  locationLink?: string;
+  mainCategories?: string[];
+  vehicleBrand?: string[];
+  vehicleModel?: string[];
 }
 
 // Mobile-as-email domain for buyer auth

@@ -6,17 +6,26 @@ import { useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirebaseStorageService, UploadResult } from "@/service/firebaseStorageService";
+import { FirestoreService, COLLECTIONS, GalleryImage } from "@/service/firestoreService";
 
 interface IAddGalleryImageModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onUploaded?: (file: UploadResult) => void;
 }
 
 export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
   isOpen,
   onClose,
+  onUploaded,
 }) => {
   const [fileName, setFileName] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
 
   const schema = Yup.object().shape({
     partName: Yup.string().required("Name of the Part is required"),
@@ -38,14 +47,44 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data: { partName: string; image: File | null }) => {
-    if (data.image) {
-      console.log("Form submitted:", data);
+  const onSubmit = async (data: { partName: string; image: File | null }) => {
+    if (!data.image || !currentUser?.id) return;
+    try {
+      setSubmitting(true);
+      const validation = FirebaseStorageService.validateFile(data.image);
+      if (!validation.isValid) {
+        alert(validation.error);
+        setSubmitting(false);
+        return;
+      }
+      // Optional: compress
+      const compressed = await FirebaseStorageService.compressImage(data.image, 1920, 1080, 0.6);
+      const [result] = await FirebaseStorageService.uploadGalleryImages(
+        currentUser.id,
+        [compressed],
+        undefined,
+        [{ contentType: compressed.type, customMetadata: { title: data.partName } }]
+      );
+      // Create Firestore mapping
+      const galleryDoc: Omit<GalleryImage, "id" | "createdAt" | "updatedAt"> = {
+        vendorId: currentUser.id,
+        title: data.partName,
+        description: "",
+        imageUrl: result.url,
+        category: "",
+        tags: [],
+        storagePath: result.path,
+        isActive: true,
+      } as any;
+      await FirestoreService.create<GalleryImage>(COLLECTIONS.GALLERY, galleryDoc);
+      if (onUploaded) onUploaded(result);
       setFileName("");
       onClose();
       reset();
-
-      // submit logic here
+    } catch (e: any) {
+      alert(e?.message || "Failed to upload image");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -142,9 +181,10 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
             <div className="flex justify-center ">
               <button
                 type="submit"
-                className="w-[164px] h-[28px] mt-3 bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
+                disabled={submitting}
+                className="w-[164px] h-[28px] mt-3 bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500 disabled:opacity-60"
               >
-                Add Image
+                {submitting ? "Uploading..." : "Add Image"}
               </button>
             </div>
           </form>

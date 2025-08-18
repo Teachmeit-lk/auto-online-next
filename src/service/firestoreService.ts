@@ -34,6 +34,7 @@ export const COLLECTIONS = {
   CATEGORIES: "categories",
   VEHICLE_BRANDS: "vehicleBrands",
   VEHICLE_MODELS: "vehicleModels",
+  VEHICLE_TYPES: "vehicleTypes",
   GALLERY: "gallery",
   REVIEWS: "reviews",
   CHAT_ROOMS: "chatRooms",
@@ -200,6 +201,7 @@ export interface GalleryImage extends BaseDocument {
   imageUrl: string;
   category: string;
   tags: string[];
+  storagePath?: string;
 }
 
 // Generic CRUD operations
@@ -418,12 +420,17 @@ export class ProductService {
   }
 
   static async getProductsByVendor(vendorId: string): Promise<Product[]> {
-    return FirestoreService.getAll<Product>(
+    // Avoid composite index requirements by not ordering server-side
+    const list = await FirestoreService.getAll<Product>(
       COLLECTIONS.PRODUCTS,
-      [{ field: "vendorId", operator: "==", value: vendorId }],
-      "createdAt",
-      "desc"
+      [{ field: "vendorId", operator: "==", value: vendorId }]
     );
+    // Client-side sort by createdAt desc if timestamps are present
+    return [...list].sort((a: any, b: any) => {
+      const aTime = (a?.createdAt?.seconds || 0) * 1000 + (a?.createdAt?.nanoseconds || 0) / 1e6;
+      const bTime = (b?.createdAt?.seconds || 0) * 1000 + (b?.createdAt?.nanoseconds || 0) / 1e6;
+      return bTime - aTime;
+    });
   }
 
   static async searchProducts(searchParams: {

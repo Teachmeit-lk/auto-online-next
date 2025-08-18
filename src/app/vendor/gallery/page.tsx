@@ -1,24 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
-import { VendorgalleryCardImage } from "@/assets/Images";
 import {
   AddGalleryImageModal,
   TabLayout,
   VendorGalleryCard,
 } from "@/components/";
 import withAuth from "@/components/authGuard/withAuth";
+import { FirebaseStorageService, FileMetadata } from "@/service/firebaseStorageService";
+import { FirestoreService, COLLECTIONS, GalleryImage } from "@/service/firestoreService";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
 // import { AddGalleryImageModal } from "@/app/modal";
 
 const VendorGallery: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
+  const [images, setImages] = useState<GalleryImage[]>([]);
 
-  const vendors = Array.from({ length: 12 }, (_, i) => ({
-    image: VendorgalleryCardImage.src,
-    productname: `Product ${i + 1}`,
-  }));
+  const loadImages = async () => {
+    if (!currentUser?.id) return;
+    const list = await FirestoreService.getAll<GalleryImage>(
+      COLLECTIONS.GALLERY,
+      [{ field: "vendorId", operator: "==", value: currentUser.id }]
+    );
+    // Optional client-side sort by createdAt desc if present
+    const sorted = [...list].sort((a: any, b: any) => {
+      const aTime = (a.createdAt?.seconds || 0) * 1000 + (a.createdAt?.nanoseconds || 0) / 1e6;
+      const bTime = (b.createdAt?.seconds || 0) * 1000 + (b.createdAt?.nanoseconds || 0) / 1e6;
+      return bTime - aTime;
+    });
+    setImages(sorted);
+  };
+
+  useEffect(() => {
+    loadImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   return (
     <TabLayout type="vendor">
@@ -39,18 +60,35 @@ const VendorGallery: React.FC = () => {
             <div>Add New</div>
           </div>
 
-          {vendors.map((items, index) => (
-            <div key={index}>
-              <VendorGalleryCard
-                productname={items.productname}
-                image={items.image}
-              />
+          {images.map((img) => {
+            const humanize = (name: string) => {
+              const base = name.replace(/\.[^/.]+$/, "");
+              const parts = base.split("_");
+              const tail = parts.length > 1 ? parts[parts.length - 1] : base;
+              return tail.replace(/[-_]+/g, " ").trim();
+            };
+            const label = img.title || humanize(img.imageUrl);
+            return (
+            <div key={img.fullPath} className="group relative">
+              <VendorGalleryCard productname={label} image={img.imageUrl} />
+              <button
+                className="absolute top-1 right-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded"
+                onClick={async () => {
+                  if (!confirm("Delete this image?")) return;
+                  if (img.storagePath) await FirebaseStorageService.deleteFile(img.storagePath);
+                  if (img.id) await FirestoreService.delete(COLLECTIONS.GALLERY, img.id);
+                  await loadImages();
+                }}
+              >
+                Delete
+              </button>
             </div>
-          ))}
+          )})}
         </div>
         <AddGalleryImageModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          onUploaded={() => loadImages()}
         />
       </div>
     </TabLayout>
