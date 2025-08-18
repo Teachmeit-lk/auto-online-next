@@ -10,7 +10,7 @@ import {
   TabLayout,
   ViewQuotationRequestModal,
 } from "@/components";
-import { withAuth } from "@/components/authGuard/withAuth";
+import withAuth from "@/components/authGuard/withAuth";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,

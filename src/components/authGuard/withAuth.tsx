@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, ComponentType } from "react";
 import { RootState } from "@/app/store/store";
 
-export function withAuth<T extends object>(WrappedComponent: ComponentType<T>) {
+export default function withAuth<T extends object>(WrappedComponent: ComponentType<T>) {
   const ComponentWithAuth = (props: T) => {
     const router = useRouter();
     const isAuthenticated = useSelector(

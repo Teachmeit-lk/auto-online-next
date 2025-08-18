@@ -38,9 +38,9 @@ export const FirebaseAuthGuard: React.FC<AuthGuardProps> = ({
       if (requiredRole && user?.role !== requiredRole) {
         // Redirect based on user role
         if (user?.role === "buyer") {
-          router.push("/user/profile");
+          router.push("/user/search-vendors");
         } else if (user?.role === "vendor") {
-          router.push("/vendor/profile");
+          router.push("/vendor/products");
         } else {
           router.push("/");
         }

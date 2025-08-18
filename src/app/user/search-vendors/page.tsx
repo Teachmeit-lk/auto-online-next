@@ -5,7 +5,7 @@ import { Search, ClipboardCheck } from "lucide-react";
 import { TabLayout, ViewVendorProfileModal } from "@/components";
 
 import { GetQuotationModal } from "@/components/";
-import { withAuth } from "@/components/authGuard/withAuth";
+import withAuth from "@/components/authGuard/withAuth";
 import VendorProducts from "@/app/vendor/products/page";
 
 const SearchVendors: React.FC = () => {
@@ -188,4 +188,4 @@ const SearchVendors: React.FC = () => {
     </TabLayout>
   );
 };
-export default withAuth(VendorProducts);
+export default withAuth(SearchVendors);

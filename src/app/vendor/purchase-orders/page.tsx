@@ -9,7 +9,7 @@ import {
   TabLayout,
   ViewPurchaseOrderModal,
 } from "@/components";
-import { withAuth } from "@/components/authGuard/withAuth";
+import withAuth from "@/components/authGuard/withAuth";
 
 // import {
 //   NewPriceChatAlert,

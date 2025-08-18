@@ -8,7 +8,7 @@ import {
   TabLayout,
   ViewProductModal,
 } from "@/components";
-import { withAuth } from "@/components/authGuard/withAuth";
+import withAuth from "@/components/authGuard/withAuth";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
