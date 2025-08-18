@@ -6,6 +6,11 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Select from "react-select";
 import { PasswordInput } from "@/components";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { updateUserProfile, changePassword } from "@/service/firebaseAuthService";
+import { refreshUserProfile } from "@/app/store/slice/authslice";
+import { FirestoreService, COLLECTIONS, Category, VehicleBrand } from "@/service/firestoreService";
 
 interface UserProfileFormData {
   companyName: string;
@@ -24,10 +29,8 @@ interface UserProfileFormData {
   vehicleModel: { value: string; label: string }[];
 }
 
-const categoryOptions = [
-  { value: "filters", label: "Filters" },
-  { value: "tyres", label: "Tyres" },
-];
+// Loaded dynamically from Firestore main categories
+const categoryOptionsStatic: { value: string; label: string }[] = [];
 
 const brandOptions = [
   { value: "europe", label: "Europe" },
@@ -45,6 +48,11 @@ const VendorProfile = () => {
   const [isEditable, setIsEditable] = useState(false);
   const [defaultValues, setDefaultValues] =
     useState<UserProfileFormData | null>(null);
+  const dispatch = useDispatch();
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>(categoryOptionsStatic);
+  const [brandOptionsDynamic, setBrandOptionsDynamic] = useState<{ value: string; label: string }[]>([]);
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -68,7 +76,12 @@ const VendorProfile = () => {
         /^0\d{9}$/,
         "Mobile number must start with 0 and contain exactly 10 digits."
       ),
-    currentPassword: Yup.string().required("Current password is required."),
+    currentPassword: Yup.string()
+      .when("newPassword", {
+        is: (val: string | null | undefined) => !!val && val.length > 0,
+        then: (schema) => schema.required("Current password is required."),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     newPassword: Yup.string()
       .nullable()
       .notRequired()
@@ -100,20 +113,20 @@ const VendorProfile = () => {
     defaultValues: {},
   });
 
-  // Set default values on mount
+  // Set default values from Firebase profile
   useEffect(() => {
     const initialValues: UserProfileFormData = {
-      companyName: "NMK Motors",
-      contactPerson: "Praharsha Gangaboda",
-      companyMobileNumber: "0753813398",
-      whatsappNumber: "0753813398",
-      email: "praharsha.lanka@gmail.com",
-      conmpanyBR: "PV464564",
+      companyName: currentUser?.firstName || "",
+      contactPerson: currentUser?.lastName || "",
+      companyMobileNumber: currentUser?.phone || "",
+      whatsappNumber: currentUser?.whatsApp || "",
+      email: currentUser?.email || "",
+      conmpanyBR: "",
       locationLink: "",
-      description: "Updated in August 2023/ modified in 18th Aug",
-      currentPassword: "Qw12345@",
+      description: currentUser?.address || "",
+      currentPassword: "",
       newPassword: "",
-      district: "Colombo",
+      district: currentUser?.district || "",
       mainCategories: [],
       vehicleBrand: [],
       vehicleModel: [],
@@ -121,7 +134,42 @@ const VendorProfile = () => {
 
     setDefaultValues(initialValues);
     reset(initialValues);
-  }, [reset]);
+  }, [reset, currentUser]);
+
+  // Load main categories from Firestore
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await FirestoreService.getAll<Category>(COLLECTIONS.CATEGORIES, undefined, "sortOrder", "asc");
+        if (!mounted) return;
+        const opts = (list || []).map((c) => ({ value: c.id || c.name, label: c.name }));
+        setCategoryOptions(opts);
+      } catch (e) {
+        // silent fail
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Load vehicle brands from Firestore
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await FirestoreService.getAll<VehicleBrand>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc");
+        if (!mounted) return;
+        const opts = (list || []).map((b) => ({
+          value: b.id || b.name,
+          label: b.country ? `${b.name} - ${b.country}` : b.name,
+        }));
+        setBrandOptionsDynamic(opts);
+      } catch (e) {
+        // silent fail
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   if (!defaultValues) return <p>Loading...</p>;
 
@@ -132,29 +180,53 @@ const VendorProfile = () => {
       setIsEditable(true);
     }
   };
-  const onSubmit: SubmitHandler<Partial<UserProfileFormData>> = (data) => {
-    console.log("Updated Profile:", data);
-    setIsEditable(false);
-    reset({
-      ...data,
-      locationLink: data.locationLink ?? "",
-    });
+  const onSubmit: SubmitHandler<Partial<UserProfileFormData>> = async (data) => {
+    try {
+      // Update password first if requested
+      if (data.newPassword && data.currentPassword) {
+        await changePassword(data.currentPassword, data.newPassword);
+      }
+
+      // Persist profile fields supported by backend
+      if (currentUser?.id || currentUser?.userId) {
+        const userId = (currentUser.id || currentUser.userId) as string;
+        const updates: any = {
+          email: data.email,
+          phone: data.companyMobileNumber,
+          whatsApp: data.whatsappNumber,
+          district: data.district,
+          address: data.description || "",
+          mainCategories: (data.mainCategories || []).map((o) => o.value),
+        };
+        await updateUserProfile(userId, updates);
+        await (dispatch as any)(refreshUserProfile());
+      }
+
+      alert("Profile updated successfully.");
+      setIsEditable(false);
+      reset({
+        ...data,
+        locationLink: data.locationLink ?? "",
+      });
+    } catch (err: any) {
+      alert(err?.message || "Failed to update profile.");
+    }
   };
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white py-20">
-      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">
-        Vendor Profile - {control._formValues.companyName}
-      </h1>
-      <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl px-12 pt-12 pb-14">
+    <div className="w-full py-10 px-4 md:px-12 bg-white max-w-screen-xl mx-auto">
+      <div className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px]">
+        <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
+          Vendor Profile - {control._formValues.companyName}
+        </h1>
         <form
           onSubmit={
             isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
           }
-          className="grid grid-cols-2 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {/* First Name */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Company Name
             </label>
             <Controller
@@ -185,7 +257,7 @@ const VendorProfile = () => {
 
           {/* Last Name */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Contact Person
             </label>
             <Controller
@@ -216,7 +288,7 @@ const VendorProfile = () => {
 
           {/* NIC */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Company Mobile Number
             </label>
             <Controller
@@ -247,7 +319,7 @@ const VendorProfile = () => {
 
           {/* Email */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Whatsapp Number
             </label>
             <Controller
@@ -278,7 +350,7 @@ const VendorProfile = () => {
 
           {/* Mobile Number */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Email Address
             </label>
             <Controller
@@ -309,7 +381,7 @@ const VendorProfile = () => {
 
           {/* Whatsapp Number */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Company BR
             </label>
             <Controller
@@ -340,7 +412,7 @@ const VendorProfile = () => {
 
           {/* Current Password */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Current Password
             </label>
             <Controller
@@ -364,7 +436,7 @@ const VendorProfile = () => {
 
           {/* New Password */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               New Password
             </label>
             <Controller
@@ -389,7 +461,7 @@ const VendorProfile = () => {
 
           {/* District */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               District
             </label>
             <Controller
@@ -444,7 +516,7 @@ const VendorProfile = () => {
           </div>
 
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Location Link
             </label>
             <Controller
@@ -475,7 +547,7 @@ const VendorProfile = () => {
           </div>
 
           <div className="col-span-2">
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Description
             </label>
             <Controller
@@ -506,7 +578,7 @@ const VendorProfile = () => {
 
           {/* Main Categories */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Main Categories
             </label>
             <Controller
@@ -518,6 +590,8 @@ const VendorProfile = () => {
                   options={categoryOptions}
                   isMulti
                   isDisabled={!isEditable}
+                  menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
+                  menuPosition="fixed"
                   styles={{
                     control: (provided, state) => ({
                       ...provided,
@@ -551,6 +625,7 @@ const VendorProfile = () => {
                       },
                     }),
 
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                     menu: (provided) => ({
                       ...provided,
                       borderRadius: "8px",
@@ -599,7 +674,7 @@ const VendorProfile = () => {
 
           {/* Vehicle Brand */}
           <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Vehicle Brand
             </label>
             <Controller
@@ -608,7 +683,7 @@ const VendorProfile = () => {
               render={({ field }) => (
                 <Select
                   {...field}
-                  options={brandOptions}
+                  options={brandOptionsDynamic}
                   isMulti
                   isDisabled={!isEditable}
                   styles={{
@@ -692,7 +767,7 @@ const VendorProfile = () => {
 
           {/* Vehicle Model */}
           <div className="">
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
               Vehicle Model
             </label>
             <Controller
@@ -784,11 +859,23 @@ const VendorProfile = () => {
           </div>
 
           {/* Edit / Save Button */}
-          <div className="col-span-1 mt-6">
+          <div className="col-span-1 md:col-span-2 mt-2 flex justify-end gap-3">
+            {isEditable && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditable(false);
+                  reset(defaultValues || {} as UserProfileFormData);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-[#111102] bg-white hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="button"
               onClick={handleEditToggle}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102]"
+              className="px-4 py-2 bg-[#F9C301] hover:bg-yellow-500 rounded-md text-sm font-body font-semibold text-[#111102]"
             >
               {isEditable ? "Save Profile" : "Edit Profile"}
             </button>

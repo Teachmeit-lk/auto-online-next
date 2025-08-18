@@ -19,6 +19,8 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard" },
     { label: "Users", href: "/admin/users" },
+    { label: "Vehicle Brands", href: "/admin/vehicle-brands" },
+    { label: "Main Categories", href: "/admin/main-categories" },
     { label: "Settings", href: "/admin/settings" },
   ];
 

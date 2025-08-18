@@ -48,6 +48,8 @@ export const Header: React.FC = () => {
       ]
     : data;
 
+  const profilePath = user?.role === "vendor" ? "/vendor/profile" : user?.role === "admin" ? "/admin/profile" : "/user/profile";
+
   const handleLogout = () => {
     dispatch(logoutUserAsync() as any);
     setIsUserModalOpen(false);
@@ -155,7 +157,7 @@ export const Header: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Link
-                  href="/user/profile"
+                  href={profilePath}
                   className="block w-full text-left px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-black text-sm"
                   onClick={() => setIsUserModalOpen(false)}
                 >
