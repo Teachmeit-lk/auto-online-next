@@ -54,7 +54,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 bg-white shadow-md relative max-w-screen-xl mx-auto w-full">
+      <header className="flex justify-between items-center p-4 bg-white relative max-w-screen-xl mx-auto w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Image
