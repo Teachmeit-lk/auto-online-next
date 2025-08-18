@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { PasswordInput } from "@/components";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { refreshUserProfile } from "@/app/store/slice/authslice";
+import { updateUserProfile as updateUserProfileSvc } from "@/service/firebaseAuthService";
 
 interface UserProfileFormData {
   firstName: string;
@@ -20,6 +24,11 @@ interface UserProfileFormData {
 
 const UserProfile = () => {
   const [isEditable, setIsEditable] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState.user;
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -68,17 +77,33 @@ const UserProfile = () => {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      firstName: "Shehan",
-      lastName: "Jayasena",
-      nic: "200238924567",
-      email: "shehanjayasena98@gmail.com",
-      mobileNumber: "0743065580",
-      whatsappNumber: "0713856191",
-      currentPassword: "Qw12345@",
+      firstName: "",
+      lastName: "",
+      nic: "",
+      email: "",
+      mobileNumber: "",
+      whatsappNumber: "",
+      currentPassword: "",
       newPassword: "",
-      district: "Colombo",
+      district: "",
     },
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      reset({
+        firstName: currentUser.firstName || "",
+        lastName: currentUser.lastName || "",
+        nic: currentUser.NIC || "",
+        email: currentUser.email || "",
+        mobileNumber: currentUser.phone || "",
+        whatsappNumber: currentUser.whatsApp || "",
+        currentPassword: "",
+        newPassword: "",
+        district: currentUser.district || "",
+      });
+    }
+  }, [currentUser, reset]);
 
   const handleEditToggle = () => {
     if (isEditable) {
@@ -88,18 +113,39 @@ const UserProfile = () => {
     }
   };
 
-  const onSubmit = (data: UserProfileFormData) => {
-    console.log("Updated Profile:", data);
-    setIsEditable(false);
-    reset(data);
+  const onSubmit = async (data: UserProfileFormData) => {
+    if (!currentUser?.id) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const updates = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.mobileNumber,
+        whatsApp: data.whatsappNumber,
+        NIC: data.nic,
+        district: data.district,
+      } as any;
+
+      await updateUserProfileSvc(currentUser.id, updates);
+      await dispatch(refreshUserProfile() as any);
+      setIsEditable(false);
+    } catch (e: any) {
+      setSaveError(e?.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white py-20">
-      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">
-        User Profile - {control._formValues.firstName}{" "}
-        {control._formValues.lastName}
-      </h1>
+      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">User Profile</h1>
+      {saveError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm text-center">
+          {saveError}
+        </div>
+      )}
       <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl px-12 pt-12 pb-14">
         <form
           onSubmit={
@@ -401,9 +447,10 @@ const UserProfile = () => {
             <button
               type="button"
               onClick={handleEditToggle}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102]"
+              disabled={saving}
+              className={`w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102] ${saving ? "opacity-70 cursor-not-allowed" : ""}`}
             >
-              {isEditable ? "Save Profile" : "Edit Profile"}
+              {isEditable ? (saving ? "Saving..." : "Save Profile") : "Edit Profile"}
             </button>
           </div>
         </form>

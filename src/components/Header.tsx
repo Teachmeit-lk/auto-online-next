@@ -33,9 +33,16 @@ export const Header: React.FC = () => {
     { name: "contact", path: "/#contact", icon: CircleHelp },
   ];
 
-  const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const isAuthenticated = authState.isAuthenticated as boolean;
+  const user = authState.user as any;
+  const loading = authState.loading as boolean;
   const dispatch = useDispatch();
   const { initialized } = useFirebase();
+
+  const navLinks = isAuthenticated
+    ? [...data, { name: "my requests", path: "/user/search-vendors", icon: LayoutGrid }]
+    : data;
 
   const handleLogout = () => {
     dispatch(logoutUserAsync() as any);
@@ -59,11 +66,13 @@ export const Header: React.FC = () => {
       <header className="flex justify-between items-center p-4 bg-white relative max-w-screen-xl mx-auto w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
-          <Image
-            src={HeaderLogo}
-            alt="Autonline Logo"
-            className="h-[76px] w-[91px] ml-[42px]"
-          />
+          <Link href="/">
+            <Image
+              src={HeaderLogo}
+              alt="Autonline Logo"
+              className="h-[76px] w-[91px] ml-[42px]"
+            />
+          </Link>
         </div>
 
         {/* Flex Container for Small Screens */}
@@ -185,10 +194,10 @@ export const Header: React.FC = () => {
       {/* Black Bar Section with Links */}
       <div className="hidden md:flex w-full bg-black justify-center items-center">
         <div className="flex space-x-2 max-w-screen-xl mx-auto w-full justify-center h-[42px]">
-          {data.map(({ name }) => (
+          {navLinks.map(({ name, path }) => (
             <Link
               key={name}
-              href={`/#${name}`}
+              href={path}
               className={`text-[16px] font-body w-[127px] h-[42px] flex items-center justify-center ${
                 activeSection === name
                   ? "bg-yellow-500 text-black"
@@ -219,7 +228,7 @@ export const Header: React.FC = () => {
 
             {/* Navigation Links */}
             <nav className="mt-8 space-y-4">
-              {data.map(({ name, path, icon: Icon }) => (
+              {navLinks.map(({ name, path, icon: Icon }) => (
                 <Link
                   key={name}
                   href={path}
