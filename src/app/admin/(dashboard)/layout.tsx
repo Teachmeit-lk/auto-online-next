@@ -6,6 +6,7 @@ import { RootState } from "@/app/store/store";
 import { useRouter, usePathname } from "next/navigation";
 import { logoutUserAsync } from "@/app/store/slice/authslice";
 import Link from "next/link";
+import { User as UserIcon } from "lucide-react";
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const authState = useSelector((state: RootState) => state.auth as any);
@@ -73,7 +74,15 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         <main className="flex-1 overflow-auto">
           <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <div className="text-lg font-semibold">Admin Dashboard</div>
-            <div className="text-sm text-gray-500">{authState.user?.email}</div>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin/profile"
+                className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 cursor-pointer"
+                aria-label="Open profile"
+              >
+                <UserIcon size={18} className="text-gray-700" />
+              </Link>
+            </div>
           </header>
           <div className="p-6">{children}</div>
         </main>
