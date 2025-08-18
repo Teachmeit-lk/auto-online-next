@@ -1,5 +1,5 @@
 // Firebase configuration and initialization
-import { initializeApp } from "firebase/app";
+import { initializeApp, FirebaseApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -26,5 +26,17 @@ export const storage = getStorage(app);
 
 // Initialize Analytics only in browser environment
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+// Secondary auth instance for privileged ops (e.g., creating users without switching sessions)
+let secondaryApp: FirebaseApp | null = null;
+export const getSecondaryAuth = () => {
+  if (!secondaryApp) {
+    // Ensure unique name; reuse if already initialized
+    const name = "secondary";
+    const existing = getApps().find((a) => a.name === name);
+    secondaryApp = existing || initializeApp(firebaseConfig, name);
+  }
+  return getAuth(secondaryApp);
+};
 
 export default app;

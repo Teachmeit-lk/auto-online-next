@@ -11,8 +11,8 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "@/config/firebase";
+import { doc, setDoc, getDoc, updateDoc, getDocs, collection } from "firebase/firestore";
+import { auth, db, getSecondaryAuth } from "@/config/firebase";
 import { SignupRequest, LoginRequest } from "@/interfaces/requests/authRequests";
 import { User } from "@/app/store/slice/authslice";
 
@@ -119,6 +119,78 @@ export const registerUser = async (
     throw {
       code: error.code,
       message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Admin-only: create a new admin user without altering current session
+export const createUserWithRole = async (
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  role: "admin" | "buyer" | "vendor"
+): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
+  const secondaryAuth = getSecondaryAuth();
+  try {
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const user = cred.user;
+
+    await updateProfile(user, { displayName: `${firstName} ${lastName}` });
+
+    const userProfile: UserProfile = {
+      id: user.uid,
+      firstName,
+      lastName,
+      email,
+      phone: "",
+      role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isActive: true,
+    };
+
+    await setDoc(doc(db, USERS_COLLECTION, user.uid), userProfile);
+
+    if (role === "admin") {
+      await setDoc(doc(db, "admins", user.uid), { ...userProfile, adminId: user.uid });
+    } else if (role === "buyer") {
+      await setDoc(doc(db, BUYERS_COLLECTION, user.uid), { ...userProfile, userId: user.uid, buyerId: user.uid });
+    } else if (role === "vendor") {
+      await setDoc(doc(db, VENDORS_COLLECTION, user.uid), { ...userProfile, userId: user.uid, vendorId: user.uid });
+    }
+
+    return { user, profile: userProfile };
+  } catch (error: any) {
+    throw {
+      code: error.code,
+      message: getFirebaseErrorMessage(error.code),
+    } as FirebaseAuthError;
+  }
+};
+
+// Back-compat helper
+export const createAdminUser = (
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string
+) => createUserWithRole(firstName, lastName, email, password, "admin");
+
+// Admin: fetch all users from USERS_COLLECTION
+export const fetchAllUsers = async (): Promise<UserProfile[]> => {
+  try {
+    const snap = await getDocs(collection(db, USERS_COLLECTION));
+    return snap.docs.map((d) => {
+      const data = d.data() as any;
+      // Ensure id present
+      if (!data.id) data.id = d.id;
+      return data as UserProfile;
+    });
+  } catch (error: any) {
+    throw {
+      code: error.code || "firestore/error",
+      message: error.message || "Failed to load users",
     } as FirebaseAuthError;
   }
 };
