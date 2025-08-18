@@ -79,6 +79,8 @@ export interface QuotationRequest extends BaseDocument {
   buyerName: string;
   buyerEmail: string;
   buyerPhone: string;
+  vendorId?: string;
+  vendorName?: string;
   country: string;
   model: string;
   district: string;

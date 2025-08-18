@@ -3,25 +3,39 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import Image from "next/image";
-
-import { ViewEstimate1 } from "@/assets/Images";
+import { GalleryImage } from "@/service/firestoreService";
 
 interface IViewVendorProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
+  vendor?: any | null;
+  gallery?: GalleryImage[];
+  categoryLabelMap?: Record<string, string>;
+  brandLabelMap?: Record<string, string>;
+  modelLabelMap?: Record<string, string>;
 }
 
 export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
   isOpen,
   onClose,
+  vendor,
+  gallery,
+  categoryLabelMap,
+  brandLabelMap,
+  modelLabelMap,
 }) => {
+  const prettyList = (ids?: string[], map?: Record<string, string>) => {
+    if (!ids || !ids.length) return "-";
+    if (!map) return ids.join(", ");
+    return ids.map((id) => map[id] || id).join(", ");
+  };
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            NMK Motors
+            {(vendor?.firstName || "") + " " + (vendor?.lastName || "")}
           </Dialog.Title>
 
           {/* Gray Container */}
@@ -30,11 +44,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
             <div className="grid grid-cols-3 gap-x-6 items-center ">
               {/* Logo */}
               <div className="flex justify-center">
-                <Image
-                  src={ViewEstimate1}
-                  alt="Vehicle Image"
-                  className="w-[90px] h-[63px] rounded-[3px] object-cover"
-                />
+                <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500">Logo</div>
               </div>
 
               {/* Company Name */}
@@ -44,7 +54,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="NMK Motors"
+                  value={(vendor?.firstName || "") + " " + (vendor?.lastName || "")}
                   readOnly
                   className="w-full h-[36px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] "
                 />
@@ -60,7 +70,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="John Hope"
+                  value={vendor?.contactPerson || vendor?.firstName || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -73,7 +83,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="0774791034"
+                  value={vendor?.phone || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -86,7 +96,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="0773944180"
+                  value={vendor?.whatsApp || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -99,7 +109,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="makarandapathirana@gmail.com"
+                  value={vendor?.email || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -112,7 +122,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="PV98741"
+                  value={vendor?.conmpanyBR || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -125,7 +135,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Colombo"
+                  value={vendor?.district || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -138,7 +148,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Filters, Tyres, Body parts"
+                  value={prettyList(vendor?.mainCategories, categoryLabelMap)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -151,7 +161,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Europe, Indian, Korean"
+                  value={prettyList(vendor?.vehicleBrand, brandLabelMap)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -164,7 +174,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Model 1"
+                  value={prettyList(vendor?.vehicleModel, modelLabelMap)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -178,7 +188,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 <textarea
                   rows={3}
                   readOnly
-                  placeholder="Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups."
+                  value={vendor?.description || vendor?.address || ""}
                   className="w-full placeholder:text-[#111102] h-[60px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
@@ -189,13 +199,9 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                   Gallery Images
                 </label>
                 <div className="flex space-x-2 mt-2">
-                  {Array.from({ length: 7 }).map((_, index) => (
-                    <Image
-                      key={index}
-                      src={ViewEstimate1}
-                      alt={`Gallery Image ${index + 1}`}
-                      className="w-[75px] h-[75px] rounded-[3px] object-cover"
-                    />
+                  {(gallery || []).slice(0, 7).map((g) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={g.imageUrl} src={g.imageUrl} alt={g.title} className="w-[75px] h-[75px] rounded-[3px] object-cover" />
                   ))}
                 </div>
               </div>

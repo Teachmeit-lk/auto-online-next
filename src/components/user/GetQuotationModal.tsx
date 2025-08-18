@@ -6,17 +6,25 @@ import { useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirebaseStorageService } from "@/service/firebaseStorageService";
+import { FirestoreService, COLLECTIONS, QuotationRequest } from "@/service/firestoreService";
 
 interface IGetQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  vendor?: { id: string; name: string } | null;
 }
 
 export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   isOpen,
   onClose,
+  vendor,
 }) => {
   const [fileName, setFileName] = useState<string>("");
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
 
   const schema = Yup.object().shape({
     country: Yup.string().required("Country is required"),
@@ -42,7 +50,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   });
 
   // Form submission handler
-  const onSubmit = (data: {
+  const onSubmit = async (data: {
     country: string;
     model: string;
     district: string;
@@ -52,10 +60,39 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     measurement: string;
     noofunits: string;
     description: string;
-    image: string;
+    image: File;
   }) => {
-    console.log("Form submitted:", data);
-    // submit logic here
+    if (!currentUser?.id) return;
+    // Upload image
+    const img = data.image;
+    let uploadedUrl = "";
+    if (img) {
+      const compressed = await FirebaseStorageService.compressImage(img, 1920, 1080, 0.7);
+      const res = await FirebaseStorageService.uploadDocument(currentUser.id, "quotation", compressed);
+      uploadedUrl = res.url;
+    }
+    const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
+      buyerId: currentUser.id,
+      buyerName: `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim(),
+      buyerEmail: currentUser.email || "",
+      buyerPhone: currentUser.phone || "",
+      vendorId: vendor?.id,
+      vendorName: vendor?.name,
+      country: data.country,
+      model: data.model,
+      district: data.district,
+      vehicleType: data.vehicletype,
+      manufacturingYear: data.manufactoringyear,
+      fuelType: data.fueltype,
+      measurement: data.measurement,
+      numberOfUnits: Number(data.noofunits) || 0,
+      description: data.description,
+      attachedImages: uploadedUrl ? [uploadedUrl] : [],
+      status: "pending",
+      quotationsReceived: 0,
+    } as any;
+    await FirestoreService.create<QuotationRequest>(COLLECTIONS.QUOTATION_REQUESTS, doc);
+    onClose();
   };
 
   // Handle modal close
