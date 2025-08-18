@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 
 import { CarImage1 } from "@/assets/Images";
 import {
@@ -11,6 +11,9 @@ import {
   ViewQuotationRequestModal,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirestoreService, COLLECTIONS, QuotationRequest, Quotation } from "@/service/firestoreService";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -25,39 +28,87 @@ const NewPriceRequests: React.FC = () => {
   // const [isModalOpen3, setIsModalOpen3] = useState(false);
   // const [isModalOpen4, setIsModalOpen4] = useState(false);
 
-  const [popupImage, setPopupImage] = useState<string | StaticImageData | null>(
-    null
-  );
+  const [popupImage, setPopupImage] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("New Quotations Requested");
+  const [search, setSearch] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [requests, setRequests] = useState<QuotationRequest[]>([]);
+  const [vendorQuotations, setVendorQuotations] = useState<Quotation[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<QuotationRequest | null>(null);
 
-  const vendors = Array.from({ length: entries }, (_, i) => ({
-    no: i + 1,
-    cname: "Praharsha",
-    mcategory: "Filters",
-    vtype: "Car",
-    vbrand: "Japanese",
-    image: CarImage1,
-    minformation: "Click to View",
-    date: "November 13, 2024",
-    qrequests:
-      Math.random() > 0.5 ? "New Quotations Requested" : "Quotations Sent",
-  }));
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
 
-  const newQuotationsCount = vendors.filter(
-    (vendor) => vendor.qrequests === "New Quotations Requested"
-  ).length;
+  useEffect(() => {
+    const load = async () => {
+      if (!currentUser?.id) return;
+      setLoading(true);
+      try {
+        const [reqs, quotes] = await Promise.all([
+          FirestoreService.getAll<QuotationRequest>(
+            COLLECTIONS.QUOTATION_REQUESTS,
+            [{ field: "vendorId", operator: "==", value: currentUser.id }]
+          ),
+          FirestoreService.getAll<Quotation>(
+            COLLECTIONS.QUOTATIONS,
+            [{ field: "vendorId", operator: "==", value: currentUser.id }]
+          ),
+        ]);
+        const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+        const sorted = [...reqs].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+        setRequests(sorted);
+        setVendorQuotations(quotes);
+      } catch (e) {
+        console.error("Failed to load vendor price requests", e);
+        setRequests([]);
+        setVendorQuotations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [currentUser?.id]);
 
-  const quotationsSentCount = vendors.filter(
-    (vendor) => vendor.qrequests === "Quotations Sent"
-  ).length;
+  const requestRows = useMemo(() => {
+    const quotedRequestIds = new Set((vendorQuotations || []).map((q: any) => q.quotationRequestId));
+    return (requests || []).map((r: any) => {
+      const createdAt = r?.createdAt;
+      const d = createdAt?.seconds ? new Date(createdAt.seconds * 1000) : (createdAt instanceof Date ? createdAt : null);
+      return {
+        id: r.id,
+        cname: r.buyerName || "-",
+        mcategory: "-",
+        vtype: r.vehicleType || "-",
+        vbrand: r.country || "-",
+        image: (r.attachedImages && r.attachedImages[0]) || CarImage1.src,
+        minformation: "Click to View",
+        date: d ? d.toLocaleDateString() : "-",
+        qrequests: quotedRequestIds.has(r.id) ? "Quotations Sent" : "New Quotations Requested",
+        raw: r as QuotationRequest,
+      };
+    });
+  }, [requests, vendorQuotations]);
 
-  // Filter the vendors based on the selected quotation type
-  const filteredVendors = filter
-    ? vendors.filter((vendor) => vendor.qrequests === filter)
-    : vendors;
+  const filteredVendors = useMemo(() => {
+    const list = (filter
+      ? requestRows.filter((row) => row.qrequests === filter)
+      : requestRows).filter((row) => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          row.cname.toLowerCase().includes(q) ||
+          row.vtype.toLowerCase().includes(q) ||
+          row.vbrand.toLowerCase().includes(q)
+        );
+      });
+    return list.slice(0, entries);
+  }, [requestRows, filter, search, entries]);
 
-  const handleImageClick = (imageSrc: StaticImageData) => {
-    setPopupImage(imageSrc.src);
+  const newQuotationsCount = useMemo(() => requestRows.filter((r) => r.qrequests === "New Quotations Requested").length, [requestRows]);
+  const quotationsSentCount = useMemo(() => requestRows.filter((r) => r.qrequests === "Quotations Sent").length, [requestRows]);
+
+  const handleImageClick = (imageSrc: string) => {
+    setPopupImage(imageSrc);
   };
 
   const closePopup = () => {
@@ -141,6 +192,8 @@ const NewPriceRequests: React.FC = () => {
                 type="text"
                 placeholder="Search"
                 className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <Search
@@ -187,7 +240,11 @@ const NewPriceRequests: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredVendors.map((vendor, index) => (
+              {loading ? (
+                <tr><td className="px-4 py-3" colSpan={8}>Loading...</td></tr>
+              ) : filteredVendors.length === 0 ? (
+                <tr><td className="px-4 py-3" colSpan={8}>No requests found.</td></tr>
+              ) : filteredVendors.map((vendor, index) => (
                 <tr
                   key={index}
                   className="hover:bg-gray-50 bg-white text-[12px] font-body text-[#111102] "
@@ -215,7 +272,9 @@ const NewPriceRequests: React.FC = () => {
                       <Image
                         src={vendor.image}
                         alt="carImage"
-                        className="h-[42px] w-[62px]"
+                        width={62}
+                        height={32}
+                        className="h-[32px] w-[62px] object-contain"
                       />
                     </div>
                     {vendor.minformation}
@@ -230,7 +289,7 @@ const NewPriceRequests: React.FC = () => {
                       <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          onClick={() => setIsModalOpen2(true)}
+                          onClick={() => { setSelectedRequest(vendor.raw); setIsModalOpen2(true); }}
                         >
                           Quotation
                         </button>
@@ -282,8 +341,8 @@ const NewPriceRequests: React.FC = () => {
               <Image
                 src={popupImage}
                 alt="Popup Image"
-                layout="fill"
-                objectFit="contain"
+                fill
+                className="object-contain"
               />
             </div>
           </div>
@@ -291,12 +350,13 @@ const NewPriceRequests: React.FC = () => {
 
         {/* Pagination */}
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
-          Showing 1-{entries} of {entries} Entries
+          Showing 1-{Math.min(entries, requestRows.length)} of {requestRows.length} Entries
         </div>
 
         <ViewQuotationRequestModal
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
+          request={selectedRequest}
         />
 
         <OpenChatConfirmationModal

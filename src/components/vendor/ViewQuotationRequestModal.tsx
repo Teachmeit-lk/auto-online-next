@@ -6,10 +6,14 @@ import { useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
+import { FirebaseStorageService } from "@/service/firebaseStorageService";
+import { QuotationService, QuotationRequest } from "@/service/firestoreService";
 
 interface IViewQuotationRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  request?: QuotationRequest | null;
 }
 
 interface IFormValues {
@@ -23,7 +27,7 @@ interface IFormValues {
   netTotalPrice: number;
   vendorComments: string;
   description: string;
-  image: string;
+  image: File | null;
   nic: string;
   staffName: string;
   contactNumber: string;
@@ -33,8 +37,11 @@ interface IFormValues {
 
 export const ViewQuotationRequestModal: React.FC<
   IViewQuotationRequestModalProps
-> = ({ isOpen, onClose }) => {
+> = ({ isOpen, onClose, request }) => {
   const [fileName, setFileName] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const schema = Yup.object().shape({
     itemName: Yup.string().required("Item Name is required"),
@@ -52,7 +59,7 @@ export const ViewQuotationRequestModal: React.FC<
     netTotalPrice: Yup.number().required("Net Total Price is required"),
     vendorComments: Yup.string().required("Vendor Comments are required"),
     description: Yup.string().required("Description is required"),
-    image: Yup.string().required("Image is required"),
+    image: Yup.mixed().nullable(),
     nic: Yup.string()
       .required("NIC is required")
       .matches(
@@ -86,9 +93,67 @@ export const ViewQuotationRequestModal: React.FC<
   });
 
   // Form submission handler
-  const onSubmit = (data: IFormValues) => {
-    console.log("Form submitted:", data);
-    // submit logic here
+  const onSubmit = async (data: IFormValues) => {
+    if (!user) {
+      setSubmitError("Please log in");
+      return;
+    }
+    if (!request?.id) {
+      setSubmitError("No request selected");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      let attachmentUrl: string | undefined;
+      if (data.image instanceof File) {
+        const upload = await FirebaseStorageService.uploadDocument(user.id!, "quotation-attachments", data.image);
+        attachmentUrl = upload.url;
+      }
+
+      const validUntil = new Date(Date.now() + (Number(data.validityDays) || 0) * 24 * 60 * 60 * 1000);
+
+      const unitPriceNum = Number(data.unitPrice) || 0;
+      const quantityNum = Number(data.noOfUnits) || 0;
+      const totalAmountNum = Number(data.netTotalPrice) || unitPriceNum * quantityNum;
+
+      await QuotationService.createQuotation({
+        quotationRequestId: request.id,
+        vendorId: user.id!,
+        vendorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email || "",
+        vendorEmail: user.email || "",
+        buyerId: request.buyerId,
+        products: [
+          {
+            partName: data.itemName,
+            quantity: quantityNum,
+            unitPrice: unitPriceNum,
+            totalPrice: unitPriceNum * quantityNum,
+            description: data.description,
+            condition: "new",
+          },
+        ],
+        totalAmount: totalAmountNum,
+        currency: "LKR",
+        validUntil,
+        deliveryTimeframe: `${data.validityDays} days`,
+        terms: data.vendorComments,
+        status: "pending",
+        notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${data.contactNumber}${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true,
+      } as any);
+
+      handleModalClose();
+    } catch (e: any) {
+      console.error("Error submitting quotation", e);
+      setSubmitError(e?.message || "Failed to submit quotation");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle modal close
@@ -103,9 +168,12 @@ export const ViewQuotationRequestModal: React.FC<
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
-          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
+          <Dialog.Title className="text-[15px] font-bold mb-3 text-[#111102] font-body">
             Requested Quotation
           </Dialog.Title>
+          {submitError && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-[12px] text-red-600">{submitError}</div>
+          )}
 
           <div className="h-full overflow-y-auto no-scrollbar">
             <form
@@ -208,6 +276,7 @@ export const ViewQuotationRequestModal: React.FC<
                 <Controller
                   name="measurement"
                   control={control}
+                  defaultValue={request?.measurement || ""}
                   render={({ field }) => (
                     <select
                       {...field}
@@ -242,6 +311,7 @@ export const ViewQuotationRequestModal: React.FC<
                 <Controller
                   name="noOfUnits"
                   control={control}
+                  defaultValue={(request?.numberOfUnits as any) || 1}
                   render={({ field }) => (
                     <input
                       {...field}
@@ -432,7 +502,7 @@ export const ViewQuotationRequestModal: React.FC<
                   <Controller
                     name="image"
                     control={control}
-                    defaultValue=""
+                    defaultValue={null}
                     render={({ field }) => (
                       <>
                         <input
@@ -636,9 +706,10 @@ export const ViewQuotationRequestModal: React.FC<
               <div className="flex col-span-3 items-center justify-center mt-4">
                 <button
                   type="submit"
-                  className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
+                  disabled={isSubmitting}
+                  className={`w-[164px] h-[32px] font-[600] font-body text-[12px] rounded-[3px] ${isSubmitting ? "bg-gray-400 text-gray-700 cursor-not-allowed" : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"}`}
                 >
-                  Submit to Customer
+                  {isSubmitting ? "Submitting..." : "Submit to Customer"}
                 </button>
               </div>
             </form>

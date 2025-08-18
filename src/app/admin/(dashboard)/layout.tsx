@@ -58,7 +58,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
                     active
                       ? "bg-gray-100 text-gray-900 font-semibold border-l-4 border-yellow-500"
                       : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent"
-                  } block px-3 py-2 rounded"`}
+                  } block px-3 py-2 rounded`}
                 >
                   {label}
                 </Link>

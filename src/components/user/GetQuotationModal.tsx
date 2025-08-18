@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus, Camera } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
@@ -29,14 +29,14 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   const schema = Yup.object().shape({
     country: Yup.string().required("Country is required"),
     model: Yup.string().required("Model is required"),
-    district: Yup.string().required("District is required"),
     vehicletype: Yup.string().required("Vehicle type is required"),
-    manufactoringyear: Yup.string().required("Manufactoring Year is required"),
+    manufactoringyear: Yup.string().required("Manufacturing Year is required"),
     fueltype: Yup.string().required("Fuel type is required"),
     measurement: Yup.string().required("Measurement is required"),
     noofunits: Yup.string().required("No of units are required"),
     description: Yup.string().required("Description is required"),
-    image: Yup.string().required("Image is required"),
+    district: Yup.string().required("District is required"),
+    image: Yup.mixed().required("Image is required"),
   });
 
   // Initialize react-hook-form
@@ -102,13 +102,55 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     onClose();
   };
 
+  // Dynamic options
+  const [countryOptions, setCountryOptions] = useState<string[]>([]);
+  const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>([]);
+  const [fuelTypeOptions, setFuelTypeOptions] = useState<string[]>([]);
+  const [measurementOptions, setMeasurementOptions] = useState<string[]>([]);
+  const [modelOptions, setModelOptions] = useState<string[]>([]);
+  const [districtOptions, setDistrictOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const [brands, vtypes, fuels, units, models, vendors] = await Promise.all([
+        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc"),
+        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_TYPES, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(COLLECTIONS.FUEL_TYPES, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(COLLECTIONS.MEASUREMENT_UNITS, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(
+          COLLECTIONS.USERS,
+          [
+            { field: "role", operator: "==", value: "vendor" },
+            { field: "isActive", operator: "==", value: true },
+          ]
+        ),
+      ]);
+      const countries = Array.from(new Set((brands || []).map((b: any) => b.country).filter(Boolean)));
+      setCountryOptions(countries);
+      setVehicleTypeOptions((vtypes || []).map((t: any) => t.name));
+      setFuelTypeOptions((fuels || []).map((t: any) => t.name));
+      setMeasurementOptions((units || []).map((t: any) => t.name));
+      setModelOptions((models || []).map((m: any) => m.name));
+      const districts = Array.from(new Set((vendors || []).map((v: any) => v.district).filter(Boolean)));
+      setDistrictOptions(districts);
+    })();
+  }, []);
+
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(() => {
+    const arr: number[] = [];
+    for (let y = currentYear; y >= 1945; y--) arr.push(y);
+    return arr;
+  }, [currentYear]);
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            NMK Motors - Filters
+            {vendor?.name ? `${vendor.name} - Get Quotation` : "Get Quotation"}
           </Dialog.Title>
 
           <div className="h-full overflow-y-auto no-scrollbar">
@@ -126,22 +168,25 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <input
+                    <select
                       {...field}
-                      type="text"
                       id="country"
-                      placeholder="Europe"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.country
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
-                    />
+                    >
+                      <option value="" className="text-gray-500">Select Country</option>
+                      {countryOptions.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   )}
                 />
-                {errors.model && (
+                {errors.country && (
                   <p className="text-red-500 text-[8px]  mt-1">
-                    {errors.model.message}
+                    {errors.country.message}
                   </p>
                 )}
               </div>
@@ -156,17 +201,20 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <input
+                    <select
                       {...field}
-                      type="text"
                       id="model"
-                      placeholder="Model"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
                         errors.model
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
-                    />
+                    >
+                      <option value="" className="text-gray-500">Select Model</option>
+                      {modelOptions.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
                   )}
                 />
                 {errors.model && (
@@ -186,18 +234,21 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <input
+                    <select
                       {...field}
-                      type="text"
                       id="district"
-                      placeholder="Colombo"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
                      ${
                        errors.district
                          ? "focus:ring-red-500 focus:border-red-500"
                          : "focus:ring-yellow-500 focus:border-yellow-500"
                      }`}
-                    />
+                    >
+                      <option value="" className="text-gray-500">Select District</option>
+                      {districtOptions.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
                   )}
                 />
                 {errors.district && (
@@ -228,8 +279,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       <option value="" className="text-gray-500">
                         Select Type
                       </option>
-                      <option>Car</option>
-                      <option>Truck</option>
+                      {vehicleTypeOptions.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
                     </select>
                   )}
                 />
@@ -250,18 +302,21 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <input
+                    <select
                       {...field}
-                      type="text"
                       id="manufactoringyear"
-                      placeholder="2023"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.manufactoringyear
                          ? "focus:ring-red-500 focus:border-red-500"
                          : "focus:ring-yellow-500 focus:border-yellow-500"
                      }`}
-                    />
+                    >
+                      <option value="" className="text-gray-500">Select Year</option>
+                      {years.map((y) => (
+                        <option key={y} value={String(y)}>{y}</option>
+                      ))}
+                    </select>
                   )}
                 />
                 {errors.manufactoringyear && (
@@ -292,8 +347,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       <option value="" className="text-gray-500">
                         Select Fuel
                       </option>
-                      <option>Petrol</option>
-                      <option>Diesel</option>
+                      {fuelTypeOptions.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
                     </select>
                   )}
                 />
@@ -326,8 +382,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       <option value="" className="text-gray-500">
                         Select Unit
                       </option>
-                      <option value="Kg">Kg</option>
-                      <option value="Lbs">Lbs</option>
+                      {measurementOptions.map((u) => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
                     </select>
                   )}
                 />
