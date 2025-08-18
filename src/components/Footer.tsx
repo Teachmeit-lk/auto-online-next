@@ -70,7 +70,7 @@ export const Footer: React.FC = () => {
 
           <p
             className={`text-gray-700 mt-4 ${
-              isMobile ? "text-[10px] pl-1" : "text-[18px]"
+              isMobile ? "text-sm pl-1" : "text-base"
             }`}
           >
             {/* Phone */}
@@ -79,7 +79,7 @@ export const Footer: React.FC = () => {
                 <Phone className="md:w-[19px] md:h-[19px] w-[12px] h-[12px] " />
               </i>
 
-              <span className="ml-[6px] md:ml-2  font-body text-[#5B5B5B]">
+              <span className="ml-[6px] md:ml-2 font-body text-[#5B5B5B] text-sm md:text-base">
                 +94 7538 13398
               </span>
             </span>
@@ -93,7 +93,7 @@ export const Footer: React.FC = () => {
               >
                 <MapPin className="md:w-[19px] md:h-[19px] w-[14px] h-[14px]" />
               </i>
-              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B]">
+              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B] text-sm md:text-base">
                 No.20, 6th Lane, Araliya Uyana, Pannipitiya
               </span>
             </span>
@@ -107,7 +107,7 @@ export const Footer: React.FC = () => {
               >
                 <Mail className="md:w-[19px] md:h-[19px] w-[14px] h-[14px]" />
               </i>
-              <span className="ml-2  md:ml-4 font-body text-[#5B5B5B]">
+              <span className="ml-2 md:ml-4 font-body text-[#5B5B5B] text-sm md:text-base">
                 info@autoonline.lk
               </span>
             </span>
@@ -126,10 +126,10 @@ export const Footer: React.FC = () => {
             <div key={section.title} className="text-left">
               <button
                 onClick={() => toggleSection(section.title)}
-                className={`w-full  text-[#111102] flex items-center gap-2 ${
+                className={`w-full text-[#111102] flex items-center gap-2 ${
                   isMobile
-                    ? "text-[10px] pr-2 font-body font-[500] text-left py-1 "
-                    : "text-[18px] font-bold py-2"
+                    ? "text-sm pr-2 font-body font-[600] text-left py-1"
+                    : "text-base md:text-lg font-semibold py-2"
                 }`}
               >
                 {isMobile && (
@@ -150,7 +150,7 @@ export const Footer: React.FC = () => {
 
               {/* Show Items Only on Larger Screens or when clicked on Mobile */}
               {!isMobile && (
-                <ul className="mt-2 gap-8  text-[18px] text-[#5B5B5B] space-y-2">
+                <ul className="mt-2 gap-8 text-sm md:text-base text-[#5B5B5B] space-y-2">
                   {section.items.map((item) => (
                     <li key={item}>
                       <a href="#" className="hover:text-gray-800">
@@ -168,7 +168,7 @@ export const Footer: React.FC = () => {
       {/* Dropdown Content for Mobile - Above Social Icons */}
       {isMobile && openSection && (
         <div className="mt-[20px]">
-          <ul className="text-[10px] text-[#5B5B5B] space-y-1 justify-center text-center">
+          <ul className="text-sm text-[#5B5B5B] space-y-1 justify-center text-center">
             {data
               .find((section) => section.title === openSection)
               ?.items.map((item) => (
@@ -205,7 +205,7 @@ export const Footer: React.FC = () => {
       {/* Footer Bottom Section */}
       <div
         className={`flex flex-col md:flex-row items-center ${
-          isMobile ? "text-[10px] pt-1" : "text-[12px] pt-10"
+          isMobile ? "text-sm pt-2" : "text-sm pt-10"
         } text-[#5B5B5B] w-full`}
       >
         {/* Empty space for alignment on larger screens */}
@@ -227,9 +227,9 @@ export const Footer: React.FC = () => {
         <div
           className={`flex ${
             isMobile
-              ? "order-1 justify-center  w-full"
+              ? "order-1 justify-center w-full"
               : "order-none justify-end md:w-1/3"
-          } space-x-4`}
+          } space-x-4 text-sm`}
         >
           <a href="#" className="hover:text-gray-800">
             Website use policy
