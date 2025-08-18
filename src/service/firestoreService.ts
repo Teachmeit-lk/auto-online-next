@@ -35,6 +35,7 @@ export const COLLECTIONS = {
   VEHICLE_BRANDS: "vehicleBrands",
   VEHICLE_MODELS: "vehicleModels",
   VEHICLE_TYPES: "vehicleTypes",
+  FUEL_TYPES: "fuelTypes",
   GALLERY: "gallery",
   REVIEWS: "reviews",
   CHAT_ROOMS: "chatRooms",

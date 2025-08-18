@@ -22,6 +22,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     { label: "Vehicle Brands", href: "/admin/vehicle-brands" },
     { label: "Vehicle Models", href: "/admin/vehicle-models" },
     { label: "Vehicle Types", href: "/admin/vehicle-types" },
+    { label: "Fuel Types", href: "/admin/fuel-types" },
     { label: "Main Categories", href: "/admin/main-categories" },
     { label: "Settings", href: "/admin/settings" },
   ];
