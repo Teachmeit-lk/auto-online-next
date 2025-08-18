@@ -36,6 +36,7 @@ export const COLLECTIONS = {
   VEHICLE_MODELS: "vehicleModels",
   VEHICLE_TYPES: "vehicleTypes",
   FUEL_TYPES: "fuelTypes",
+  MEASUREMENT_UNITS: "measurementUnits",
   GALLERY: "gallery",
   REVIEWS: "reviews",
   CHAT_ROOMS: "chatRooms",
