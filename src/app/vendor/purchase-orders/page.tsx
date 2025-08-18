@@ -31,6 +31,7 @@ const NewPurchaseOrders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Quotation[]>([]);
   const [selected, setSelected] = useState<Quotation | null>(null);
+  const [buyerNameMap, setBuyerNameMap] = useState<Record<string, string>>({});
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -58,6 +59,24 @@ const NewPurchaseOrders: React.FC = () => {
     load();
   }, [currentUser?.id]);
 
+  useEffect(() => {
+    const loadBuyers = async () => {
+      const ids = Array.from(new Set((orders || []).map((q: any) => q.buyerId).filter(Boolean)));
+      const map: Record<string, string> = {};
+      await Promise.all(ids.map(async (id) => {
+        try {
+          const u: any = await FirestoreService.getById(COLLECTIONS.USERS, id);
+          if (u) {
+            const name = `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.companyName || u.email || id;
+            map[id] = name;
+          }
+        } catch {}
+      }));
+      setBuyerNameMap(map);
+    };
+    if (orders.length > 0) loadBuyers();
+  }, [orders]);
+
   const rows = useMemo(() => {
     return (orders || []).map((q: any, idx: number) => {
       const ts = q.updatedAt || q.createdAt;
@@ -66,7 +85,7 @@ const NewPurchaseOrders: React.FC = () => {
         id: q.id,
         rcode: q.quotationRequestId || "-",
         ccode: q.buyerId || "-",
-        cname: q.buyerName || q.buyerEmail || "-",
+        cname: buyerNameMap[q.buyerId] || q.buyerId || "-",
         pname: q.products?.[0]?.partName || "-",
         bdate: d ? d.toLocaleDateString() : "-",
         status: q.status,
@@ -74,7 +93,7 @@ const NewPurchaseOrders: React.FC = () => {
         no: idx + 1,
       };
     });
-  }, [orders]);
+  }, [orders, buyerNameMap]);
 
   // const handleConfirmAlert = () => {
   //   console.log("Estimate confirmed!");
