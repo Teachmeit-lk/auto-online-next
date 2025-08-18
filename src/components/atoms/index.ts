@@ -7,3 +7,4 @@ export * from "./ScrollToTopButton";
 export * from "./VendorGalleryCard";
 export * from "./DeleteItemConfirmation";
 export * from "./PasswordInput";
+export * from "./MobileNumberInput";

@@ -12,6 +12,7 @@ import { SignupRequest } from "@/interfaces/requests/authRequests";
 import { registerUserAsync } from "@/app/store/slice/authslice";
 import { RootState } from "@/app/store/store";
 import { PasswordInput } from "@/components";
+import { MobileNumberInput } from "@/components";
 
 interface ICommonRegisterPageProps {
   type: "buyer" | "vendor";
@@ -39,16 +40,10 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     NIC: Yup.string().required("NIC is required."),
     mobileNumber: Yup.string()
       .required("Mobile number is required.")
-      .matches(
-        /(^0\d{9}$)|^\+94\d{9}$/,
-        "Mobile number must start with 0 or +94 and contain exactly 10 digits."
-      ),
+      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
     whatsappNumber: Yup.string()
       .required("WhatsApp number is required.")
-      .matches(
-        /(^0\d{9}$)|^\+94\d{9}$/,
-        "WhatsApp number must start with 0 or +94 and contain exactly 10 digits."
-      ),
+      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -483,16 +478,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 control={control}
                 defaultValue=""
                 render={({ field }) => (
-                  <input
+                  <MobileNumberInput
                     {...field}
-                    type="text"
                     id="mobileNumber"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.mobileNumber
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
+                    inputClassName="h-[28px] md:h-[40px] py-2"
                     placeholder="Mobile Number"
+                    error={!!errors.mobileNumber}
                   />
                 )}
               />
@@ -516,16 +507,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 control={control}
                 defaultValue=""
                 render={({ field }) => (
-                  <input
+                  <MobileNumberInput
                     {...field}
-                    type="text"
                     id="whatsappNumber"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.whatsappNumber
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
+                    inputClassName="h-[28px] md:h-[40px] py-2"
                     placeholder="WhatsApp Number"
+                    error={!!errors.whatsappNumber}
                   />
                 )}
               />

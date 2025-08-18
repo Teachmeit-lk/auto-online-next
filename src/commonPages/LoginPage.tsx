@@ -11,6 +11,7 @@ import { LoginRequest } from "@/interfaces/requests/authRequests";
 import { loginUserAsync } from "@/app/store/slice/authslice";
 import { RootState } from "@/app/store/store";
 import { PasswordInput } from "@/components";
+import { MobileNumberInput } from "@/components";
 
 interface ICommonLoginPageProps {
   type: "buyer" | "vendor";
@@ -20,11 +21,15 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const loading = authState.loading as boolean;
+  const error = authState.error as string | null;
 
   // Define validation schemas
   const buyerSchema = Yup.object().shape({
-    phone: Yup.string().required("Mobile number is required."),
+    phone: Yup.string()
+      .required("Mobile number is required.")
+      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -156,16 +161,12 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <input
+                    <MobileNumberInput
                       {...field}
-                      type="tel"
                       id="phone"
-                      className={`w-full md:h-[36px] h-[28px] text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 md:py-1 focus:outline-none focus:ring-2 ${
-                        (errors as any).phone
-                          ? "focus:ring-red-500 border-red-300"
-                          : "focus:ring-yellow-500 border-gray-300"
-                      } border`}
+                      inputClassName="md:h-[36px] h-[28px] md:py-1"
                       placeholder="Enter mobile number"
+                      error={!!(errors as any).phone}
                       disabled={loading}
                     />
                   )}
