@@ -17,6 +17,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { HeaderLogo } from "@/assets/Images";
 import { RootState } from "@/app/store/store";
 import { logoutUserAsync } from "@/app/store/slice/authslice";
+import { useFirebase } from "@/contexts/FirebaseContext";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -34,6 +35,7 @@ export const Header: React.FC = () => {
 
   const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  const { initialized } = useFirebase();
 
   const handleLogout = () => {
     dispatch(logoutUserAsync() as any);
@@ -83,13 +85,15 @@ export const Header: React.FC = () => {
             >
               <User size="18px" color="#111102" />
             </button>
-          ) : (
+          ) : initialized && !loading ? (
             <Link
               href="/user/login"
               className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
             >
               LOGIN
             </Link>
+          ) : (
+            <div className="absolute right-0 w-[70px] h-[24px]" />
           )}
         </div>
 
@@ -116,7 +120,7 @@ export const Header: React.FC = () => {
               <User size="24px" color="#111102" />
             </button>
           </div>
-        ) : (
+        ) : initialized && !loading ? (
           <div className="hidden md:block">
             <Link
               href="/user/login"
@@ -125,6 +129,8 @@ export const Header: React.FC = () => {
               LOGIN
             </Link>
           </div>
+        ) : (
+          <div className="hidden md:block w-[120px] h-[42px] mr-[30px]" />
         )}
 
         {/* User Pop-up Menu positioned below the icon */}

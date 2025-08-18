@@ -40,16 +40,21 @@ export interface UserProfile extends User {
 // Mobile-as-email domain for buyer auth
 const MOBILE_EMAIL_DOMAIN = "yourapp.com";
 
+const stripToDigits = (value: string): string => (value || "").replace(/\D/g, "");
+
 const formatMobileAsEmail = (phone: string): string => {
-  // Normalize: keep digits, convert leading 0xxxxxxxxx to 94xxxxxxxxx
-  const digitsOnly = (phone || "").replace(/\D/g, "");
-  let normalized = digitsOnly;
-  if (digitsOnly.startsWith("0") && digitsOnly.length === 10) {
-    normalized = `94${digitsOnly.slice(1)}`;
-  } else if (digitsOnly.startsWith("+")) {
-    normalized = digitsOnly.slice(1);
+  // Normalize SL numbers to 94XXXXXXXXX (9 digits after 94)
+  let digits = stripToDigits(phone);
+  if (digits.startsWith("0") && digits.length === 10) {
+    digits = `94${digits.slice(1)}`;
+  } else if (digits.startsWith("94") && digits.length === 11) {
+    // already in international form
+  } else if (digits.length === 9) {
+    digits = `94${digits}`;
+  } else if (digits.startsWith("+")) {
+    digits = digits.slice(1);
   }
-  return `${normalized}@${MOBILE_EMAIL_DOMAIN}`;
+  return `${digits}@${MOBILE_EMAIL_DOMAIN}`;
 };
 
 // Register new user with email/password
@@ -122,21 +127,44 @@ export const loginUser = async (
   userType: "buyer" | "vendor"
 ): Promise<{ user: FirebaseUser; profile: UserProfile }> => {
   try {
-    let email: string;
-    
-    // Handle different login formats
+    let userCredential;
+    let email: string | null = null;
+
     if ("email" in credentials) {
       email = credentials.email;
+      userCredential = await signInWithEmailAndPassword(auth, email, credentials.password);
     } else {
-      // Buyers login with phone → convert to mobile-as-email
-      email = formatMobileAsEmail(credentials.phone);
+      // Try multiple mobile-as-email variants for robustness
+      const raw = credentials.phone;
+      const variants = new Set<string>();
+      const digits = stripToDigits(raw);
+      variants.add(formatMobileAsEmail(raw));
+      variants.add(`${digits}@${MOBILE_EMAIL_DOMAIN}`);
+      if (digits.startsWith("94") && digits.length === 11) {
+        variants.add(`${digits}@${MOBILE_EMAIL_DOMAIN}`);
+        variants.add(`${`0${digits.slice(2)}`}@${MOBILE_EMAIL_DOMAIN}`);
+      }
+
+      let lastError: any = null;
+      for (const candidate of variants) {
+        try {
+          email = candidate;
+          userCredential = await signInWithEmailAndPassword(auth, candidate, credentials.password);
+          lastError = null;
+          break;
+        } catch (e: any) {
+          lastError = e;
+          if (e?.code !== "auth/invalid-credential") {
+            // Stop early on network/other errors
+            break;
+          }
+        }
+      }
+      if (!userCredential) {
+        throw lastError || new Error("auth/invalid-credential");
+      }
     }
 
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      credentials.password
-    );
     const user = userCredential.user;
 
     // Get user profile from Firestore
