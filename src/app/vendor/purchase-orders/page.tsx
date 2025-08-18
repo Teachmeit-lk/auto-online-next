@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import {
   ConfirmQuotationConfirmationModal,
@@ -10,6 +10,9 @@ import {
   ViewPurchaseOrderModal,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { FirestoreService, COLLECTIONS, Quotation } from "@/service/firestoreService";
 
 // import {
 //   NewPriceChatAlert,
@@ -18,41 +21,60 @@ import withAuth from "@/components/authGuard/withAuth";
 //   RejectPurchaseOrderModal,
 // } from "@/app/modal";
 
-interface Vendor {
-  no: number;
-  rcode: string;
-  ccode: string;
-  cname: string;
-  pname: string;
-  bdate: string;
-  status: string;
-}
-
 const NewPurchaseOrders: React.FC = () => {
   const [entries, setEntries] = useState(5);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isModalOpen1, setIsModalOpen1] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [isModalOpen3, setIsModalOpen3] = useState(false);
   const [isModalOpen4, setIsModalOpen4] = useState(false);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Quotation[]>([]);
+  const [selected, setSelected] = useState<Quotation | null>(null);
+
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const currentUser = authState?.user;
 
   useEffect(() => {
-    const generatedVendors = Array.from({ length: entries }, (_, i) => ({
-      no: i + 1,
-      rcode: "83356245921",
-      ccode: "VD6464512",
-      cname: "NMK Motors",
-      pname: "NMK Motors",
-      bdate: "November 13, 2024",
-      status:
-        Math.random() > 0.5
-          ? "Pending"
-          : Math.random() > 0.5
-          ? "Processing"
-          : "Disabled",
-    }));
-    setVendors(generatedVendors);
-  }, [entries]);
+    const load = async () => {
+      if (!currentUser?.id) return;
+      setLoading(true);
+      try {
+        // Align with buyer PO tab: show confirmed quotations (status: accepted)
+        const list = await FirestoreService.getAll<Quotation>(
+          COLLECTIONS.QUOTATIONS,
+          [
+            { field: "vendorId", operator: "==", value: currentUser.id },
+            { field: "status", operator: "==", value: "accepted" },
+          ]
+        );
+        const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+        const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+        setOrders(sorted);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [currentUser?.id]);
+
+  const rows = useMemo(() => {
+    return (orders || []).map((q: any, idx: number) => {
+      const ts = q.updatedAt || q.createdAt;
+      const d = ts?.seconds ? new Date(ts.seconds * 1000) : (ts instanceof Date ? ts : null);
+      return {
+        id: q.id,
+        rcode: q.quotationRequestId || "-",
+        ccode: q.buyerId || "-",
+        cname: q.buyerName || q.buyerEmail || "-",
+        pname: q.products?.[0]?.partName || "-",
+        bdate: d ? d.toLocaleDateString() : "-",
+        status: q.status,
+        raw: q as Quotation,
+        no: idx + 1,
+      };
+    });
+  }, [orders]);
 
   // const handleConfirmAlert = () => {
   //   console.log("Estimate confirmed!");
@@ -106,6 +128,8 @@ const NewPurchaseOrders: React.FC = () => {
                 type="text"
                 placeholder="Search"
                 className="w-full h-full pl-3 pr-8 rounded-[5px] font-body text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <Search
@@ -152,9 +176,14 @@ const NewPurchaseOrders: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {vendors.map((vendor, index) => (
+              {loading ? (
+                <tr><td className="px-4 py-3" colSpan={8}>Loading...</td></tr>
+              ) : rows.filter(r => {
+                const q = search.toLowerCase();
+                return !q || r.rcode.toLowerCase().includes(q) || r.ccode.toLowerCase().includes(q) || r.cname.toLowerCase().includes(q) || r.pname.toLowerCase().includes(q);
+              }).slice(0, entries).map((vendor) => (
                 <tr
-                  key={index}
+                  key={vendor.id}
                   className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] font-body"
                 >
                   <td className="border border-r-2 border-b-2  border-[#F8F8F8]  py-2 text-center">
@@ -177,9 +206,9 @@ const NewPurchaseOrders: React.FC = () => {
                   </td>
                   <td
                     className={`border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ${
-                      vendor.status === "Pending"
+                      vendor.status === "accepted"
                         ? "text-[#F9C301]"
-                        : vendor.status === "Processing"
+                        : vendor.status === "in_progress"
                         ? "text-[#338B07]"
                         : "text-[#930000]"
                     }`}
@@ -190,7 +219,7 @@ const NewPurchaseOrders: React.FC = () => {
                   <td className="grid grid-cols-4 text-center w-full h-full font-body">
                     <button
                       className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      onClick={() => setIsModalOpen1(true)}
+                      onClick={() => { setSelected(vendor.raw); setIsModalOpen1(true); }}
                     >
                       View
                     </button>
@@ -226,6 +255,7 @@ const NewPurchaseOrders: React.FC = () => {
         <ViewPurchaseOrderModal
           isOpen={isModalOpen1}
           onClose={() => setIsModalOpen1(false)}
+          order={selected as any}
         />
         <ConfirmQuotationConfirmationModal
           isOpen={isModalOpen3}
