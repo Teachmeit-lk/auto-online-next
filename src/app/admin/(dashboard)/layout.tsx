@@ -3,8 +3,9 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { logoutUserAsync } from "@/app/store/slice/authslice";
+import Link from "next/link";
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const authState = useSelector((state: RootState) => state.auth as any);
@@ -12,6 +13,19 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const role = authState.user?.role as string | undefined;
   const router = useRouter();
   const dispatch = useDispatch();
+  const pathname = usePathname();
+
+  const navItems = [
+    { label: "Dashboard", href: "/admin/dashboard" },
+    { label: "Users", href: "/admin/users" },
+    { label: "Settings", href: "/admin/settings" },
+  ];
+
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    // Consider the item active if current path equals or starts with the href
+    return pathname === href || pathname.startsWith(href + "/");
+  };
 
   React.useEffect(() => {
     if (!isAuthenticated || role !== "admin") {
@@ -24,18 +38,32 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       <div className="flex h-screen">
         {/* Sidebar */}
         <aside className="w-64 bg-white border-r border-gray-200 p-4 hidden md:flex flex-col">
-          <h2 className="text-xl font-semibold mb-6">Admin</h2>
-          <nav className="space-y-2 text-sm flex-1">
-            <a href="/admin/dashboard" className="block px-3 py-2 rounded hover:bg-gray-100">Dashboard</a>
-            <a href="/admin/users" className="block px-3 py-2 rounded hover:bg-gray-100">Users</a>
-            <a href="/admin/settings" className="block px-3 py-2 rounded hover:bg-gray-100">Settings</a>
+          <h2 className="text-xl font-semibold mb-4">Admin</h2>
+          <nav className="space-y-1 text-sm flex-1">
+            {navItems.map(({ label, href }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`${
+                    active
+                      ? "bg-gray-100 text-gray-900 font-semibold border-l-4 border-yellow-500"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent"
+                  } block px-3 py-2 rounded"`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
           <button
             onClick={async () => {
               await dispatch(logoutUserAsync() as any);
               router.replace("/admin/login");
             }}
-            className="mt-4 w-full px-3 py-2 rounded bg-red-500 text-white text-sm hover:bg-red-600"
+            className="mt-2 w-full px-3 py-2 rounded bg-red-500 text-white text-sm hover:bg-red-600"
           >
             Logout
           </button>
