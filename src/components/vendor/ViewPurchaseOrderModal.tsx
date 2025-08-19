@@ -2,30 +2,34 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useMemo } from "react";
+import { Quotation } from "@/service/firestoreService";
 
 interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
+  order?: Quotation | null;
 }
 
 export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   isOpen,
   onClose,
+  order,
 }) => {
-  const [tableData] = useState(
-    Array.from({ length: 10 }, (_, index) => ({
-      id: index + 1,
-      itemName: `Item ${index + 1}`,
+  const tableData = useMemo(() => {
+    const items = order?.products || [];
+    return items.map((p, idx) => ({
+      id: idx + 1,
+      itemName: p.partName,
       unit: "Unit",
-      description: "Item description",
-      unitPrice: "1,000",
-      totalPrice: "3,000",
-      netTotal: "2,500",
-      stock: "Available",
-      comment: "N/A",
-    }))
-  );
+      description: p.description || "-",
+      unitPrice: p.unitPrice,
+      totalPrice: p.totalPrice,
+      netTotal: p.totalPrice,
+      stock: "-",
+      comment: p.warranty || "-",
+    }));
+  }, [order]);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -33,7 +37,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            View Purchase Order
+            Purchase Order - {order?.buyerName || order?.buyerEmail || "Customer"}
           </Dialog.Title>
 
           {/* Gray Container */}
@@ -47,7 +51,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="154856565V"
+                  placeholder="Buyer ID"
+                  value={order?.buyerId || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -60,7 +65,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Praharsha"
+                  placeholder="Buyer Name"
+                  value={order?.buyerName || ""}
                   readOnly
                   className="w-full h-[36px]  placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -73,7 +79,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="0714562541"
+                  placeholder="Buyer Email"
+                  value={order?.buyerEmail || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -86,7 +93,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="12300.00"
+                  placeholder="Total Amount"
+                  value={order?.totalAmount?.toString() || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -99,7 +107,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="450.00"
+                  placeholder="Delivery Timeframe"
+                  value={order?.deliveryTimeframe || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -112,7 +121,8 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="13100.00"
+                  placeholder="Currency"
+                  value={order?.currency || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
