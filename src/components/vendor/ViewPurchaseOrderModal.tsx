@@ -3,12 +3,12 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import { useMemo } from "react";
-import { Quotation } from "@/service/firestoreService";
+import { PurchaseOrder } from "@/service/firestoreService";
 
 interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order?: Quotation | null;
+  order?: PurchaseOrder | null;
 }
 
 export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
@@ -16,20 +16,35 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   onClose,
   order,
 }) => {
+  console.log("[ViewPurchaseOrderModal] Opening modal for order:", order?.id, order?.orderNumber);
+
   const tableData = useMemo(() => {
     const items = order?.products || [];
     return items.map((p, idx) => ({
       id: idx + 1,
       itemName: p.partName,
       unit: "Unit",
-      description: p.description || "-",
+      description: "-",
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
       netTotal: p.totalPrice,
       stock: "-",
-      comment: p.warranty || "-",
+      comment: "-",
     }));
   }, [order]);
+
+  const getDeliveryMethodLabel = (method?: string) => {
+    if (method === "arrange_delivery") return "Arrange delivery through vendor";
+    if (method === "collect_from_shop") return "Collect from shop";
+    return "-";
+  };
+
+  const getPaymentMethodLabel = (method?: string) => {
+    if (method === "cash_at_shop") return "Cash at shop";
+    if (method === "bank_transfer") return "Bank transfer";
+    if (method === "pay_online") return "Pay online";
+    return "-";
+  };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -37,94 +52,88 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            Purchase Order - {order?.buyerName || order?.buyerEmail || "Customer"}
+            Purchase Order {order?.orderNumber || ""}
           </Dialog.Title>
 
           {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
             {/* Form Section */}
             <form className="grid grid-cols-3 gap-y-4 gap-x-6">
-              {/* Staff ID */}
+              {/* Order Number */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Staff ID
+                  Order Number
                 </label>
                 <input
                   type="text"
-                  placeholder="Buyer ID"
-                  value={order?.buyerId || ""}
+                  value={order?.orderNumber || ""}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Staff Name */}
+              {/* Delivery Method */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Staff Name
+                  Delivery Method
                 </label>
                 <input
                   type="text"
-                  placeholder="Buyer Name"
-                  value={order?.buyerName || ""}
+                  value={getDeliveryMethodLabel(order?.deliveryMethod)}
                   readOnly
-                  className="w-full h-[36px]  placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Contact Number */}
+              {/* Payment Method */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Contact Number
+                  Payment Method
                 </label>
                 <input
                   type="text"
-                  placeholder="Buyer Email"
-                  value={order?.buyerEmail || ""}
+                  value={getPaymentMethodLabel(order?.paymentMethod)}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Total Price */}
+              {/* Total Amount */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Price (Rs.)
+                  Total Amount (Rs.)
                 </label>
                 <input
                   type="text"
-                  placeholder="Total Amount"
                   value={order?.totalAmount?.toString() || ""}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Delivery Charge */}
+              {/* Delivery Cost */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Delivery Charge (Rs.)
+                  Delivery Cost (Rs.)
                 </label>
                 <input
                   type="text"
-                  placeholder="Delivery Timeframe"
-                  value={order?.deliveryTimeframe || ""}
+                  value={order?.deliveryCost?.toString() || "-"}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Total Cost */}
+              {/* Status */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Cost (Rs.)
+                  Status
                 </label>
                 <input
                   type="text"
-                  placeholder="Currency"
-                  value={order?.currency || ""}
+                  value={order?.status || "-"}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
             </form>

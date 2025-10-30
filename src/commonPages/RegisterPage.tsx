@@ -26,7 +26,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const dispatch = useDispatch();
-  const { loading } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const loading = !!authState?.loading;
 
   // Updated Yup schema with all required fields
   const schema = Yup.object().shape({

@@ -2,18 +2,19 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout, ViewAcceptedPOModal } from "@/components";
+import { TabLayout, ViewAcceptedPOModal, PaymentSlipModal } from "@/components";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { FirestoreService, COLLECTIONS, Quotation } from "@/service/firestoreService";
+import { FirestoreService, COLLECTIONS, PurchaseOrder, OrderService } from "@/service/firestoreService";
 
 const AcceptedPO: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<Quotation[]>([]);
-  const [selected, setSelected] = useState<Quotation | null>(null);
+  const [data, setData] = useState<PurchaseOrder[]>([]);
+  const [selected, setSelected] = useState<PurchaseOrder | null>(null);
+  const [paymentSlipModalOpen, setPaymentSlipModalOpen] = useState(false);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -23,16 +24,17 @@ const AcceptedPO: React.FC = () => {
       if (!currentUser?.id) return;
       setLoading(true);
       try {
-        const list = await FirestoreService.getAll<Quotation>(
-          COLLECTIONS.QUOTATIONS,
-          [
-            { field: "buyerId", operator: "==", value: currentUser.id },
-            { field: "status", operator: "==", value: "accepted" },
-          ]
-        );
+        console.log("[AcceptedPOList] Loading accepted purchase orders for buyer:", currentUser.id);
+        // Fetch Purchase Orders with status "confirmed" (accepted by vendor)
+        const allOrders = await OrderService.getPurchaseOrdersByBuyer(currentUser.id);
+        const confirmedOrders = allOrders.filter((order) => order.status === "confirmed");
         const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-        const sorted = [...list].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+        const sorted = [...confirmedOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+        console.log("[AcceptedPOList] Loaded", sorted.length, "accepted purchase orders");
         setData(sorted);
+      } catch (error) {
+        console.error("[AcceptedPOList] Failed to load purchase orders:", error);
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -41,17 +43,17 @@ const AcceptedPO: React.FC = () => {
   }, [currentUser?.id]);
 
   const rows = useMemo(() => {
-    return (data || []).map((q: any) => {
-      const ts = q.updatedAt || q.createdAt;
+    return (data || []).map((order: any) => {
+      const ts = order.updatedAt || order.createdAt;
       const d = ts?.seconds ? new Date(ts.seconds * 1000) : (ts instanceof Date ? ts : null);
       return {
-        id: q.id,
-        cecode: q.id || "-",
-        crcode: q.quotationRequestId || "-",
-        cname: q.vendorName || "-",
-        pname: (q.products?.[0]?.partName) || "-",
+        id: order.id,
+        cecode: order.orderNumber || order.id || "-",
+        crcode: order.quotationRequestId || "-",
+        cname: "-", // Will need to fetch vendor name separately
+        pname: (order.products?.[0]?.partName) || "-",
         adate: d ? d.toLocaleDateString() : "-",
-        raw: q as Quotation,
+        raw: order as PurchaseOrder,
       };
     });
   }, [data]);
@@ -179,13 +181,29 @@ const AcceptedPO: React.FC = () => {
                     {row.adate}
                   </td>
 
-                  <td className="grid grid-cols-1 text-center w-full h-full">
+                  <td className="grid grid-cols-2 gap-2 text-center w-full h-full">
                     <button
                       className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                      onClick={() => { setSelected(row.raw); setIsModalOpen(true); }}
+                      onClick={() => {
+                        console.log("[AcceptedPOList] Opening view modal for order:", row.id);
+                        setSelected(row.raw);
+                        setIsModalOpen(true);
+                      }}
                     >
                       View
                     </button>
+                    {row.raw.paymentMethod && (row.raw.paymentMethod === "pay_online" || row.raw.paymentMethod === "bank_transfer") && !row.raw.paymentSlipUrl && (
+                      <button
+                        className="bg-[#F9C301] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500"
+                        onClick={() => {
+                          console.log("[AcceptedPOList] Opening payment slip modal for order:", row.id);
+                          setSelected(row.raw);
+                          setPaymentSlipModalOpen(true);
+                        }}
+                      >
+                        Upload Payment
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -200,8 +218,35 @@ const AcceptedPO: React.FC = () => {
 
         <ViewAcceptedPOModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            console.log("[AcceptedPOList] Closing view modal");
+            setIsModalOpen(false);
+          }}
           quotation={selected as any}
+        />
+        <PaymentSlipModal
+          isOpen={paymentSlipModalOpen}
+          onClose={() => {
+            console.log("[AcceptedPOList] Closing payment slip modal");
+            setPaymentSlipModalOpen(false);
+          }}
+          orderId={selected?.id || ""}
+          orderNumber={selected?.orderNumber}
+          onSuccess={async () => {
+            console.log("[AcceptedPOList] Payment slip uploaded, reloading orders");
+            // Reload orders
+            if (!currentUser?.id) return;
+            try {
+              const allOrders = await OrderService.getPurchaseOrdersByBuyer(currentUser.id);
+              const confirmedOrders = allOrders.filter((order) => order.status === "confirmed");
+              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+              const sorted = [...confirmedOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+              setData(sorted);
+              setPaymentSlipModalOpen(false);
+            } catch (error) {
+              console.error("[AcceptedPOList] Failed to reload orders:", error);
+            }
+          }}
         />
       </div>
     </TabLayout>

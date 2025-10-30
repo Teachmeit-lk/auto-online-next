@@ -8,7 +8,7 @@ import { FirestoreService, COLLECTIONS, Category } from "@/service/firestoreServ
 
 type CreateCategoryForm = {
   name: string;
-  description?: string;
+  description?: string | null;
   sortOrder: number;
 };
 
@@ -221,6 +221,7 @@ const AdminMainCategoriesPage: React.FC = () => {
                   render={({ field }) => (
                     <textarea
                       {...field}
+                      value={field.value ?? ""}
                       rows={3}
                       className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 ${errors.description ? "focus:ring-red-500 border-red-300" : "focus:ring-yellow-500 border-gray-300"}`}
                     />

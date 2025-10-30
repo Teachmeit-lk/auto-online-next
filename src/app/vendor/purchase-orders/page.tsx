@@ -12,7 +12,7 @@ import {
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { FirestoreService, COLLECTIONS, Quotation } from "@/service/firestoreService";
+import { FirestoreService, COLLECTIONS, PurchaseOrder, OrderService } from "@/service/firestoreService";
 
 // import {
 //   NewPriceChatAlert,
@@ -29,8 +29,9 @@ const NewPurchaseOrders: React.FC = () => {
   const [isModalOpen4, setIsModalOpen4] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<Quotation[]>([]);
-  const [selected, setSelected] = useState<Quotation | null>(null);
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [selected, setSelected] = useState<PurchaseOrder | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [buyerNameMap, setBuyerNameMap] = useState<Record<string, string>>({});
 
   const authState = useSelector((state: RootState) => state.auth as any);
@@ -41,17 +42,16 @@ const NewPurchaseOrders: React.FC = () => {
       if (!currentUser?.id) return;
       setLoading(true);
       try {
-        // Align with buyer PO tab: show confirmed quotations (status: accepted)
-        const list = await FirestoreService.getAll<Quotation>(
-          COLLECTIONS.QUOTATIONS,
-          [
-            { field: "vendorId", operator: "==", value: currentUser.id },
-            { field: "status", operator: "==", value: "accepted" },
-          ]
-        );
+        console.log("[PurchaseOrders] Loading purchase orders for vendor:", currentUser.id);
+        // Fetch actual Purchase Orders instead of quotations
+        const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
         const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
         const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+        console.log("[PurchaseOrders] Loaded", sorted.length, "purchase orders");
         setOrders(sorted);
+      } catch (error) {
+        console.error("[PurchaseOrders] Failed to load purchase orders:", error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -78,18 +78,18 @@ const NewPurchaseOrders: React.FC = () => {
   }, [orders]);
 
   const rows = useMemo(() => {
-    return (orders || []).map((q: any, idx: number) => {
-      const ts = q.updatedAt || q.createdAt;
+    return (orders || []).map((order: any, idx: number) => {
+      const ts = order.updatedAt || order.createdAt;
       const d = ts?.seconds ? new Date(ts.seconds * 1000) : (ts instanceof Date ? ts : null);
       return {
-        id: q.id,
-        rcode: q.quotationRequestId || "-",
-        ccode: q.buyerId || "-",
-        cname: buyerNameMap[q.buyerId] || q.buyerId || "-",
-        pname: q.products?.[0]?.partName || "-",
+        id: order.id,
+        rcode: order.orderNumber || order.quotationRequestId || "-",
+        ccode: order.buyerId || "-",
+        cname: buyerNameMap[order.buyerId] || order.buyerId || "-",
+        pname: order.products?.[0]?.partName || "-",
         bdate: d ? d.toLocaleDateString() : "-",
-        status: q.status,
-        raw: q as Quotation,
+        status: order.status,
+        raw: order as PurchaseOrder,
         no: idx + 1,
       };
     });
@@ -249,14 +249,25 @@ const NewPurchaseOrders: React.FC = () => {
                       Chat
                     </button>
                     <button
-                      className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      onClick={() => setIsModalOpen3(true)}
+                      disabled={vendor.status === "confirmed" || vendor.status === "cancelled"}
+                      className={`${vendor.status === "confirmed" || vendor.status === "cancelled" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full`}
+                      onClick={() => {
+                        console.log("[PurchaseOrders] Accept button clicked for order:", vendor.id);
+                        setSelected(vendor.raw);
+                        setIsModalOpen3(true);
+                      }}
                     >
                       Accept
                     </button>
                     <button
-                      className="bg-[#D1D1D1] px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                      onClick={() => setIsModalOpen4(true)}
+                      disabled={vendor.status === "confirmed" || vendor.status === "cancelled"}
+                      className={`${vendor.status === "confirmed" || vendor.status === "cancelled" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full`}
+                      onClick={() => {
+                        console.log("[PurchaseOrders] Reject button clicked for order:", vendor.id);
+                        setSelected(vendor.raw);
+                        setRejectionReason("");
+                        setIsModalOpen4(true);
+                      }}
                     >
                       Reject
                     </button>
@@ -273,24 +284,77 @@ const NewPurchaseOrders: React.FC = () => {
         </div>
         <ViewPurchaseOrderModal
           isOpen={isModalOpen1}
-          onClose={() => setIsModalOpen1(false)}
+          onClose={() => {
+            console.log("[PurchaseOrders] Closing view modal");
+            setIsModalOpen1(false);
+          }}
           order={selected as any}
         />
         <ConfirmQuotationConfirmationModal
           isOpen={isModalOpen3}
-          onClose={() => setIsModalOpen3(false)}
-          onConfirm={() => {
-            alert("in development");
+          onClose={() => {
+            console.log("[PurchaseOrders] Closing accept modal");
             setIsModalOpen3(false);
+          }}
+          onConfirm={async () => {
+            if (!selected?.id) {
+              console.error("[PurchaseOrders] No order selected for acceptance");
+              return;
+            }
+            try {
+              console.log("[PurchaseOrders] Accepting purchase order:", selected.id);
+              await OrderService.updatePurchaseOrderStatus(selected.id, "confirmed", {
+                estimatedDelivery: selected.expectedDeliveryDate instanceof Date ? selected.expectedDeliveryDate : undefined,
+              });
+              console.log("[PurchaseOrders] Purchase order accepted successfully");
+              // TODO: Send order acceptance notification via WhatsApp
+              console.log("[PurchaseOrders] TODO: Send order acceptance notification via WhatsApp");
+              
+              // Reload orders
+              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+              setOrders(sorted);
+              setIsModalOpen3(false);
+            } catch (error: any) {
+              console.error("[PurchaseOrders] Failed to accept purchase order:", error);
+              alert(error.message || "Failed to accept purchase order");
+            }
           }}
         />
 
         <RejectPurchaseOrderModal
           isOpen={isModalOpen4}
-          onClose={() => setIsModalOpen4(false)}
-          onConfirm={() => {
-            alert("in development");
+          onClose={() => {
+            console.log("[PurchaseOrders] Closing reject modal");
             setIsModalOpen4(false);
+            setRejectionReason("");
+          }}
+          onConfirm={async (reason: string) => {
+            if (!selected?.id) {
+              console.error("[PurchaseOrders] No order selected for rejection");
+              return;
+            }
+            try {
+              console.log("[PurchaseOrders] Rejecting purchase order:", selected.id, "Reason:", reason);
+              await OrderService.updatePurchaseOrderStatus(selected.id, "cancelled", {
+                rejectionReason: reason,
+              });
+              console.log("[PurchaseOrders] Purchase order rejected successfully");
+              // TODO: Send order rejection notification via WhatsApp
+              console.log("[PurchaseOrders] TODO: Send order rejection notification via WhatsApp");
+              
+              // Reload orders
+              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+              setOrders(sorted);
+              setIsModalOpen4(false);
+              setRejectionReason("");
+            } catch (error: any) {
+              console.error("[PurchaseOrders] Failed to reject purchase order:", error);
+              alert(error.message || "Failed to reject purchase order");
+            }
           }}
         />
 

@@ -9,6 +9,7 @@ import {
   OpenChatConfirmationModal,
   TabLayout,
   ViewQuotationRequestModal,
+  ViewQuotationModal,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
@@ -35,6 +36,8 @@ const NewPriceRequests: React.FC = () => {
   const [requests, setRequests] = useState<QuotationRequest[]>([]);
   const [vendorQuotations, setVendorQuotations] = useState<Quotation[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<QuotationRequest | null>(null);
+  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -250,7 +253,7 @@ const NewPriceRequests: React.FC = () => {
                   className="hover:bg-gray-50 bg-white text-[12px] font-body text-[#111102] "
                 >
                   <td className="border border-r-2 border-b-2  border-[#F8F8F8]   py-2 text-center">
-                    {vendor.no}
+                    {index + 1}
                   </td>
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                     {vendor.cname}
@@ -306,7 +309,11 @@ const NewPriceRequests: React.FC = () => {
                       <td className="grid grid-cols-3 gap-1 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                          // onClick={() => setIsModalOpen3(true)}
+                          onClick={() => {
+                            const quote = vendorQuotations.find((q: any) => q.quotationRequestId === vendor.raw.id);
+                            setSelectedQuotation(quote || null);
+                            setIsQuoteModalOpen(true);
+                          }}
                         >
                           Quotation
                         </button>
@@ -358,6 +365,12 @@ const NewPriceRequests: React.FC = () => {
           onClose={() => setIsModalOpen2(false)}
           request={selectedRequest}
         />
+
+      <ViewQuotationModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        quotation={selectedQuotation as any}
+      />
 
         <OpenChatConfirmationModal
           isOpen={isModalOpen}

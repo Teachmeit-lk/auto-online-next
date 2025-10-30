@@ -111,7 +111,7 @@ const VendorProfile = () => {
     reset,
     setValue,
   } = useForm<UserProfileFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema as any),
     defaultValues: {},
   });
 

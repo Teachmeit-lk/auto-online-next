@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus, Camera } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
@@ -42,6 +42,7 @@ export const ViewQuotationRequestModal: React.FC<
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
+  const [showDetails, setShowDetails] = useState<boolean>(true);
 
   const schema = Yup.object().shape({
     itemName: Yup.string().required("Item Name is required"),
@@ -87,10 +88,24 @@ export const ViewQuotationRequestModal: React.FC<
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<IFormValues>({
     resolver: yupResolver(schema),
   });
+
+  // Auto-calc total and net total when units or unit price change
+  const watchedUnits = watch("noOfUnits");
+  const watchedUnitPrice = watch("unitPrice");
+  useEffect(() => {
+    const unitsNum = Number(watchedUnits) || 0;
+    const unitPriceNum = Number(watchedUnitPrice) || 0;
+    const total = unitsNum * unitPriceNum;
+    const netTotal = total * 1.12; // 12% VAT
+    setValue("totalPrice", Number.isFinite(total) ? Number(total.toFixed(2)) : 0, { shouldValidate: true });
+    setValue("netTotalPrice", Number.isFinite(netTotal) ? Number(netTotal.toFixed(2)) : 0, { shouldValidate: true });
+  }, [watchedUnits, watchedUnitPrice, setValue]);
 
   // Form submission handler
   const onSubmit = async (data: IFormValues) => {
@@ -176,6 +191,66 @@ export const ViewQuotationRequestModal: React.FC<
           )}
 
           <div className="h-full overflow-y-auto no-scrollbar">
+            {/* Collapsible: Requested details */}
+            <div className="bg-[#F8F8F8] rounded-[8px] mb-4 border border-[#E7E7E7]">
+              <button
+                type="button"
+                className="w-full flex items-center justify-between px-4 py-3 text-left"
+                onClick={() => setShowDetails(prev => !prev)}
+              >
+                <span className="text-[13px] font-body font-[700] text-[#111102]">Requested Details</span>
+                <span className="text-[12px] text-[#5B5B5B]">{showDetails ? "Hide" : "Show"}</span>
+              </button>
+              {showDetails && (
+                <div className="px-6 pb-4 grid grid-cols-3 gap-x-6 gap-y-3">
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Buyer</div>
+                    <div className="text-[11px] text-[#111102]">{request?.buyerName || request?.buyerId || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Vehicle Type</div>
+                    <div className="text-[11px] text-[#111102]">{request?.vehicleType || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Fuel Type</div>
+                    <div className="text-[11px] text-[#111102]">{request?.fuelType || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Brand/Model</div>
+                    <div className="text-[11px] text-[#111102]">{request?.model || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Manufacturing Year</div>
+                    <div className="text-[11px] text-[#111102]">{request?.manufacturingYear || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">Measurement</div>
+                    <div className="text-[11px] text-[#111102]">{request?.measurement || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">No. of Units</div>
+                    <div className="text-[11px] text-[#111102]">{request?.numberOfUnits ?? "-"}</div>
+                  </div>
+                  <div className="col-span-3">
+                    <div className="text-[10px] text-[#5B5B5B]">Description</div>
+                    <div className="text-[11px] text-[#111102]">{request?.description || "-"}</div>
+                  </div>
+                  {Array.isArray(request?.attachedImages) && request!.attachedImages.length > 0 && (
+                    <div className="col-span-3">
+                      <div className="text-[10px] text-[#5B5B5B] mb-1">Attached Images</div>
+                      <div className="flex flex-wrap gap-2">
+                        {request!.attachedImages.map((url, idx) => (
+                          <div key={idx} className="w-[64px] h-[48px] border rounded overflow-hidden bg-white">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt={`attachment-${idx}`} className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <form
               className="grid grid-cols-3 gap-y-4 gap-x-6 bg-[#F8F8F8] rounded-[8px] p-8 mb-11"
               onSubmit={handleSubmit(onSubmit)}
@@ -346,7 +421,8 @@ export const ViewQuotationRequestModal: React.FC<
                   render={({ field }) => (
                     <input
                       {...field}
-                      type="text"
+                      type="number"
+                      step="0.01"
                       value={field.value ?? ""}
                       placeholder="Enter unit price"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
@@ -377,7 +453,7 @@ export const ViewQuotationRequestModal: React.FC<
                     <input
                       {...field}
                       type="number"
-                      placeholder="Enter total price"
+                      readOnly
                       value={field.value ?? ""}
                       className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.totalPrice
@@ -406,8 +482,8 @@ export const ViewQuotationRequestModal: React.FC<
                     <input
                       {...field}
                       type="number"
+                      readOnly
                       value={field.value ?? ""}
-                      placeholder="Enter net total price"
                       className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.netTotalPrice
                           ? "focus:ring-red-500 focus:border-red-500"

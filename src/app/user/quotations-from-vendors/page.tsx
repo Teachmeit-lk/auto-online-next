@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
 import {
-  ConfirmQuotationConfirmationModal,
+  CreatePurchaseOrderModal,
   OpenChatConfirmationModal,
   TabLayout,
   ViewQuotationModal,
@@ -215,7 +215,13 @@ const QuotationsFromVendors: React.FC = () => {
                     <button
                       disabled={row.status === "accepted"}
                       className={`${row.status === "accepted" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[12px] w-full h-full`}
-                      onClick={() => { if (row.status !== "accepted") { setSelectedQuotation(row.raw); setOpenQuotationConfirmation(true); } }}
+                      onClick={() => { 
+                        if (row.status !== "accepted") { 
+                          console.log("[QuotationsFromVendors] Opening CreatePurchaseOrderModal for quotation:", row.id);
+                          setSelectedQuotation(row.raw); 
+                          setOpenQuotationConfirmation(true); 
+                        } 
+                      }}
                     >
                       Confirm
                     </button>
@@ -244,17 +250,33 @@ const QuotationsFromVendors: React.FC = () => {
           setOpenChatOpenConfirmation(false);
         }}
       />
-      <ConfirmQuotationConfirmationModal
-        onClose={() => setOpenQuotationConfirmation(false)}
-        onConfirm={async () => {
-          if (!selectedQuotation?.id) return;
-          try {
-            await FirestoreService.update<Quotation>(COLLECTIONS.QUOTATIONS, (selectedQuotation as any).id!, { status: "accepted" } as any);
-          } finally {
-            setOpenQuotationConfirmation(false);
-          }
-        }}
+      <CreatePurchaseOrderModal
         isOpen={openQuotationConfirmation}
+        onClose={() => {
+          console.log("[QuotationsFromVendors] Closing CreatePurchaseOrderModal");
+          setOpenQuotationConfirmation(false);
+        }}
+        quotation={selectedQuotation}
+        onSuccess={() => {
+          console.log("[QuotationsFromVendors] Purchase order created successfully, refreshing list");
+          // Reload quotations list
+          const load = async () => {
+            if (!currentUser?.id) return;
+            try {
+              const list = await FirestoreService.getAll<Quotation>(
+                COLLECTIONS.QUOTATIONS,
+                [{ field: "buyerId", operator: "==", value: currentUser.id }]
+              );
+              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+              setQuotations(sorted);
+            } catch (e) {
+              console.error("Failed to reload quotations", e);
+            }
+          };
+          load();
+          setOpenQuotationConfirmation(false);
+        }}
       />
     </TabLayout>
   );

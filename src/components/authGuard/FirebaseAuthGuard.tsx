@@ -21,7 +21,10 @@ export const FirebaseAuthGuard: React.FC<AuthGuardProps> = ({
 }) => {
   const router = useRouter();
   const { initialized } = useFirebase();
-  const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const isAuthenticated = !!authState?.isAuthenticated;
+  const user = authState?.user;
+  const loading = !!authState?.loading;
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -96,15 +99,15 @@ export const withFirebaseAuth = <P extends object>(
 
 // Hook for checking authentication status
 export const useAuth = () => {
-  const { isAuthenticated, user, loading, error } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth as any);
   const { initialized } = useFirebase();
 
   return {
-    isAuthenticated,
-    user,
-    loading,
-    error,
+    isAuthenticated: !!authState?.isAuthenticated,
+    user: authState?.user,
+    loading: !!authState?.loading,
+    error: authState?.error,
     initialized,
-    isReady: initialized && !loading,
+    isReady: initialized && !authState?.loading,
   };
 };

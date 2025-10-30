@@ -7,35 +7,45 @@ import {
   DeleteItemConfirmation,
   TabLayout,
   ViewProductModal,
+  UpdateProductModal,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { ProductService, FirestoreService, COLLECTIONS, Product, Category, VehicleBrand, VehicleModel } from "@/service/firestoreService";
+import { ProductService, Product, FirestoreService, COLLECTIONS, Category, VehicleBrand, VehicleModel } from "@/service/firestoreService";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [isModalOpen3, setIsModalOpen3] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const selectedProduct = React.useMemo(() => products.find((p: any) => (p as any).id === selectedProductId) || null, [products, selectedProductId]);
+  const selectedProduct = React.useMemo(() => products.find((p) => p.id === selectedProductId) || null, [products, selectedProductId]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
   const [vehicleTypes, setVehicleTypes] = useState<Array<{ id?: string; name: string }>>([]);
 
   const loadProducts = async () => {
-    if (!currentUser?.id) return;
     setLoading(true);
     try {
-      const list = await ProductService.getProductsByVendor(currentUser.id);
-      setProducts(list);
+      // Only vendor's products
+      let filtered: Product[] = [];
+      if (currentUser?.id) {
+        filtered = await ProductService.getProductsByVendor(currentUser.id);
+      } else {
+        filtered = await ProductService.searchProducts({ limit: 50 });
+      }
+      setProducts(filtered);
+    } catch (error) {
+      console.error('Failed to load products:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -204,9 +214,9 @@ const VendorProducts: React.FC = () => {
                 products
                   .filter((p) => {
                     if (!search) return true;
-                    const cat = categoryLabelMap[p.mainCategory] || p.mainCategory || "";
-                    const br = brandLabelMap[p.vehicleBrand] || p.vehicleBrand || "";
-                    const mdl = modelLabelMap[p.vehicleModel] || p.vehicleModel || "";
+        const cat = categoryLabelMap[String(p.mainCategory)] || p.mainCategory || "";
+        const br = brandLabelMap[String(p.vehicleBrand)] || p.vehicleBrand || "";
+        const mdl = modelLabelMap[String(p.vehicleModel)] || p.vehicleModel || "";
                     const q = search.toLowerCase();
                     return (
                       (p.partName || "").toLowerCase().includes(q) ||
@@ -218,37 +228,43 @@ const VendorProducts: React.FC = () => {
                   .slice(0, entries)
                   .map((p, index) => (
                     <tr
-                      key={(p as any).id || index}
+                      key={p.id}
                       className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
                     >
                       <td className="border border-r-2 border-b-2  border-[#F8F8F8]   py-2 text-center">
                         {index + 1}
                       </td>
                       <td className="border border-r-2 border-b-2  border-[#F8F8F8] pl-7  py-2 ">
-                        {(p as any).id || "-"}
+                        {p.id || "-"}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7  py-2 ">
                         {p.partName}
                       </td>
-                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {categoryLabelMap[p.mainCategory] || p.mainCategory}
-                      </td>
-                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {brandLabelMap[p.vehicleBrand] || p.vehicleBrand}
-                      </td>
-                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {modelLabelMap[p.vehicleModel] || p.vehicleModel}
-                      </td>
-                      <td className="grid grid-cols-2 text-center w-full h-full">
+          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+            {categoryLabelMap[String(p.mainCategory)] || p.mainCategory}
+          </td>
+          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+            {brandLabelMap[String(p.vehicleBrand)] || p.vehicleBrand}
+          </td>
+          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+            {modelLabelMap[String(p.vehicleModel)] || p.vehicleModel}
+          </td>
+                      <td className="grid grid-cols-3 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => { setSelectedProductId((p as any).id || null); setIsModalOpen2(true); }}
+                          onClick={() => { setSelectedProductId(p.id as string); setIsModalOpen2(true); }}
                         >
                           View
                         </button>
                         <button
+                          className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
+                          onClick={() => { setSelectedProductId(p.id as string); setIsUpdateModalOpen(true); }}
+                        >
+                          Edit
+                        </button>
+                        <button
                           className="bg-[#D1D1D1]  py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => { setSelectedProductId((p as any).id || null); setIsModalOpen3(true); }}
+                          onClick={() => { setSelectedProductId(p.id as string); setIsModalOpen3(true); }}
                         >
                           Delete
                         </button>
@@ -281,6 +297,19 @@ const VendorProducts: React.FC = () => {
           brandLabelMap={brandLabelMap}
           modelLabelMap={modelLabelMap}
           vehicleTypeLabelMap={vehicleTypeLabelMap}
+        />
+
+        <UpdateProductModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          product={selectedProduct}
+          onUpdated={async () => {
+            await loadProducts();
+          }}
+          categoryOptions={categories.map(c => ({ value: String((c as any).id || (c as any).categoryId || c.name), label: c.name }))}
+          brandOptions={brands.map(b => ({ value: String((b as any).id || (b as any).brandId || b.name), label: b.country ? `${b.name} - ${b.country}` : b.name }))}
+          modelOptions={models.map(m => ({ value: String((m as any).id || (m as any).modelId || m.name), label: m.name }))}
+          vehicleTypeOptions={vehicleTypes.map(t => ({ value: (t as any).id || (t as any).name, label: (t as any).name }))}
         />
 
         <DeleteItemConfirmation

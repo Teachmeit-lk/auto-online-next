@@ -24,12 +24,12 @@ export const ViewProductModal: React.FC<IViewProductModalProps> = ({
   modelLabelMap,
   vehicleTypeLabelMap,
 }) => {
-  const mainImage = product?.images?.[0] || "";
+  const mainImage = (product?.images && product.images.length > 0) ? product.images[0] : "";
   const partName = product?.partName || "-";
-  const mainCategory = (categoryLabelMap && product?.mainCategory && categoryLabelMap[product.mainCategory]) || product?.mainCategory || "-";
-  const brand = (brandLabelMap && product?.vehicleBrand && brandLabelMap[product.vehicleBrand]) || product?.vehicleBrand || "-";
-  const model = (modelLabelMap && product?.vehicleModel && modelLabelMap[product.vehicleModel]) || product?.vehicleModel || "-";
-  const vehicleType = (vehicleTypeLabelMap && product?.vehicleType && vehicleTypeLabelMap[product.vehicleType]) || product?.vehicleType || "-";
+  const mainCategory = (categoryLabelMap && product?.mainCategory && categoryLabelMap[String(product.mainCategory)]) || product?.mainCategory || "-";
+  const brand = (brandLabelMap && product?.vehicleBrand && brandLabelMap[String(product.vehicleBrand)]) || product?.vehicleBrand || "-";
+  const model = (modelLabelMap && product?.vehicleModel && modelLabelMap[String(product.vehicleModel)]) || product?.vehicleModel || "-";
+  const vehicleType = (vehicleTypeLabelMap && product?.vehicleType && vehicleTypeLabelMap[String(product.vehicleType)]) || product?.vehicleType || "-";
   const year = product?.yearOfManufacturing || "-";
   const description = product?.description || "-";
   return (

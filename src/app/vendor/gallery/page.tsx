@@ -69,7 +69,7 @@ const VendorGallery: React.FC = () => {
             };
             const label = img.title || humanize(img.imageUrl);
             return (
-            <div key={img.fullPath} className="group relative">
+            <div key={img.id || img.imageUrl} className="group relative">
               <VendorGalleryCard productname={label} image={img.imageUrl} />
               <button
                 className="absolute top-1 right-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded"
