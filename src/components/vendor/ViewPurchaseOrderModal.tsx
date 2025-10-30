@@ -136,6 +136,45 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
+
+              {/* Payment Status */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Payment Status
+                </label>
+                <input
+                  type="text"
+                  value={order?.paymentStatus || "pending"}
+                  readOnly
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {/* Payment Slip */}
+              <div className="col-span-3">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Payment Slip
+                </label>
+                {order?.paymentSlipUrl ? (
+                  <div className="mt-1 text-[10px]">
+                    <a
+                      href={order.paymentSlipUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600 underline break-all"
+                    >
+                      {order.paymentSlipUrl}
+                    </a>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value="No payment slip uploaded"
+                    readOnly
+                    className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                )}
+              </div>
             </form>
 
             {/* Scrollable Table */}

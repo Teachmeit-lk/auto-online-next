@@ -4,46 +4,44 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import Image from "next/image";
 
-import { ViewEstimate1 } from "@/assets/Images";
-
 interface IViewCompletedOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
+  order?: any | null;
 }
 
-export const ViewCompletedOrderModal: React.FC<
-  IViewCompletedOrderModalProps
-> = ({ isOpen, onClose }) => {
+export const ViewCompletedOrderModal: React.FC<IViewCompletedOrderModalProps> = ({ isOpen, onClose, order }) => {
+  const orderNo = order?.orderNumber || order?.purchaseOrderId || order?.id || "-";
+  const vendorCode = order?.vendorId || "-";
+  const partName = order?.products?.[0]?.partName || "-";
+  const itemCount = Array.isArray(order?.products) ? order.products.length : 0;
+  const totalAmount = order?.totalAmount != null ? String(order.totalAmount) : "-";
+  const netTotal = totalAmount; // if VAT included separately, compute here
+  const ts = order?.completedDate || order?.deliveredDate || order?.updatedAt || order?.createdAt;
+  const completedDate = ts?.seconds ? new Date(ts.seconds * 1000).toLocaleDateString() : (ts instanceof Date ? ts.toLocaleDateString() : "-");
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
-          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            Completed Order by NMK Motors
-          </Dialog.Title>
+          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">Completed Order</Dialog.Title>
 
           {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
-            {/* Image Section */}
-            <div className="flex justify-center">
-              <Image
-                src={ViewEstimate1}
-                alt="Vehicle Image"
-                className="w-[107px] h-[73px] rounded-[3px] object-cover"
-              />
-            </div>
+            {/* Optional Banner / Placeholder */}
+            <div className="flex justify-center"></div>
 
             {/* Form Section */}
             <form className="grid grid-cols-3 gap-y-4 gap-x-6">
-              {/* Booked ID */}
+              {/* Order No */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Booked ID
+                  Order No
                 </label>
                 <input
                   type="text"
-                  placeholder="BID6584"
+                  value={orderNo}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -56,7 +54,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="VC6574"
+                  value={vendorCode}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -69,7 +67,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="Tyres"
+                  value={partName}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -78,24 +76,11 @@ export const ViewCompletedOrderModal: React.FC<
               {/* Booked Date */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Booked Date
+                  Completed Date
                 </label>
                 <input
                   type="text"
-                  placeholder="August 19, 2024"
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
-              </div>
-
-              {/* Order Completion Date */}
-              <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Order Completion Date
-                </label>
-                <input
-                  type="text"
-                  placeholder="August 24, 2024"
+                  value={completedDate}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -108,7 +93,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="0715263521"
+                  placeholder="N/A"
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -121,7 +106,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="2"
+                  value={String(itemCount)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -134,7 +119,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="25678.00"
+                  value={totalAmount}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -147,7 +132,7 @@ export const ViewCompletedOrderModal: React.FC<
                 </label>
                 <input
                   type="text"
-                  placeholder="28937.00"
+                  value={netTotal}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -161,7 +146,7 @@ export const ViewCompletedOrderModal: React.FC<
                 <textarea
                   rows={3}
                   readOnly
-                  placeholder="Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups."
+                  placeholder="-"
                   className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>

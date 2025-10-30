@@ -13,6 +13,7 @@ const AcceptedPO: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PurchaseOrder[]>([]);
+  const [vendorNameMap, setVendorNameMap] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const [paymentSlipModalOpen, setPaymentSlipModalOpen] = useState(false);
 
@@ -24,13 +25,13 @@ const AcceptedPO: React.FC = () => {
       if (!currentUser?.id) return;
       setLoading(true);
       try {
-        console.log("[AcceptedPOList] Loading accepted purchase orders for buyer:", currentUser.id);
-        // Fetch Purchase Orders with status "confirmed" (accepted by vendor)
+        console.log("[AcceptedPOList] Loading purchase orders for buyer:", currentUser.id);
         const allOrders = await OrderService.getPurchaseOrdersByBuyer(currentUser.id);
-        const confirmedOrders = allOrders.filter((order) => order.status === "confirmed");
+        // Exclude completed orders (delivered)
+        const activeOrders = allOrders.filter((o: any) => o.status !== "delivered");
         const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-        const sorted = [...confirmedOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
-        console.log("[AcceptedPOList] Loaded", sorted.length, "accepted purchase orders");
+        const sorted = [...activeOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+        console.log("[AcceptedPOList] Loaded", sorted.length, "active purchase orders");
         setData(sorted);
       } catch (error) {
         console.error("[AcceptedPOList] Failed to load purchase orders:", error);
@@ -42,6 +43,24 @@ const AcceptedPO: React.FC = () => {
     load();
   }, [currentUser?.id]);
 
+  useEffect(() => {
+    const loadVendors = async () => {
+      const ids = Array.from(new Set((data || []).map((o: any) => o.vendorId).filter(Boolean)));
+      const map: Record<string, string> = {};
+      await Promise.all(ids.map(async (id) => {
+        try {
+          const u: any = await FirestoreService.getById(COLLECTIONS.USERS, id);
+          if (u) {
+            const name = u.companyName || `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email || id;
+            map[id] = name;
+          }
+        } catch {}
+      }));
+      setVendorNameMap(map);
+    };
+    if (data.length > 0) loadVendors();
+  }, [data]);
+
   const rows = useMemo(() => {
     return (data || []).map((order: any) => {
       const ts = order.updatedAt || order.createdAt;
@@ -50,13 +69,14 @@ const AcceptedPO: React.FC = () => {
         id: order.id,
         cecode: order.orderNumber || order.id || "-",
         crcode: order.quotationRequestId || "-",
-        cname: "-", // Will need to fetch vendor name separately
+        cname: vendorNameMap[order.vendorId] || order.vendorId || "-",
         pname: (order.products?.[0]?.partName) || "-",
         adate: d ? d.toLocaleDateString() : "-",
+        status: order.status || "-",
         raw: order as PurchaseOrder,
       };
     });
-  }, [data]);
+  }, [data, vendorNameMap]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -146,6 +166,9 @@ const AcceptedPO: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Accepted Date
                 </th>
+                <th className="border border-r-2 border-b-2 border-white  py-2">
+                  Status
+                </th>
                 <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
@@ -177,9 +200,8 @@ const AcceptedPO: React.FC = () => {
                   <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                     {row.pname}
                   </td>
-                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                    {row.adate}
-                  </td>
+                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">{row.adate}</td>
+                  <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">{row.status}</td>
 
                   <td className="grid grid-cols-2 gap-2 text-center w-full h-full">
                     <button
@@ -238,9 +260,9 @@ const AcceptedPO: React.FC = () => {
             if (!currentUser?.id) return;
             try {
               const allOrders = await OrderService.getPurchaseOrdersByBuyer(currentUser.id);
-              const confirmedOrders = allOrders.filter((order) => order.status === "confirmed");
+              const activeOrders = allOrders.filter((o: any) => o.status !== "delivered");
               const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-              const sorted = [...confirmedOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
+              const sorted = [...activeOrders].sort((a: any, b: any) => (toMs(b?.updatedAt || b?.createdAt) - toMs(a?.updatedAt || a?.createdAt)));
               setData(sorted);
               setPaymentSlipModalOpen(false);
             } catch (error) {

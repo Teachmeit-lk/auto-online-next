@@ -562,24 +562,24 @@ export class OrderService {
 
   static async getPurchaseOrdersByBuyer(buyerId: string): Promise<PurchaseOrder[]> {
     console.log("[OrderService] Fetching purchase orders for buyer:", buyerId);
-    const orders = await FirestoreService.getAll<PurchaseOrder>(
+    const list = await FirestoreService.getAll<PurchaseOrder>(
       COLLECTIONS.PURCHASE_ORDERS,
-      [{ field: "buyerId", operator: "==", value: buyerId }],
-      "createdAt",
-      "desc"
+      [{ field: "buyerId", operator: "==", value: buyerId }]
     );
+    const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+    const orders = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
     console.log("[OrderService] Found", orders.length, "purchase orders for buyer");
     return orders;
   }
 
   static async getPurchaseOrdersByVendor(vendorId: string): Promise<PurchaseOrder[]> {
     console.log("[OrderService] Fetching purchase orders for vendor:", vendorId);
-    const orders = await FirestoreService.getAll<PurchaseOrder>(
+    const list = await FirestoreService.getAll<PurchaseOrder>(
       COLLECTIONS.PURCHASE_ORDERS,
-      [{ field: "vendorId", operator: "==", value: vendorId }],
-      "createdAt",
-      "desc"
+      [{ field: "vendorId", operator: "==", value: vendorId }]
     );
+    const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+    const orders = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
     console.log("[OrderService] Found", orders.length, "purchase orders for vendor");
     return orders;
   }

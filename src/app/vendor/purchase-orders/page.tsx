@@ -248,29 +248,140 @@ const NewPurchaseOrders: React.FC = () => {
                     >
                       Chat
                     </button>
-                    <button
-                      disabled={vendor.status === "confirmed" || vendor.status === "cancelled"}
-                      className={`${vendor.status === "confirmed" || vendor.status === "cancelled" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full`}
-                      onClick={() => {
-                        console.log("[PurchaseOrders] Accept button clicked for order:", vendor.id);
-                        setSelected(vendor.raw);
-                        setIsModalOpen3(true);
-                      }}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      disabled={vendor.status === "confirmed" || vendor.status === "cancelled"}
-                      className={`${vendor.status === "confirmed" || vendor.status === "cancelled" ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#D1D1D1] hover:bg-yellow-500"} px-1 border-l-2 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full`}
-                      onClick={() => {
-                        console.log("[PurchaseOrders] Reject button clicked for order:", vendor.id);
-                        setSelected(vendor.raw);
-                        setRejectionReason("");
-                        setIsModalOpen4(true);
-                      }}
-                    >
-                      Reject
-                    </button>
+                    {vendor.status === "pending" && (
+                      <>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={() => {
+                            console.log("[PurchaseOrders] Accept button clicked for order:", vendor.id);
+                            setSelected(vendor.raw);
+                            setIsModalOpen3(true);
+                          }}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={() => {
+                            console.log("[PurchaseOrders] Reject button clicked for order:", vendor.id);
+                            setSelected(vendor.raw);
+                            setRejectionReason("");
+                            setIsModalOpen4(true);
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {vendor.status === "confirmed" && (
+                      <>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "in_progress");
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Preparing
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "shipped");
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Dispatched
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              // Mark purchase order as delivered and create a completed order record
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "delivered");
+                              await OrderService.completePurchaseOrder(vendor.id, {
+                                buyerId: (vendor.raw as any).buyerId,
+                                vendorId: (vendor.raw as any).vendorId,
+                                totalAmount: (vendor.raw as any).totalAmount,
+                                currency: (vendor.raw as any).currency || "LKR",
+                              });
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Complete
+                        </button>
+                      </>
+                    )}
+                    {vendor.status === "in_progress" && (
+                      <>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "shipped");
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Dispatched
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "delivered");
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Complete
+                        </button>
+                      </>
+                    )}
+                    {vendor.status === "shipped" && (
+                      <>
+                        <button
+                          className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                          onClick={async () => {
+                            try {
+                              setSelected(vendor.raw);
+                              await OrderService.updatePurchaseOrderStatus(vendor.id, "delivered");
+                              const list = await OrderService.getPurchaseOrdersByVendor(currentUser.id);
+                              const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
+                              const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+                              setOrders(sorted);
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          Complete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
