@@ -20,7 +20,10 @@ export const TabLayout: FC<ITabLayoutProps> = ({ children, type }) => {
   const currentTab = tabs.find((tab) => tab.path === currentPath);
 
   return (
-    <div className="w-full py-10 px-4 md:px-12 bg-white max-w-screen-xl mx-auto" id="vendorlayout">
+    <div
+      className="w-full py-10 px-4 md:px-20 bg-white mx-auto"
+      id="vendorlayout"
+    >
       {/* Tabs */}
       <div className="flex rounded-tl-[15px] overflow-hidden">
         {tabs.map((tab, index) => (
