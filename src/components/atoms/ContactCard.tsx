@@ -3,7 +3,7 @@ import React from "react";
 interface ContactCardProps {
   icon: React.ReactNode;
   title: string;
-  content: string;
+  content: React.ReactNode;
 }
 
 export const ContactCard: React.FC<ContactCardProps> = ({
