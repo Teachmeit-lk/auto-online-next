@@ -84,7 +84,7 @@ export const ServiceCategories: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
 
   return (
-    <div className="bg-white md:pt-20 md:pb-20 md:px-20 pt-5 pb-5">
+    <div className="bg-white md:pt-5 md:pb-20 md:px-20  pb-5">
       <h1 className="md:text-[32px] text-[16px] md:mb-10  text-black md:pl-11 pl-5  font-title">
         Our Services
       </h1>

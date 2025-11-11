@@ -21,7 +21,7 @@ const Home: FC = () => {
       <HeroSection />
       <AutoServices />
       <ProductCategories />
-      <InfoComponent />
+      {/* <InfoComponent /> */}
       <ServiceCategories />
       <OurStatusSection />
       <AboutUs />
