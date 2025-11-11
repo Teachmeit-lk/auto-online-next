@@ -1,6 +1,5 @@
 import React from "react";
 import { PhoneCall, MapPin, Mail } from "lucide-react";
-
 import { ContactCard } from "@/components/";
 
 export const ContactUsSection: React.FC = () => {
@@ -8,16 +7,16 @@ export const ContactUsSection: React.FC = () => {
     {
       icon: (
         <i>
-          <PhoneCall className=" text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
+          <PhoneCall className="text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
         </i>
       ),
       title: "Telephone",
-      content: "+94 753813398",
+      content: <a href="tel:+94750103398">+94 7501 03398</a>,
     },
     {
       icon: (
         <i>
-          <MapPin className=" text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
+          <MapPin className="text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
         </i>
       ),
       title: "Address",
@@ -26,11 +25,19 @@ export const ContactUsSection: React.FC = () => {
     {
       icon: (
         <i>
-          <Mail className=" text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
+          <Mail className="text-[#F9C301] md:w-[24px] md:h-[24px] h-[16px] w-[16px]" />
         </i>
       ),
       title: "Email",
-      content: "info@autoonline.lk",
+      content: (
+        <a
+          href="mailto:info@autoonline.lk"
+          className="text-[#5B5B5B] no-underline hover:no-underline cursor-pointer"
+          style={{ textDecoration: "none" }}
+        >
+          info@autoonline.lk
+        </a>
+      ),
     },
   ];
 

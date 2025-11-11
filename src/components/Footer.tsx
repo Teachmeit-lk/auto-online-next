@@ -74,15 +74,18 @@ export const Footer: React.FC = () => {
               }`}
             >
               {/* Phone */}
-              <span className="flex items-center mb-2">
-                <i className={` text-[#111102]  `}>
-                  <Phone className="md:w-[19px] md:h-[19px] w-[12px] h-[12px] " />
+              <a
+                href="tel:+94753813398"
+                className={`flex items-center mb-2 no-underline hover:no-underline cursor-pointer`}
+                aria-label="Call +94 7538 13398"
+              >
+                <i className="text-[#111102]">
+                  <Phone className="md:w-[19px] md:h-[19px] w-[12px] h-[12px]" />
                 </i>
-
                 <span className="ml-[6px] md:ml-2 font-body text-[#5B5B5B] text-sm md:text-base">
-                  +94 7538 13398
+                  +94 7501 03398
                 </span>
-              </span>
+              </a>
 
               {/* Address */}
               <span className="flex items-center mb-2">
@@ -99,10 +102,14 @@ export const Footer: React.FC = () => {
               </span>
 
               {/* Email */}
-              <span className="flex items-center">
+              <a
+                href="mailto:info@autoonline.lk"
+                className={`flex items-center no-underline hover:no-underline cursor-pointer`}
+                aria-label="Email info@autoonline.lk"
+              >
                 <i
-                  className={` text-[#111102] w-[12px] h-[12px] ${
-                    isMobile ? "mt-[4px] mb-[6px] " : "mb-[6px]"
+                  className={`text-[#111102] w-[12px] h-[12px] ${
+                    isMobile ? "mt-[4px] mb-[6px]" : "mb-[6px]"
                   }`}
                 >
                   <Mail className="md:w-[19px] md:h-[19px] w-[14px] h-[14px]" />
@@ -110,7 +117,7 @@ export const Footer: React.FC = () => {
                 <span className="ml-2 md:ml-4 font-body text-[#5B5B5B] text-sm md:text-base">
                   info@autoonline.lk
                 </span>
-              </span>
+              </a>
             </p>
           </div>
 
