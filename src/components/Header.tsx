@@ -44,14 +44,32 @@ export const Header: React.FC = () => {
     ? [
         ...data,
         ...(user?.role === "vendor"
-          ? [{ name: "my orders", path: "/vendor/purchase-orders", icon: LayoutGrid }]
-          : [{ name: "my requests", path: "/user/search-vendors", icon: LayoutGrid }]
-        ),
-        ...(user?.role === "admin" ? [{ name: "admin", path: "/admin", icon: LayoutGrid }] : []),
+          ? [
+              {
+                name: "my orders",
+                path: "/vendor/purchase-orders",
+                icon: LayoutGrid,
+              },
+            ]
+          : [
+              {
+                name: "my requests",
+                path: "/user/search-vendors",
+                icon: LayoutGrid,
+              },
+            ]),
+        ...(user?.role === "admin"
+          ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
+          : []),
       ]
     : data;
 
-  const profilePath = user?.role === "vendor" ? "/vendor/profile" : user?.role === "admin" ? "/admin/profile" : "/user/profile";
+  const profilePath =
+    user?.role === "vendor"
+      ? "/vendor/profile"
+      : user?.role === "admin"
+      ? "/admin/profile"
+      : "/user/profile";
 
   const handleLogout = () => {
     dispatch(logoutUserAsync() as any);
@@ -72,7 +90,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 bg-white relative max-w-screen-xl mx-auto w-full">
+      <header className="flex justify-between items-center md:py-4 md:pl-4 md:pr-12 py-4 pl-4 pr-4 bg-white relative  w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Link href="/">
@@ -103,12 +121,14 @@ export const Header: React.FC = () => {
             >
               <User size="18px" color="#111102" />
             </button>
-          ) : <Link
-          href="/user/login"
-          className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
-        >
-          LOGIN
-        </Link>}
+          ) : (
+            <Link
+              href="/user/login"
+              className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          )}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
@@ -134,18 +154,20 @@ export const Header: React.FC = () => {
               <User size="24px" color="#111102" />
             </button>
           </div>
-        ) : (<div className="hidden md:block">
-          <Link
-            href="/user/login"
-            className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
-          >
-            LOGIN
-          </Link>
-        </div>)}
+        ) : (
+          <div className="hidden md:block">
+            <Link
+              href="/user/login"
+              className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          </div>
+        )}
 
         {/* User Pop-up Menu positioned below the icon */}
         {isUserModalOpen && (
-          <div 
+          <div
             className="fixed z-50 bg-white rounded-lg shadow-lg w-[200px] border border-gray-200"
             style={{
               top: `${modalPosition.top}px`,
