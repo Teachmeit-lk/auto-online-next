@@ -21,18 +21,18 @@ export const TabLayout: FC<ITabLayoutProps> = ({ children, type }) => {
 
   return (
     <div
-      className="w-full py-10 px-4 md:px-20 bg-white mx-auto"
+      className="w-full py-10 px-4 md:px-10 lg:px-20 bg-white mx-auto"
       id="vendorlayout"
     >
       {/* Tabs */}
-      <div className="flex rounded-tl-[15px] overflow-hidden">
+      <div className="flex rounded-tl-[15px] overflow-hidden ">
         {tabs.map((tab, index) => (
           <Link href={tab.path} key={index}>
             <button
-              className={`py-2 px-4 border border-b-1 border-white border-r-1 ${
+              className={`py-2 px-1 sm:px-4 border border-b-1 border-white border-r-1 lg:text-[16px] md:text-[14px] text-[12px]   ${
                 // activeTab === tab.label
                 currentTab?.label === tab.label
-                  ? "bg-[#F9C301] text-[#111102] font-body font-[500] text-[16px]"
+                  ? "bg-[#F9C301] text-[#111102] font-body font-[500] "
                   : "text-[#111102] hover:text-[#F9C301] bg-[#F8F8F8]"
               } ${index === tabs.length - 1 ? "rounded-tr-[15px]" : ""}`}
             >
