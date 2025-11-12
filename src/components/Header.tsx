@@ -90,7 +90,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center md:py-4 md:pl-4 md:pr-12 py-4 pl-4 pr-4 bg-white relative  w-full">
+      <header className="flex justify-between items-center lg:py-4 lg:pl-4 lg:pr-12 py-4 pl-4 pr-4 bg-white relative  w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Link href="/">
