@@ -5,7 +5,11 @@ import { Search, ClipboardCheck } from "lucide-react";
 import { TabLayout } from "@/components";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { FirestoreService, COLLECTIONS, QuotationRequest } from "@/service/firestoreService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  QuotationRequest,
+} from "@/service/firestoreService";
 
 import { ViewEstimateModal } from "@/components/user/ViewEstimateModal";
 
@@ -29,8 +33,15 @@ const QuotationRequests: React.FC = () => {
           COLLECTIONS.QUOTATION_REQUESTS,
           [{ field: "buyerId", operator: "==", value: currentUser.id }]
         );
-        const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-        const sorted = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
+        const toMs = (t: any) =>
+          t?.seconds
+            ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
+            : t instanceof Date
+            ? t.getTime()
+            : 0;
+        const sorted = [...list].sort(
+          (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
+        );
         setRequests(sorted as any);
       } catch (e) {
         console.error("Failed to load quotation requests", e);
@@ -45,7 +56,11 @@ const QuotationRequests: React.FC = () => {
   const formatted = useMemo(() => {
     return requests.map((r) => {
       const ts: any = (r as any).createdAt;
-      const date = ts?.seconds ? new Date(ts.seconds * 1000) : (ts instanceof Date ? ts : null);
+      const date = ts?.seconds
+        ? new Date(ts.seconds * 1000)
+        : ts instanceof Date
+        ? ts
+        : null;
       const rdate = date ? date.toLocaleDateString() : "-";
       return {
         id: (r as any).id,
@@ -77,21 +92,21 @@ const QuotationRequests: React.FC = () => {
   return (
     <TabLayout type="user">
       <div
-        className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
+        className="w-full lg:p-8 md:p-6  p-4 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
         id="quotationrequests"
       >
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
           Quotations Requests
         </h1>
 
-        <div className="flex flex-row items-center justify-between  mb-4">
+        <div className="flex sm:flex-row flex-col sm:items-center sm:justify-between space-y-4 sm:space-y-0  mb-4">
           <div>
             <div className="font-body font-[500] text-[14px]  text-[#111102] mb-1">
               Show
             </div>
             <div className="flex space-x-4">
               <select
-                className="rounded-[5px] px-3 font-body  text-[12px] text-gray-600 w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="rounded-[5px] px-3 font-body  text-sm text-gray-600 w-[131px] h-[32px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 onChange={(e) => setEntries(Number(e.target.value))}
                 defaultValue="5"
               >
@@ -106,11 +121,11 @@ const QuotationRequests: React.FC = () => {
             <div className="font-body font-[500] text-[14px]  text-[#111102] mb-1">
               Search
             </div>
-            <div className="relative flex items-center rounded-[5px] text-sm text-gray-600 w-[263px] h-[28px]">
+            <div className="relative flex items-center rounded-[5px] text-sm text-gray-600 w-[263px] h-[32px]">
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -128,7 +143,7 @@ const QuotationRequests: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse ">
+          <table className="w-full border-collapse min-w-[660px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white px-1  py-2 ">
@@ -157,9 +172,17 @@ const QuotationRequests: React.FC = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td className="px-4 py-3" colSpan={7}>Loading...</td></tr>
+                <tr>
+                  <td className="px-4 py-3" colSpan={7}>
+                    Loading...
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
-                <tr><td className="px-4 py-3" colSpan={7}>No requests found.</td></tr>
+                <tr>
+                  <td className="px-4 py-3" colSpan={7}>
+                    No requests found.
+                  </td>
+                </tr>
               ) : (
                 filtered.map((row, index) => (
                   <tr
@@ -188,7 +211,10 @@ const QuotationRequests: React.FC = () => {
                     <td className="grid grid-cols-1 text-center w-full h-full">
                       <button
                         className="bg-[#D1D1D1] px-3 font-body py-3 hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500 text-[#111102] text-[12px] w-full h-full"
-                        onClick={() => { setSelected(row.raw); setIsModalOpen(true); }}
+                        onClick={() => {
+                          setSelected(row.raw);
+                          setIsModalOpen(true);
+                        }}
                       >
                         View
                       </button>
