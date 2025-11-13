@@ -8,8 +8,15 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { FirebaseStorageService, UploadResult } from "@/service/firebaseStorageService";
-import { FirestoreService, COLLECTIONS, GalleryImage } from "@/service/firestoreService";
+import {
+  FirebaseStorageService,
+  UploadResult,
+} from "@/service/firebaseStorageService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  GalleryImage,
+} from "@/service/firestoreService";
 
 interface IAddGalleryImageModalProps {
   isOpen: boolean;
@@ -58,12 +65,22 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
         return;
       }
       // Optional: compress
-      const compressed = await FirebaseStorageService.compressImage(data.image, 1920, 1080, 0.6);
+      const compressed = await FirebaseStorageService.compressImage(
+        data.image,
+        1920,
+        1080,
+        0.6
+      );
       const [result] = await FirebaseStorageService.uploadGalleryImages(
         currentUser.id,
         [compressed],
         undefined,
-        [{ contentType: compressed.type, customMetadata: { title: data.partName } }]
+        [
+          {
+            contentType: compressed.type,
+            customMetadata: { title: data.partName },
+          },
+        ]
       );
       // Create Firestore mapping
       const galleryDoc: Omit<GalleryImage, "id" | "createdAt" | "updatedAt"> = {
@@ -76,7 +93,10 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
         storagePath: result.path,
         isActive: true,
       } as any;
-      await FirestoreService.create<GalleryImage>(COLLECTIONS.GALLERY, galleryDoc);
+      await FirestoreService.create<GalleryImage>(
+        COLLECTIONS.GALLERY,
+        galleryDoc
+      );
       if (onUploaded) onUploaded(result);
       setFileName("");
       onClose();
@@ -98,7 +118,7 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[415px] bg-white py-7 px-5 rounded-lg shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:w-[415px] w-full bg-white py-7 px-5 rounded-lg shadow-lg focus:outline-none">
           <Dialog.Title className="text-[14px] font-bold font-body mb-5 text-[#111102]">
             Add New Gallery Image
           </Dialog.Title>
