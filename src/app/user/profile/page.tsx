@@ -140,18 +140,20 @@ const UserProfile = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white py-20">
-      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">User Profile</h1>
+      <h1 className="text-center text-[24px] font-bold font-body text-[#111102] mb-6">
+        User Profile
+      </h1>
       {saveError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm text-center">
           {saveError}
         </div>
       )}
-      <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl px-12 pt-12 pb-14">
+      <div className="bg-[#F8F8F8] rounded-[15px] w-full max-w-3xl sm:px-12 px-6 pt-6 pb-7 sm:pt-12 sm:pb-14">
         <form
           onSubmit={
             isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
           }
-          className="grid grid-cols-2 gap-6"
+          className="grid sm:grid-cols-2 grid-cols-1 gap-6"
         >
           {/* First Name */}
           <div>
@@ -448,9 +450,15 @@ const UserProfile = () => {
               type="button"
               onClick={handleEditToggle}
               disabled={saving}
-              className={`w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102] ${saving ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`w-full bg-yellow-500 hover:bg-yellow-600 font-bold font-body py-2 px-4 rounded-md shadow-md text-[#111102] ${
+                saving ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              {isEditable ? (saving ? "Saving..." : "Save Profile") : "Edit Profile"}
+              {isEditable
+                ? saving
+                  ? "Saving..."
+                  : "Save Profile"
+                : "Edit Profile"}
             </button>
           </div>
         </form>
