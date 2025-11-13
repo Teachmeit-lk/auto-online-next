@@ -19,6 +19,7 @@ import {
   OService4,
   OService5,
 } from "@/assets/Images";
+import Link from "next/link";
 
 const initialProducts = [
   {
@@ -119,9 +120,12 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <button className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500">
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                >
                   Shop Now
-                </button>
+                </Link>
               </div>
             )
           )}
@@ -154,9 +158,12 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <button className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500">
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                >
                   Shop Now
-                </button>
+                </Link>
               </div>
             )
           )}
@@ -237,9 +244,12 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <button className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px]">
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
+                >
                   Shop Now
-                </button>
+                </Link>
               </div>
             </SwiperSlide>
           ))}

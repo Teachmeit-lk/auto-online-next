@@ -6,7 +6,7 @@ import {
   AutoServices,
   HeroSection,
   ProductCategories,
-  InfoComponent,
+  //InfoComponent,
   ServiceCategories,
   OurStatusSection,
   AboutUs,
@@ -20,7 +20,9 @@ const Home: FC = () => {
     <div className=" w-full">
       <HeroSection />
       <AutoServices />
-      <ProductCategories />
+      <div id="product-categories">
+        <ProductCategories />
+      </div>
       {/* <InfoComponent /> */}
       <ServiceCategories />
       <OurStatusSection />

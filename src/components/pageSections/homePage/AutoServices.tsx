@@ -12,6 +12,7 @@ import {
   Service2,
   Service3,
 } from "@/assets/Images";
+import Link from "next/link";
 
 const brands = [
   { name: "TOYOTA", logo: Toyota },
@@ -52,9 +53,12 @@ export const AutoServices: React.FC = () => {
             <p className="text-black text-[17px]  font-[400] mb-4 font-title lg:text-[20px]">
               from us
             </p>
-            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] lg:text-[14px] text-[10px] flex items-center justify-center">
+            <Link 
+              href="/user/search-vendors"
+              className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] lg:text-[14px] text-[10px] flex items-center justify-center"
+            >
               Shop Now
-            </button>
+            </Link>
           </div>
           <Image
             src={Service1}
@@ -72,9 +76,12 @@ export const AutoServices: React.FC = () => {
             <p className="text-black font-[400] mb-4 lg:text-[20px] text-[17px] font-title">
               from us
             </p>
-            <button className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] text-[10px] lg:text-[14px] flex items-center justify-center">
+            <Link 
+              href="/user/search-vendors"
+              className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] text-[10px] lg:text-[14px] flex items-center justify-center"
+            >
               Shop Now
-            </button>
+            </Link>
           </div>
           <div className="relative lg:right-[45px] right-[30px]">
             <Image
