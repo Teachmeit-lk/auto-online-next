@@ -16,11 +16,14 @@ export const RejectPurchaseOrderModal: React.FC<AlertModalProps> = ({
   onClose,
 }) => {
   const [rejectionReason, setRejectionReason] = useState("");
-  
+
   console.log("[RejectPurchaseOrderModal] Modal opened:", isOpen);
 
   const handleConfirm = async () => {
-    console.log("[RejectPurchaseOrderModal] Confirming rejection with reason:", rejectionReason);
+    console.log(
+      "[RejectPurchaseOrderModal] Confirming rejection with reason:",
+      rejectionReason
+    );
     await onConfirm(rejectionReason);
     setRejectionReason("");
   };
@@ -34,7 +37,7 @@ export const RejectPurchaseOrderModal: React.FC<AlertModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={handleClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[415px] h-[280px] bg-white rounded-[8px]  shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:w-[415px] w-full h-[280px] bg-white rounded-[8px]  shadow-lg focus:outline-none">
           <Dialog.Title className="text-[14px] font-bold text-[#111102] font-body text-left mt-6 pl-6">
             Reject Purchase Order
           </Dialog.Title>
@@ -53,7 +56,9 @@ export const RejectPurchaseOrderModal: React.FC<AlertModalProps> = ({
                 value={rejectionReason}
                 onChange={(e) => {
                   setRejectionReason(e.target.value);
-                  console.log("[RejectPurchaseOrderModal] Rejection reason changed");
+                  console.log(
+                    "[RejectPurchaseOrderModal] Rejection reason changed"
+                  );
                 }}
                 className="w-full  h-[60px] mt-4 mb-4 px-4 py-2 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
               />

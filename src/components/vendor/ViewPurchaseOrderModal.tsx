@@ -16,7 +16,11 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   onClose,
   order,
 }) => {
-  console.log("[ViewPurchaseOrderModal] Opening modal for order:", order?.id, order?.orderNumber);
+  console.log(
+    "[ViewPurchaseOrderModal] Opening modal for order:",
+    order?.id,
+    order?.orderNumber
+  );
 
   const tableData = useMemo(() => {
     const items = order?.products || [];
@@ -50,15 +54,15 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             Purchase Order {order?.orderNumber || ""}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 overflow-y-auto h-[500px] no-scrollbar">
             {/* Form Section */}
-            <form className="grid grid-cols-3 gap-y-4 gap-x-6">
+            <form className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2 ">
               {/* Order Number */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -179,7 +183,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
 
             {/* Scrollable Table */}
             <div className="overflow-y-auto  no-scrollbar max-h-[150px] rounded-tl-[8px] rounded-tr-[8px]">
-              <table className="w-full text-[8px] text-center border font-body text-[#111102] border-white table-fixed">
+              <table className="w-full text-[8px] text-center border font-body text-[#111102] border-white table-fixed min-w-[600px] overflow-x-auto">
                 <thead className="bg-[#D1D1D1] ">
                   <tr>
                     <th className="p-3 border w-[5%] rounded-tl-[3px]"></th>

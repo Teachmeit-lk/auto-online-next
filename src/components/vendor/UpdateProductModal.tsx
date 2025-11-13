@@ -7,7 +7,12 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import { FirestoreService, COLLECTIONS, Product, GalleryImage } from "@/service/firestoreService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  Product,
+  GalleryImage,
+} from "@/service/firestoreService";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 
@@ -55,8 +60,12 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
     vehicleType: Yup.mixed().required("Vehicle Type is required"),
     yearOfManufacturing: Yup.string().required("Year is required"),
     description: Yup.string().required("Description is required"),
-    price: Yup.number().required("Price is required").min(0, "Price must be positive"),
-    stockQuantity: Yup.number().required("Quantity is required").min(0, "Quantity must be positive"),
+    price: Yup.number()
+      .required("Price is required")
+      .min(0, "Price must be positive"),
+    stockQuantity: Yup.number()
+      .required("Quantity is required")
+      .min(0, "Quantity must be positive"),
     vehicleMadeIn: Yup.string(),
     fuelType: Yup.mixed().optional(),
     measurement: Yup.mixed().optional(),
@@ -69,33 +78,52 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
-    defaultValues: product ? {
-      name: product.partName || "",
-      categoryId: product.mainCategory ? { value: String(product.mainCategory || ""), label: product.mainCategory || "" } : null,
-      brandId: product.vehicleBrand ? { value: String(product.vehicleBrand || ""), label: product.vehicleBrand || "" } : null,
-      modelId: product.vehicleModel ? { value: String(product.vehicleModel || ""), label: product.vehicleModel || "" } : null,
-      vehicleType: product.vehicleType ? { value: product.vehicleType, label: product.vehicleType } : null,
-      yearOfManufacturing: String(product.yearOfManufacturing || ""),
-      description: product.description || "",
-      price: product.price || 0,
-      stockQuantity: product.stockQuantity || 0,
-      vehicleMadeIn: product.vehicleMadeIn || "",
-      fuelType: (product as any).fuelType || "",
-      measurement: (product as any).measurement || "",
-    } : {
-      name: "",
-      categoryId: null,
-      brandId: null,
-      modelId: null,
-      vehicleType: null,
-      yearOfManufacturing: "",
-      description: "",
-      price: 0,
-      stockQuantity: 0,
-      vehicleMadeIn: "",
-      fuelType: "",
-      measurement: "",
-    }
+    defaultValues: product
+      ? {
+          name: product.partName || "",
+          categoryId: product.mainCategory
+            ? {
+                value: String(product.mainCategory || ""),
+                label: product.mainCategory || "",
+              }
+            : null,
+          brandId: product.vehicleBrand
+            ? {
+                value: String(product.vehicleBrand || ""),
+                label: product.vehicleBrand || "",
+              }
+            : null,
+          modelId: product.vehicleModel
+            ? {
+                value: String(product.vehicleModel || ""),
+                label: product.vehicleModel || "",
+              }
+            : null,
+          vehicleType: product.vehicleType
+            ? { value: product.vehicleType, label: product.vehicleType }
+            : null,
+          yearOfManufacturing: String(product.yearOfManufacturing || ""),
+          description: product.description || "",
+          price: product.price || 0,
+          stockQuantity: product.stockQuantity || 0,
+          vehicleMadeIn: product.vehicleMadeIn || "",
+          fuelType: (product as any).fuelType || "",
+          measurement: (product as any).measurement || "",
+        }
+      : {
+          name: "",
+          categoryId: null,
+          brandId: null,
+          modelId: null,
+          vehicleType: null,
+          yearOfManufacturing: "",
+          description: "",
+          price: 0,
+          stockQuantity: 0,
+          vehicleMadeIn: "",
+          fuelType: "",
+          measurement: "",
+        },
   });
 
   const onSubmit = async (data: FormValues) => {
@@ -113,17 +141,24 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
         price: data.price,
         stockQuantity: data.stockQuantity,
         vehicleMadeIn: data.vehicleMadeIn,
-        images: selectedImageUrls && selectedImageUrls.length > 0 ? selectedImageUrls : (product.images || []),
+        images:
+          selectedImageUrls && selectedImageUrls.length > 0
+            ? selectedImageUrls
+            : product.images || [],
         fuelType: data.fuelType?.value || (product as any).fuelType,
         measurement: data.measurement?.value || (product as any).measurement,
       } as Partial<Product>;
 
-      await FirestoreService.update<Product>(COLLECTIONS.PRODUCTS, product.id, updateData);
+      await FirestoreService.update<Product>(
+        COLLECTIONS.PRODUCTS,
+        product.id,
+        updateData
+      );
       if (onUpdated) await onUpdated();
       reset();
       onClose();
     } catch (error) {
-      console.error('Failed to update product:', error);
+      console.error("Failed to update product:", error);
     }
   };
 
@@ -145,9 +180,15 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
   const currentUser = authState?.user;
 
   const [galleryImages, setGalleryImages] = React.useState<GalleryImage[]>([]);
-  const [selectedImageUrls, setSelectedImageUrls] = React.useState<string[]>([]);
-  const [fuelTypeOptions, setFuelTypeOptions] = React.useState<Array<{ value: string; label: string }>>([]);
-  const [measurementOptions, setMeasurementOptions] = React.useState<Array<{ value: string; label: string }>>([]);
+  const [selectedImageUrls, setSelectedImageUrls] = React.useState<string[]>(
+    []
+  );
+  const [fuelTypeOptions, setFuelTypeOptions] = React.useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [measurementOptions, setMeasurementOptions] = React.useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   React.useEffect(() => {
     (async () => {
@@ -173,11 +214,31 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
   React.useEffect(() => {
     (async () => {
       const [fuels, measures] = await Promise.all([
-        FirestoreService.getAll<any>(COLLECTIONS.FUEL_TYPES, undefined, "name", "asc"),
-        FirestoreService.getAll<any>(COLLECTIONS.MEASUREMENT_UNITS, undefined, "name", "asc"),
+        FirestoreService.getAll<any>(
+          COLLECTIONS.FUEL_TYPES,
+          undefined,
+          "name",
+          "asc"
+        ),
+        FirestoreService.getAll<any>(
+          COLLECTIONS.MEASUREMENT_UNITS,
+          undefined,
+          "name",
+          "asc"
+        ),
       ]);
-      setFuelTypeOptions((fuels || []).map((f: any) => ({ value: String((f as any).id || (f as any).name), label: (f as any).name })));
-      setMeasurementOptions((measures || []).map((m: any) => ({ value: String((m as any).id || (m as any).name), label: (m as any).name })));
+      setFuelTypeOptions(
+        (fuels || []).map((f: any) => ({
+          value: String((f as any).id || (f as any).name),
+          label: (f as any).name,
+        }))
+      );
+      setMeasurementOptions(
+        (measures || []).map((m: any) => ({
+          value: String((m as any).id || (m as any).name),
+          label: (m as any).name,
+        }))
+      );
     })();
   }, []);
 
@@ -189,15 +250,37 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
 
   React.useEffect(() => {
     if (!product || !isOpen) return;
-    if (categoryOptions.length === 0 || brandOptions.length === 0 || modelOptions.length === 0 || vehicleTypeOptions.length === 0) return;
+    if (
+      categoryOptions.length === 0 ||
+      brandOptions.length === 0 ||
+      modelOptions.length === 0 ||
+      vehicleTypeOptions.length === 0
+    )
+      return;
 
     // Find the selected option objects for the current product values
-    const categoryId = categoryOptions.find(opt => opt.value === String(product.mainCategory)) || null;
-    const brandId = brandOptions.find(opt => opt.value === String(product.vehicleBrand)) || null;
-    const modelId = modelOptions.find(opt => opt.value === String(product.vehicleModel)) || null;
-    const vehicleType = vehicleTypeOptions.find(opt => opt.value === String(product.vehicleType)) || null;
-    const fuelType = fuelTypeOptions.find(opt => opt.value === String((product as any).fuelType)) || null;
-    const measurement = measurementOptions.find(opt => opt.value === String((product as any).measurement)) || null;
+    const categoryId =
+      categoryOptions.find(
+        (opt) => opt.value === String(product.mainCategory)
+      ) || null;
+    const brandId =
+      brandOptions.find((opt) => opt.value === String(product.vehicleBrand)) ||
+      null;
+    const modelId =
+      modelOptions.find((opt) => opt.value === String(product.vehicleModel)) ||
+      null;
+    const vehicleType =
+      vehicleTypeOptions.find(
+        (opt) => opt.value === String(product.vehicleType)
+      ) || null;
+    const fuelType =
+      fuelTypeOptions.find(
+        (opt) => opt.value === String((product as any).fuelType)
+      ) || null;
+    const measurement =
+      measurementOptions.find(
+        (opt) => opt.value === String((product as any).measurement)
+      ) || null;
 
     reset({
       name: product.partName || "",
@@ -213,18 +296,28 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
       fuelType,
       measurement,
     });
-  }, [product, isOpen, categoryOptions, brandOptions, modelOptions, vehicleTypeOptions, fuelTypeOptions, measurementOptions, reset]);
+  }, [
+    product,
+    isOpen,
+    categoryOptions,
+    brandOptions,
+    modelOptions,
+    vehicleTypeOptions,
+    fuelTypeOptions,
+    measurementOptions,
+    reset,
+  ]);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-6 rounded-lg shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full md:h-[85vh] h-auto bg-white py-8 px-6 rounded-lg shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-body font-bold mb-5 text-[#111102]">
             Update Product
           </Dialog.Title>
           <form
-            className="grid grid-cols-3 gap-x-5 gap-y-4 bg-[#F8F8F8] rounded-[8px] px-9 pt-10 pb-11"
+            className="sm:grid sm:grid-cols-3 gap-x-5 gap-y-4 bg-[#F8F8F8] rounded-[8px] sm:px-9 px-4 pt-10 pb-11 sm:space-y-0 space-y-2  h-[500px] overflow-y-auto"
             onSubmit={handleSubmit(onSubmit)}
           >
             {/* Product Name */}
@@ -371,7 +464,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                   <select
                     {...field}
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.yearOfManufacturing ? "focus:ring-red-500" : "focus:ring-yellow-500"
+                      errors.yearOfManufacturing
+                        ? "focus:ring-red-500"
+                        : "focus:ring-yellow-500"
                     }`}
                   >
                     <option value="" disabled>
@@ -406,7 +501,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     type="number"
                     placeholder="Enter Price"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.price ? "focus:ring-red-500" : "focus:ring-yellow-500"
+                      errors.price
+                        ? "focus:ring-red-500"
+                        : "focus:ring-yellow-500"
                     }`}
                   />
                 )}
@@ -432,7 +529,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     type="number"
                     placeholder="Enter Quantity"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.stockQuantity ? "focus:ring-red-500" : "focus:ring-yellow-500"
+                      errors.stockQuantity
+                        ? "focus:ring-red-500"
+                        : "focus:ring-yellow-500"
                     }`}
                   />
                 )}
@@ -458,7 +557,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     type="text"
                     placeholder="Enter Country"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.countryOfManufacture ? "focus:ring-red-500" : "focus:ring-yellow-500"
+                      errors.countryOfManufacture
+                        ? "focus:ring-red-500"
+                        : "focus:ring-yellow-500"
                     }`}
                   />
                 )}
@@ -472,7 +573,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
 
             {/* Fuel Type */}
             <div className="col-span-1">
-              <label className="block text-[12px] font-body font-medium text-[#111102]">Fuel Type</label>
+              <label className="block text-[12px] font-body font-medium text-[#111102]">
+                Fuel Type
+              </label>
               <Controller
                 name="fuelType"
                 control={control}
@@ -488,13 +591,17 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 )}
               />
               {errors.fuelType && (
-                <p className="text-red-500 text-[10px] mt-1">{errors.fuelType.message}</p>
+                <p className="text-red-500 text-[10px] mt-1">
+                  {errors.fuelType.message}
+                </p>
               )}
             </div>
 
             {/* Measurement */}
             <div className="col-span-1">
-              <label className="block text-[12px] font-body font-medium text-[#111102]">Measurement</label>
+              <label className="block text-[12px] font-body font-medium text-[#111102]">
+                Measurement
+              </label>
               <Controller
                 name="measurement"
                 control={control}
@@ -510,7 +617,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 )}
               />
               {errors.measurement && (
-                <p className="text-red-500 text-[10px] mt-1">{errors.measurement.message}</p>
+                <p className="text-red-500 text-[10px] mt-1">
+                  {errors.measurement.message}
+                </p>
               )}
             </div>
 
@@ -520,7 +629,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 <label className="block text-[12px] font-body font-medium text-[#111102]">
                   Images (select from gallery)
                 </label>
-                <span className="text-[10px] text-gray-500">Selected: {selectedImageUrls.length}</span>
+                <span className="text-[10px] text-gray-500">
+                  Selected: {selectedImageUrls.length}
+                </span>
               </div>
               <div className="mt-2 grid grid-cols-6 gap-2 max-h-40 overflow-auto bg-white p-2 rounded border">
                 {galleryImages.map((g) => (
@@ -528,30 +639,55 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     type="button"
                     key={(g as any).id || g.imageUrl}
                     onClick={() => toggleSelectImage(g.imageUrl)}
-                    className={`relative w-full h-16 border rounded overflow-hidden ${selectedImageUrls.includes(g.imageUrl) ? "ring-2 ring-yellow-500" : ""}`}
+                    className={`relative w-full h-16 border rounded overflow-hidden ${
+                      selectedImageUrls.includes(g.imageUrl)
+                        ? "ring-2 ring-yellow-500"
+                        : ""
+                    }`}
                     title={g.title}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={g.imageUrl} alt={g.title} className="w-full h-full object-cover" />
+                    <img
+                      src={g.imageUrl}
+                      alt={g.title}
+                      className="w-full h-full object-cover"
+                    />
                     {selectedImageUrls.includes(g.imageUrl) && (
                       <div className="absolute inset-0 bg-black/30" />
                     )}
                   </button>
                 ))}
                 {galleryImages.length === 0 && (
-                  <div className="col-span-6 text-[10px] text-gray-500">No images in gallery. Use Vendor Gallery to upload.</div>
+                  <div className="col-span-6 text-[10px] text-gray-500">
+                    No images in gallery. Use Vendor Gallery to upload.
+                  </div>
                 )}
               </div>
 
               {selectedImageUrls.length > 0 && (
                 <div className="mt-2">
-                  <div className="text-[11px] text-gray-600 mb-1">Selected thumbnails</div>
+                  <div className="text-[11px] text-gray-600 mb-1">
+                    Selected thumbnails
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {selectedImageUrls.map((url) => (
-                      <div key={url} className="relative w-12 h-12 border rounded overflow-hidden">
+                      <div
+                        key={url}
+                        className="relative w-12 h-12 border rounded overflow-hidden"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={url} alt="selected" className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => toggleSelectImage(url)} className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded px-1">x</button>
+                        <img
+                          src={url}
+                          alt="selected"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleSelectImage(url)}
+                          className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded px-1"
+                        >
+                          x
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -614,4 +750,3 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
 };
 
 export { UpdateProductModal };
-
