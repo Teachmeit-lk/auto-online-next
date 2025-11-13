@@ -203,10 +203,10 @@ const AcceptedPO: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white py-2">
                   Cus. Request Code
                 </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
+                <th className="border border-r-2 border-b-2 border-white  py-2 min-w-[150px]">
                   Company Name
                 </th>
-                <th className="border border-r-2 border-b-2 border-white py-2">
+                <th className="border border-r-2 border-b-2 border-white py-2 ">
                   Part Name
                 </th>
                 <th className="border border-r-2 border-b-2 border-white  py-2">
@@ -215,7 +215,7 @@ const AcceptedPO: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Status
                 </th>
-                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2 min-w-[200px]">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
                 </th>
@@ -262,7 +262,16 @@ const AcceptedPO: React.FC = () => {
                       {row.status}
                     </td>
 
-                    <td className="grid grid-cols-2 gap-2 text-center w-full h-full">
+                    <td
+                      className={`grid ${
+                        row.raw.paymentMethod &&
+                        (row.raw.paymentMethod === "pay_online" ||
+                          row.raw.paymentMethod === "bank_transfer") &&
+                        !row.raw.paymentSlipUrl
+                          ? "grid-cols-2"
+                          : "grid-cols-1"
+                      } gap-2 text-center w-full h-full`}
+                    >
                       <button
                         className="bg-[#D1D1D1] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                         onClick={() => {

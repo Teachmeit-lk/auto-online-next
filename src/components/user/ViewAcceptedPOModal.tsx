@@ -6,7 +6,12 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 import { ViewEstimate1 } from "@/assets/Images";
-import { COLLECTIONS, FirestoreService, Quotation, QuotationRequest } from "@/service/firestoreService";
+import {
+  COLLECTIONS,
+  FirestoreService,
+  Quotation,
+  QuotationRequest,
+} from "@/service/firestoreService";
 
 interface IViewAcceptedPOModalProps {
   isOpen: boolean;
@@ -36,7 +41,8 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
   }, [quotation?.quotationRequestId]);
 
   const acceptedDate = useMemo(() => {
-    const ts: any = (quotation as any)?.updatedAt || (quotation as any)?.createdAt;
+    const ts: any =
+      (quotation as any)?.updatedAt || (quotation as any)?.createdAt;
     if (ts?.seconds) return new Date(ts.seconds * 1000);
     return ts instanceof Date ? ts : null;
   }, [quotation]);
@@ -54,13 +60,13 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
             Accepted Purchase Order by {quotation?.vendorName || "Vendor"}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
             {/* Image Section */}
             <div className="flex justify-center">
               {firstImage ? (
@@ -83,7 +89,7 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
             </div>
 
             {/* Form Section */}
-            <form className="grid grid-cols-3 gap-y-4 gap-x-6">
+            <form className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2">
               {/* Estimate Code */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -143,7 +149,9 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={requestedDate ? requestedDate.toLocaleDateString() : "-"}
+                  value={
+                    requestedDate ? requestedDate.toLocaleDateString() : "-"
+                  }
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -195,7 +203,11 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={(request?.numberOfUnits != null ? String(request.numberOfUnits) : "-")}
+                  value={
+                    request?.numberOfUnits != null
+                      ? String(request.numberOfUnits)
+                      : "-"
+                  }
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />

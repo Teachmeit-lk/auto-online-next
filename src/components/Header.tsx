@@ -18,6 +18,7 @@ import { HeaderLogo } from "@/assets/Images";
 import { RootState } from "@/app/store/store";
 import { logoutUserAsync } from "@/app/store/slice/authslice";
 import { useFirebase } from "@/contexts/FirebaseContext";
+import { useRouter } from "next/navigation";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -39,6 +40,7 @@ export const Header: React.FC = () => {
   const loading = authState.loading as boolean;
   const dispatch = useDispatch();
   const { initialized } = useFirebase();
+  const router = useRouter();
 
   const navLinks = isAuthenticated
     ? [
@@ -71,9 +73,10 @@ export const Header: React.FC = () => {
       ? "/admin/profile"
       : "/user/profile";
 
-  const handleLogout = () => {
-    dispatch(logoutUserAsync() as any);
+  const handleLogout = async () => {
+    await dispatch(logoutUserAsync() as any);
     setIsUserModalOpen(false);
+    router.push("/user/login");
   };
 
   const handleUserModalToggle = () => {
@@ -188,6 +191,7 @@ export const Header: React.FC = () => {
                 >
                   My Profile
                 </Link>
+
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-black text-sm"

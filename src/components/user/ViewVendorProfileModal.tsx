@@ -33,18 +33,20 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
             {(vendor?.firstName || "") + " " + (vendor?.lastName || "")}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
             {/* Logo and Company Name Row */}
-            <div className="grid grid-cols-3 gap-x-6 items-center ">
+            <div className="sm:grid sm:grid-cols-3 gap-x-6 items-center sm:space-y-0 space-y-2">
               {/* Logo */}
               <div className="flex justify-center">
-                <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500">Logo</div>
+                <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500">
+                  Logo
+                </div>
               </div>
 
               {/* Company Name */}
@@ -54,7 +56,9 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={(vendor?.firstName || "") + " " + (vendor?.lastName || "")}
+                  value={
+                    (vendor?.firstName || "") + " " + (vendor?.lastName || "")
+                  }
                   readOnly
                   className="w-full h-[36px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] "
                 />
@@ -62,7 +66,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
             </div>
 
             {/* Form Section */}
-            <form className="grid grid-cols-3 gap-y-2 gap-x-6">
+            <form className="sm:grid sm:grid-cols-3 gap-y-2 gap-x-6 sm:space-y-0 space-y-2 ">
               {/* Contact Person */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -201,7 +205,12 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 <div className="flex space-x-2 mt-2">
                   {(gallery || []).slice(0, 7).map((g) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={g.imageUrl} src={g.imageUrl} alt={g.title} className="w-[75px] h-[75px] rounded-[3px] object-cover" />
+                    <img
+                      key={g.imageUrl}
+                      src={g.imageUrl}
+                      alt={g.title}
+                      className="w-[75px] h-[75px] rounded-[3px] object-cover"
+                    />
                   ))}
                 </div>
               </div>
