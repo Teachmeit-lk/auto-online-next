@@ -33,7 +33,10 @@ const schema = Yup.object().shape({
     .oneOf(["arrange_delivery", "collect_from_shop"], "Invalid delivery method")
     .required("Delivery method is required"),
   paymentMethod: Yup.string()
-    .oneOf(["cash_at_shop", "bank_transfer", "pay_online"], "Invalid payment method")
+    .oneOf(
+      ["cash_at_shop", "bank_transfer", "pay_online"],
+      "Invalid payment method"
+    )
     .required("Payment method is required"),
   deliveryAddress: Yup.object().when("deliveryMethod", {
     is: "arrange_delivery",
@@ -49,12 +52,9 @@ const schema = Yup.object().shape({
   }),
 });
 
-export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> = ({
-  isOpen,
-  onClose,
-  quotation,
-  onSuccess,
-}) => {
+export const CreatePurchaseOrderModal: React.FC<
+  ICreatePurchaseOrderModalProps
+> = ({ isOpen, onClose, quotation, onSuccess }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -98,8 +98,13 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
       console.log("[CreatePurchaseOrderModal] Form validation passed");
 
       // Generate order number
-      const orderNumber = `PO-${Date.now()}-${quotation.quotationRequestId?.slice(0, 8) || "00000000"}`;
-      console.log("[CreatePurchaseOrderModal] Generated order number:", orderNumber);
+      const orderNumber = `PO-${Date.now()}-${
+        quotation.quotationRequestId?.slice(0, 8) || "00000000"
+      }`;
+      console.log(
+        "[CreatePurchaseOrderModal] Generated order number:",
+        orderNumber
+      );
 
       // Create purchase order
       const purchaseOrderData = {
@@ -118,28 +123,40 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
         currency: quotation.currency || "LKR",
         deliveryMethod: data.deliveryMethod,
         paymentMethod: data.paymentMethod,
-        deliveryAddress: data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
-          ? data.deliveryAddress
-          : {
-              street: "",
-              city: "",
-              district: "",
-              zipCode: "",
-              country: "",
-            },
-        expectedDeliveryDate: quotation.validUntil instanceof Date ? quotation.validUntil : new Date(),
+        deliveryAddress:
+          data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
+            ? data.deliveryAddress
+            : {
+                street: "",
+                city: "",
+                district: "",
+                zipCode: "",
+                country: "",
+              },
+        expectedDeliveryDate:
+          quotation.validUntil instanceof Date
+            ? quotation.validUntil
+            : new Date(),
         status: "pending" as const,
         paymentStatus: "pending" as const,
         deliveryCostRequested: data.deliveryMethod === "arrange_delivery",
       };
 
-      console.log("[CreatePurchaseOrderModal] Creating purchase order with data:", purchaseOrderData);
+      console.log(
+        "[CreatePurchaseOrderModal] Creating purchase order with data:",
+        purchaseOrderData
+      );
 
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
 
-      console.log("[CreatePurchaseOrderModal] Purchase order created successfully:", orderId);
+      console.log(
+        "[CreatePurchaseOrderModal] Purchase order created successfully:",
+        orderId
+      );
       // TODO: Send order confirmation via WhatsApp
-      console.log("[CreatePurchaseOrderModal] TODO: Send order confirmation via WhatsApp");
+      console.log(
+        "[CreatePurchaseOrderModal] TODO: Send order confirmation via WhatsApp"
+      );
 
       if (onSuccess) {
         onSuccess();
@@ -147,8 +164,13 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
 
       handleModalClose();
     } catch (error: any) {
-      console.error("[CreatePurchaseOrderModal] Error creating purchase order:", error);
-      setSubmitError(error.message || "Failed to create purchase order. Please try again.");
+      console.error(
+        "[CreatePurchaseOrderModal] Error creating purchase order:",
+        error
+      );
+      setSubmitError(
+        error.message || "Failed to create purchase order. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -169,7 +191,7 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none max-h-[90vh] overflow-y-auto">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full  bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none max-h-[90vh] overflow-y-auto">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             Create Purchase Order
           </Dialog.Title>
@@ -180,7 +202,10 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6 sm:h-full h-[550px] overflow-y-auto"
+          >
             {/* Delivery Method Selection */}
             <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
               <label className="text-[12px] font-body font-[500] text-[#111102] block mb-3">
@@ -199,7 +224,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                         className="text-[#F9C301] focus:ring-[#F9C301]"
                         onChange={(e) => {
                           field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Delivery method changed: arrange_delivery");
+                          console.log(
+                            "[CreatePurchaseOrderModal] Delivery method changed: arrange_delivery"
+                          );
                         }}
                       />
                       <span className="text-[12px] font-body text-[#111102]">
@@ -214,7 +241,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                         className="text-[#F9C301] focus:ring-[#F9C301]"
                         onChange={(e) => {
                           field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Delivery method changed: collect_from_shop");
+                          console.log(
+                            "[CreatePurchaseOrderModal] Delivery method changed: collect_from_shop"
+                          );
                         }}
                       />
                       <span className="text-[12px] font-body text-[#111102]">
@@ -225,7 +254,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                 )}
               />
               {errors.deliveryMethod && (
-                <p className="text-[10px] text-red-600">{errors.deliveryMethod.message}</p>
+                <p className="text-[10px] text-red-600">
+                  {errors.deliveryMethod.message}
+                </p>
               )}
             </div>
 
@@ -348,7 +379,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                         className="text-[#F9C301] focus:ring-[#F9C301]"
                         onChange={(e) => {
                           field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: cash_at_shop");
+                          console.log(
+                            "[CreatePurchaseOrderModal] Payment method changed: cash_at_shop"
+                          );
                         }}
                       />
                       <span className="text-[12px] font-body text-[#111102]">
@@ -363,7 +396,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                         className="text-[#F9C301] focus:ring-[#F9C301]"
                         onChange={(e) => {
                           field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: bank_transfer");
+                          console.log(
+                            "[CreatePurchaseOrderModal] Payment method changed: bank_transfer"
+                          );
                         }}
                       />
                       <span className="text-[12px] font-body text-[#111102]">
@@ -378,7 +413,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                         className="text-[#F9C301] focus:ring-[#F9C301]"
                         onChange={(e) => {
                           field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: pay_online");
+                          console.log(
+                            "[CreatePurchaseOrderModal] Payment method changed: pay_online"
+                          );
                         }}
                       />
                       <span className="text-[12px] font-body text-[#111102]">
@@ -389,7 +426,9 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
                 )}
               />
               {errors.paymentMethod && (
-                <p className="text-[10px] text-red-600">{errors.paymentMethod.message}</p>
+                <p className="text-[10px] text-red-600">
+                  {errors.paymentMethod.message}
+                </p>
               )}
             </div>
 
@@ -401,11 +440,14 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
               <div className="space-y-2 text-[11px] font-body text-[#111102]">
                 <div className="flex justify-between">
                   <span>Total Amount:</span>
-                  <span className="font-[600]">{quotation.totalAmount} {quotation.currency || "LKR"}</span>
+                  <span className="font-[600]">
+                    {quotation.totalAmount} {quotation.currency || "LKR"}
+                  </span>
                 </div>
                 {quotation.products.map((product, idx) => (
                   <div key={idx} className="text-[10px] text-[#5B5B5B]">
-                    {product.partName} - {product.quantity} x {product.unitPrice}
+                    {product.partName} - {product.quantity} x{" "}
+                    {product.unitPrice}
                   </div>
                 ))}
               </div>
@@ -449,4 +491,3 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
     </Dialog.Root>
   );
 };
-

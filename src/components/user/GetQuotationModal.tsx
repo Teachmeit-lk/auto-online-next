@@ -9,7 +9,11 @@ import { useForm, Controller } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
-import { FirestoreService, COLLECTIONS, QuotationRequest } from "@/service/firestoreService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  QuotationRequest,
+} from "@/service/firestoreService";
 
 interface IGetQuotationModalProps {
   isOpen: boolean;
@@ -67,13 +71,24 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     const img = data.image;
     let uploadedUrl = "";
     if (img) {
-      const compressed = await FirebaseStorageService.compressImage(img, 1920, 1080, 0.7);
-      const res = await FirebaseStorageService.uploadDocument(currentUser.id, "quotation", compressed);
+      const compressed = await FirebaseStorageService.compressImage(
+        img,
+        1920,
+        1080,
+        0.7
+      );
+      const res = await FirebaseStorageService.uploadDocument(
+        currentUser.id,
+        "quotation",
+        compressed
+      );
       uploadedUrl = res.url;
     }
     const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
       buyerId: currentUser.id,
-      buyerName: `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim(),
+      buyerName: `${currentUser.firstName || ""} ${
+        currentUser.lastName || ""
+      }`.trim(),
       buyerEmail: currentUser.email || "",
       buyerPhone: currentUser.phone || "",
       vendorId: vendor?.id,
@@ -91,7 +106,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       status: "pending",
       quotationsReceived: 0,
     } as any;
-    await FirestoreService.create<QuotationRequest>(COLLECTIONS.QUOTATION_REQUESTS, doc);
+    await FirestoreService.create<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      doc
+    );
     onClose();
   };
 
@@ -112,27 +130,55 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
 
   useEffect(() => {
     (async () => {
-      const [brands, vtypes, fuels, units, models, vendors] = await Promise.all([
-        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc"),
-        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_TYPES, undefined, "name", "asc"),
-        FirestoreService.getAll<any>(COLLECTIONS.FUEL_TYPES, undefined, "name", "asc"),
-        FirestoreService.getAll<any>(COLLECTIONS.MEASUREMENT_UNITS, undefined, "name", "asc"),
-        FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc"),
-        FirestoreService.getAll<any>(
-          COLLECTIONS.USERS,
-          [
+      const [brands, vtypes, fuels, units, models, vendors] = await Promise.all(
+        [
+          FirestoreService.getAll<any>(
+            COLLECTIONS.VEHICLE_BRANDS,
+            undefined,
+            "sortOrder",
+            "asc"
+          ),
+          FirestoreService.getAll<any>(
+            COLLECTIONS.VEHICLE_TYPES,
+            undefined,
+            "name",
+            "asc"
+          ),
+          FirestoreService.getAll<any>(
+            COLLECTIONS.FUEL_TYPES,
+            undefined,
+            "name",
+            "asc"
+          ),
+          FirestoreService.getAll<any>(
+            COLLECTIONS.MEASUREMENT_UNITS,
+            undefined,
+            "name",
+            "asc"
+          ),
+          FirestoreService.getAll<any>(
+            COLLECTIONS.VEHICLE_MODELS,
+            undefined,
+            "name",
+            "asc"
+          ),
+          FirestoreService.getAll<any>(COLLECTIONS.USERS, [
             { field: "role", operator: "==", value: "vendor" },
             { field: "isActive", operator: "==", value: true },
-          ]
-        ),
-      ]);
-      const countries = Array.from(new Set((brands || []).map((b: any) => b.country).filter(Boolean)));
+          ]),
+        ]
+      );
+      const countries = Array.from(
+        new Set((brands || []).map((b: any) => b.country).filter(Boolean))
+      );
       setCountryOptions(countries);
       setVehicleTypeOptions((vtypes || []).map((t: any) => t.name));
       setFuelTypeOptions((fuels || []).map((t: any) => t.name));
       setMeasurementOptions((units || []).map((t: any) => t.name));
       setModelOptions((models || []).map((m: any) => m.name));
-      const districts = Array.from(new Set((vendors || []).map((v: any) => v.district).filter(Boolean)));
+      const districts = Array.from(
+        new Set((vendors || []).map((v: any) => v.district).filter(Boolean))
+      );
       setDistrictOptions(districts);
     })();
   }, []);
@@ -148,14 +194,14 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto md:h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             {vendor?.name ? `${vendor.name} - Get Quotation` : "Get Quotation"}
           </Dialog.Title>
 
-          <div className="h-full overflow-y-auto no-scrollbar">
+          <div className="sm:h-full h-[600px] overflow-y-auto no-scrollbar">
             <form
-              className="grid grid-cols-3 gap-y-4 gap-x-8 bg-[#F8F8F8] rounded-[8px] p-8 mb-11"
+              className="sm:grid sm:grid-cols-3 sm:space-y-0 space-y-2  gap-y-4 gap-x-8 bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 mb-11"
               onSubmit={handleSubmit(onSubmit)}
             >
               {/* Vehicle Country */}
@@ -177,9 +223,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
                     >
-                      <option value="" className="text-gray-500">Select Country</option>
+                      <option value="" className="text-gray-500">
+                        Select Country
+                      </option>
                       {countryOptions.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -210,9 +260,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
                     >
-                      <option value="" className="text-gray-500">Select Model</option>
+                      <option value="" className="text-gray-500">
+                        Select Model
+                      </option>
                       {modelOptions.map((m) => (
-                        <option key={m} value={m}>{m}</option>
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -244,9 +298,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                          : "focus:ring-yellow-500 focus:border-yellow-500"
                      }`}
                     >
-                      <option value="" className="text-gray-500">Select District</option>
+                      <option value="" className="text-gray-500">
+                        Select District
+                      </option>
                       {districtOptions.map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -280,7 +338,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         Select Type
                       </option>
                       {vehicleTypeOptions.map((t) => (
-                        <option key={t} value={t}>{t}</option>
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -312,9 +372,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                          : "focus:ring-yellow-500 focus:border-yellow-500"
                      }`}
                     >
-                      <option value="" className="text-gray-500">Select Year</option>
+                      <option value="" className="text-gray-500">
+                        Select Year
+                      </option>
                       {years.map((y) => (
-                        <option key={y} value={String(y)}>{y}</option>
+                        <option key={y} value={String(y)}>
+                          {y}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -348,7 +412,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         Select Fuel
                       </option>
                       {fuelTypeOptions.map((f) => (
-                        <option key={f} value={f}>{f}</option>
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
                       ))}
                     </select>
                   )}
@@ -383,7 +449,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         Select Unit
                       </option>
                       {measurementOptions.map((u) => (
-                        <option key={u} value={u}>{u}</option>
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
                       ))}
                     </select>
                   )}

@@ -203,7 +203,7 @@ const NewPurchaseOrders: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse min-w-[750px] overflow-x-auto">
+          <table className="w-full border-collapse min-w-[780px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white px-2  py-2 ">
@@ -215,10 +215,10 @@ const NewPurchaseOrders: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white py-2">
                   Customer Code
                 </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
+                <th className="border border-r-2 border-b-2 border-white  py-2 min-w-[150px]">
                   Customer Name
                 </th>
-                <th className="border border-r-2 border-b-2 border-white py-2">
+                <th className="border border-r-2 border-b-2 border-white py-2 min-w-[150px]">
                   Part Name
                 </th>
                 <th className="border border-r-2 border-b-2 border-white  py-2">
@@ -227,7 +227,7 @@ const NewPurchaseOrders: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Status
                 </th>
-                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                <th className="border px-1 py-2 border-b-1 min-w-[300px] border-white flex items-center justify-center space-x-2">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
                 </th>
@@ -288,7 +288,7 @@ const NewPurchaseOrders: React.FC = () => {
                         {vendor.status}
                       </td>
 
-                      <td className="grid grid-cols-4 text-center w-full h-full font-body">
+                      <td className="grid grid-cols-5 text-center w-full h-full font-body">
                         <button
                           className="bg-[#D1D1D1]  border-r-2 px-1 py-3 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
                           onClick={() => {

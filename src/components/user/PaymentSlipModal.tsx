@@ -109,7 +109,10 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
         }
       );
 
-      console.log("[PaymentSlipModal] File uploaded successfully:", uploadResult.url);
+      console.log(
+        "[PaymentSlipModal] File uploaded successfully:",
+        uploadResult.url
+      );
 
       // Update purchase order with payment slip URL
       await OrderService.uploadPaymentSlip(orderId, uploadResult.url);
@@ -125,7 +128,9 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       handleModalClose();
     } catch (error: any) {
       console.error("[PaymentSlipModal] Error uploading payment slip:", error);
-      setSubmitError(error.message || "Failed to upload payment slip. Please try again.");
+      setSubmitError(
+        error.message || "Failed to upload payment slip. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
@@ -145,7 +150,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:w-[500px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             Upload Payment Slip
             {orderNumber && (
@@ -256,4 +261,3 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
     </Dialog.Root>
   );
 };
-

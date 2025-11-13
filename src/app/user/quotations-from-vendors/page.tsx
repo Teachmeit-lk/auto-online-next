@@ -153,7 +153,7 @@ const QuotationsFromVendors: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse min-w-[690px] overflow-x-auto">
+          <table className="w-full border-collapse min-w-[750px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white px-2  py-2 ">
@@ -165,7 +165,7 @@ const QuotationsFromVendors: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white py-2">
                   Vendor Code
                 </th>
-                <th className="border border-r-2 border-b-2 border-white  py-2">
+                <th className="border border-r-2 min-w-[150px] border-b-2 border-white  py-2">
                   Company Name
                 </th>
                 <th className="border border-r-2 border-b-2 border-white py-2">
@@ -177,7 +177,7 @@ const QuotationsFromVendors: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Status
                 </th>
-                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                <th className="border min-w-[200px] px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
                 </th>

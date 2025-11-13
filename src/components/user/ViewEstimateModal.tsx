@@ -29,13 +29,15 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            {request?.vendorName ? `${request.vendorName} Estimate` : "Quotation Request"}
+            {request?.vendorName
+              ? `${request.vendorName} Estimate`
+              : "Quotation Request"}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
             {/* Image Section */}
             <div className="flex justify-center">
               {firstImage ? (
@@ -58,7 +60,7 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
             </div>
 
             {/* Form Section */}
-            <form className="grid grid-cols-3 gap-y-4 gap-x-6">
+            <form className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2 ">
               {/* Vehicle Country */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -199,7 +201,11 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
                     type="text"
                     value={((): string => {
                       const td: any = request.targetDeliveryDate as any;
-                      const d = td?.seconds ? new Date(td.seconds * 1000) : (td instanceof Date ? td : null);
+                      const d = td?.seconds
+                        ? new Date(td.seconds * 1000)
+                        : td instanceof Date
+                        ? td
+                        : null;
                       return d ? d.toLocaleDateString() : "-";
                     })()}
                     readOnly
