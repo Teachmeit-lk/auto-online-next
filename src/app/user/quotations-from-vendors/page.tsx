@@ -15,6 +15,8 @@ import {
   COLLECTIONS,
   Quotation,
 } from "@/service/firestoreService";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/config/firebase";
 
 const QuotationsFromVendors: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -29,9 +31,37 @@ const QuotationsFromVendors: React.FC = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
     null
   );
-
+  const [requestImageUrl, setRequestImageUrl] = useState<string | null>(null);
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+
+  const loadRequestImage = async (quotationRequestId?: string | null) => {
+    if (!quotationRequestId) {
+      setRequestImageUrl(null);
+      return;
+    }
+
+    try {
+      const ref = doc(db, "quotationRequests", quotationRequestId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        setRequestImageUrl(null);
+        return;
+      }
+
+      const data = snap.data() as any;
+      const firstImage =
+        Array.isArray(data.attachedImages) && data.attachedImages.length > 0
+          ? data.attachedImages[0]
+          : null;
+
+      setRequestImageUrl(firstImage || null);
+    } catch (e) {
+      console.error("Failed to load quotationRequest image", e);
+      setRequestImageUrl(null);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -255,15 +285,18 @@ const QuotationsFromVendors: React.FC = () => {
                             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                             : "bg-[#D1D1D1] hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                         } px-1 border-l-2 py-3 border-[#F8F8F8] text-[12px] w-full h-full`}
-                        onClick={() => {
-                          if (row.status !== "accepted") {
-                            console.log(
-                              "[QuotationsFromVendors] Opening CreatePurchaseOrderModal for quotation:",
-                              row.id
-                            );
-                            setSelectedQuotation(row.raw);
-                            setOpenQuotationConfirmation(true);
-                          }
+                        onClick={async () => {
+                          if (row.status === "accepted") return;
+
+                          console.log(
+                            "[QuotationsFromVendors] Opening CreatePurchaseOrderModal for quotation:",
+                            row.id
+                          );
+
+                          setSelectedQuotation(row.raw);
+
+                          await loadRequestImage(row.raw.quotationRequestId);
+                          setOpenQuotationConfirmation(true);
                         }}
                       >
                         Confirm
@@ -296,6 +329,7 @@ const QuotationsFromVendors: React.FC = () => {
       />
       <CreatePurchaseOrderModal
         isOpen={openQuotationConfirmation}
+        requestImageUrl={requestImageUrl}
         onClose={() => {
           console.log(
             "[QuotationsFromVendors] Closing CreatePurchaseOrderModal"
