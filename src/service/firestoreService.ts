@@ -115,6 +115,7 @@ export interface Quotation extends BaseDocument {
     description?: string;
     condition: "new" | "used" | "refurbished";
     warranty?: string;
+    imageUrls?: string[];
   }>;
   totalAmount: number;
   currency: string;
@@ -149,7 +150,13 @@ export interface PurchaseOrder extends BaseDocument {
     country: string;
   };
   expectedDeliveryDate: Date | Timestamp;
-  status: "pending" | "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "in_progress"
+    | "shipped"
+    | "delivered"
+    | "cancelled";
   paymentStatus: "pending" | "paid" | "refunded";
   paymentMethod?: "cash_at_shop" | "bank_transfer" | "pay_online";
   deliveryMethod?: "arrange_delivery" | "collect_from_shop";
@@ -252,7 +259,10 @@ export class FirestoreService {
 
       await setDoc(doc(db, collectionName, docId), docData);
     } catch (error) {
-      console.error(`Error creating document with ID in ${collectionName}:`, error);
+      console.error(
+        `Error creating document with ID in ${collectionName}:`,
+        error
+      );
       throw error;
     }
   }
@@ -319,8 +329,10 @@ export class FirestoreService {
 
       // Apply filters
       if (filters) {
-        filters.forEach(filter => {
-          queryConstraints.push(where(filter.field, filter.operator, filter.value));
+        filters.forEach((filter) => {
+          queryConstraints.push(
+            where(filter.field, filter.operator, filter.value)
+          );
         });
       }
 
@@ -335,7 +347,7 @@ export class FirestoreService {
       }
 
       const querySnapshot = await getDocs(query(q, ...queryConstraints));
-      return querySnapshot.docs.map(doc => ({
+      return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as T[];
@@ -358,8 +370,10 @@ export class FirestoreService {
       let queryConstraints: any[] = [];
 
       if (filters) {
-        filters.forEach(filter => {
-          queryConstraints.push(where(filter.field, filter.operator, filter.value));
+        filters.forEach((filter) => {
+          queryConstraints.push(
+            where(filter.field, filter.operator, filter.value)
+          );
         });
       }
 
@@ -367,8 +381,8 @@ export class FirestoreService {
         queryConstraints.push(orderBy(orderByField, orderDirection));
       }
 
-      return onSnapshot(query(q, ...queryConstraints), snapshot => {
-        const docs = snapshot.docs.map(doc => ({
+      return onSnapshot(query(q, ...queryConstraints), (snapshot) => {
+        const docs = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as T[];
@@ -381,17 +395,19 @@ export class FirestoreService {
   }
 
   // Batch operations
-  static async batchWrite(operations: Array<{
-    type: "create" | "update" | "delete";
-    collection: string;
-    docId?: string;
-    data?: any;
-  }>): Promise<void> {
+  static async batchWrite(
+    operations: Array<{
+      type: "create" | "update" | "delete";
+      collection: string;
+      docId?: string;
+      data?: any;
+    }>
+  ): Promise<void> {
     try {
       const batch = writeBatch(db);
 
-      operations.forEach(op => {
-        const docRef = op.docId 
+      operations.forEach((op) => {
+        const docRef = op.docId
           ? doc(db, op.collection, op.docId)
           : doc(collection(db, op.collection));
 
@@ -425,20 +441,25 @@ export class FirestoreService {
 
 // Specialized service functions for business logic
 export class ProductService {
-  static async createProduct(product: Omit<Product, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  static async createProduct(
+    product: Omit<Product, "id" | "createdAt" | "updatedAt">
+  ): Promise<string> {
     return FirestoreService.create<Product>(COLLECTIONS.PRODUCTS, product);
   }
 
   static async getProductsByVendor(vendorId: string): Promise<Product[]> {
     // Avoid composite index requirements by not ordering server-side
-    const list = await FirestoreService.getAll<Product>(
-      COLLECTIONS.PRODUCTS,
-      [{ field: "vendorId", operator: "==", value: vendorId }]
-    );
+    const list = await FirestoreService.getAll<Product>(COLLECTIONS.PRODUCTS, [
+      { field: "vendorId", operator: "==", value: vendorId },
+    ]);
     // Client-side sort by createdAt desc if timestamps are present
     return [...list].sort((a: any, b: any) => {
-      const aTime = (a?.createdAt?.seconds || 0) * 1000 + (a?.createdAt?.nanoseconds || 0) / 1e6;
-      const bTime = (b?.createdAt?.seconds || 0) * 1000 + (b?.createdAt?.nanoseconds || 0) / 1e6;
+      const aTime =
+        (a?.createdAt?.seconds || 0) * 1000 +
+        (a?.createdAt?.nanoseconds || 0) / 1e6;
+      const bTime =
+        (b?.createdAt?.seconds || 0) * 1000 +
+        (b?.createdAt?.nanoseconds || 0) / 1e6;
       return bTime - aTime;
     });
   }
@@ -458,22 +479,46 @@ export class ProductService {
     ];
 
     if (searchParams.category) {
-      filters.push({ field: "mainCategory", operator: "==", value: searchParams.category });
+      filters.push({
+        field: "mainCategory",
+        operator: "==",
+        value: searchParams.category,
+      });
     }
     if (searchParams.vehicleBrand) {
-      filters.push({ field: "vehicleBrand", operator: "==", value: searchParams.vehicleBrand });
+      filters.push({
+        field: "vehicleBrand",
+        operator: "==",
+        value: searchParams.vehicleBrand,
+      });
     }
     if (searchParams.vehicleModel) {
-      filters.push({ field: "vehicleModel", operator: "==", value: searchParams.vehicleModel });
+      filters.push({
+        field: "vehicleModel",
+        operator: "==",
+        value: searchParams.vehicleModel,
+      });
     }
     if (searchParams.vehicleType) {
-      filters.push({ field: "vehicleType", operator: "==", value: searchParams.vehicleType });
+      filters.push({
+        field: "vehicleType",
+        operator: "==",
+        value: searchParams.vehicleType,
+      });
     }
     if (searchParams.condition) {
-      filters.push({ field: "condition", operator: "==", value: searchParams.condition });
+      filters.push({
+        field: "condition",
+        operator: "==",
+        value: searchParams.condition,
+      });
     }
     if (searchParams.maxPrice) {
-      filters.push({ field: "price", operator: "<=", value: searchParams.maxPrice });
+      filters.push({
+        field: "price",
+        operator: "<=",
+        value: searchParams.maxPrice,
+      });
     }
 
     // Avoid composite index requirements by not ordering server-side
@@ -487,29 +532,50 @@ export class ProductService {
 
     // Client-side sort by createdAt desc if timestamps are present
     return [...list].sort((a: any, b: any) => {
-      const aTime = (a?.createdAt?.seconds || 0) * 1000 + (a?.createdAt?.nanoseconds || 0) / 1e6;
-      const bTime = (b?.createdAt?.seconds || 0) * 1000 + (b?.createdAt?.nanoseconds || 0) / 1e6;
+      const aTime =
+        (a?.createdAt?.seconds || 0) * 1000 +
+        (a?.createdAt?.nanoseconds || 0) / 1e6;
+      const bTime =
+        (b?.createdAt?.seconds || 0) * 1000 +
+        (b?.createdAt?.nanoseconds || 0) / 1e6;
       return bTime - aTime;
     });
   }
 }
 
 export class QuotationService {
-  static async createQuotationRequest(request: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt">): Promise<string> {
-    return FirestoreService.create<QuotationRequest>(COLLECTIONS.QUOTATION_REQUESTS, request);
+  static async createQuotationRequest(
+    request: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt">
+  ): Promise<string> {
+    return FirestoreService.create<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      request
+    );
   }
 
-  static async createQuotation(quotation: Omit<Quotation, "id" | "createdAt" | "updatedAt">): Promise<string> {
-    const quotationId = await FirestoreService.create<Quotation>(COLLECTIONS.QUOTATIONS, quotation);
-    
+  static async createQuotation(
+    quotation: Omit<Quotation, "id" | "createdAt" | "updatedAt">
+  ): Promise<string> {
+    const quotationId = await FirestoreService.create<Quotation>(
+      COLLECTIONS.QUOTATIONS,
+      quotation
+    );
+
     // Update quotation request count
     const requestId = quotation.quotationRequestId;
-    const request = await FirestoreService.getById<QuotationRequest>(COLLECTIONS.QUOTATION_REQUESTS, requestId);
+    const request = await FirestoreService.getById<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      requestId
+    );
     if (request) {
-      await FirestoreService.update<QuotationRequest>(COLLECTIONS.QUOTATION_REQUESTS, requestId, {
-        quotationsReceived: (request.quotationsReceived || 0) + 1,
-        status: "received_quotes",
-      });
+      await FirestoreService.update<QuotationRequest>(
+        COLLECTIONS.QUOTATION_REQUESTS,
+        requestId,
+        {
+          quotationsReceived: (request.quotationsReceived || 0) + 1,
+          status: "received_quotes",
+        }
+      );
     }
 
     return quotationId;
@@ -535,7 +601,9 @@ export class QuotationService {
 }
 
 export class OrderService {
-  static async createPurchaseOrder(order: Omit<PurchaseOrder, "id" | "createdAt" | "updatedAt">): Promise<string> {
+  static async createPurchaseOrder(
+    order: Omit<PurchaseOrder, "id" | "createdAt" | "updatedAt">
+  ): Promise<string> {
     console.log("[OrderService] Creating purchase order:", {
       quotationId: order.quotationId,
       buyerId: order.buyerId,
@@ -545,14 +613,21 @@ export class OrderService {
       totalAmount: order.totalAmount,
     });
 
-    const orderId = await FirestoreService.create<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, order);
-    
+    const orderId = await FirestoreService.create<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      order
+    );
+
     console.log("[OrderService] Purchase order created with ID:", orderId);
-    
+
     // Update quotation status
-    await FirestoreService.update<Quotation>(COLLECTIONS.QUOTATIONS, order.quotationId, {
-      status: "accepted",
-    });
+    await FirestoreService.update<Quotation>(
+      COLLECTIONS.QUOTATIONS,
+      order.quotationId,
+      {
+        status: "accepted",
+      }
+    );
 
     console.log("[OrderService] Quotation status updated to accepted");
     // TODO: Send order confirmation via WhatsApp
@@ -560,27 +635,56 @@ export class OrderService {
     return orderId;
   }
 
-  static async getPurchaseOrdersByBuyer(buyerId: string): Promise<PurchaseOrder[]> {
+  static async getPurchaseOrdersByBuyer(
+    buyerId: string
+  ): Promise<PurchaseOrder[]> {
     console.log("[OrderService] Fetching purchase orders for buyer:", buyerId);
     const list = await FirestoreService.getAll<PurchaseOrder>(
       COLLECTIONS.PURCHASE_ORDERS,
       [{ field: "buyerId", operator: "==", value: buyerId }]
     );
-    const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-    const orders = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
-    console.log("[OrderService] Found", orders.length, "purchase orders for buyer");
+    const toMs = (t: any) =>
+      t?.seconds
+        ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
+        : t instanceof Date
+        ? t.getTime()
+        : 0;
+    const orders = [...list].sort(
+      (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
+    );
+    console.log(
+      "[OrderService] Found",
+      orders.length,
+      "purchase orders for buyer"
+    );
     return orders;
   }
 
-  static async getPurchaseOrdersByVendor(vendorId: string): Promise<PurchaseOrder[]> {
-    console.log("[OrderService] Fetching purchase orders for vendor:", vendorId);
+  static async getPurchaseOrdersByVendor(
+    vendorId: string
+  ): Promise<PurchaseOrder[]> {
+    console.log(
+      "[OrderService] Fetching purchase orders for vendor:",
+      vendorId
+    );
     const list = await FirestoreService.getAll<PurchaseOrder>(
       COLLECTIONS.PURCHASE_ORDERS,
       [{ field: "vendorId", operator: "==", value: vendorId }]
     );
-    const toMs = (t: any) => t?.seconds ? (t.seconds * 1000 + (t.nanoseconds || 0) / 1e6) : (t instanceof Date ? t.getTime() : 0);
-    const orders = [...list].sort((a: any, b: any) => (toMs(b?.createdAt) - toMs(a?.createdAt)));
-    console.log("[OrderService] Found", orders.length, "purchase orders for vendor");
+    const toMs = (t: any) =>
+      t?.seconds
+        ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
+        : t instanceof Date
+        ? t.getTime()
+        : 0;
+    const orders = [...list].sort(
+      (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
+    );
+    console.log(
+      "[OrderService] Found",
+      orders.length,
+      "purchase orders for vendor"
+    );
     return orders;
   }
 
@@ -593,25 +697,39 @@ export class OrderService {
       estimatedDelivery?: Date;
     }
   ): Promise<void> {
-    console.log("[OrderService] Updating purchase order status:", { orderId, status, data });
-    
+    console.log("[OrderService] Updating purchase order status:", {
+      orderId,
+      status,
+      data,
+    });
+
     const updateData: Partial<PurchaseOrder> = {
       status,
       ...(data?.vendorMessage && { vendorMessage: data.vendorMessage }),
       ...(data?.rejectionReason && { rejectionReason: data.rejectionReason }),
-      ...(data?.estimatedDelivery && { expectedDeliveryDate: data.estimatedDelivery }),
+      ...(data?.estimatedDelivery && {
+        expectedDeliveryDate: data.estimatedDelivery,
+      }),
     };
 
-    await FirestoreService.update<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, orderId, updateData);
-    
+    await FirestoreService.update<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      orderId,
+      updateData
+    );
+
     console.log("[OrderService] Purchase order status updated successfully");
-    
+
     if (status === "confirmed") {
       // TODO: Send order acceptance notification via WhatsApp
-      console.log("[OrderService] TODO: Send order acceptance notification via WhatsApp");
+      console.log(
+        "[OrderService] TODO: Send order acceptance notification via WhatsApp"
+      );
     } else if (status === "cancelled") {
       // TODO: Send order rejection notification via WhatsApp
-      console.log("[OrderService] TODO: Send order rejection notification via WhatsApp");
+      console.log(
+        "[OrderService] TODO: Send order rejection notification via WhatsApp"
+      );
     }
   }
 
@@ -620,26 +738,43 @@ export class OrderService {
     cost: number,
     notes?: string
   ): Promise<void> {
-    console.log("[OrderService] Sending delivery cost:", { orderId, cost, notes });
-    
-    await FirestoreService.update<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, orderId, {
-      deliveryCost: cost,
-      deliveryCostRequested: true,
-      ...(notes && { notes }),
+    console.log("[OrderService] Sending delivery cost:", {
+      orderId,
+      cost,
+      notes,
     });
+
+    await FirestoreService.update<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      orderId,
+      {
+        deliveryCost: cost,
+        deliveryCostRequested: true,
+        ...(notes && { notes }),
+      }
+    );
 
     console.log("[OrderService] Delivery cost updated successfully");
     // TODO: Send delivery cost via WhatsApp with quotation number
-    console.log("[OrderService] TODO: Send delivery cost via WhatsApp with quotation number");
+    console.log(
+      "[OrderService] TODO: Send delivery cost via WhatsApp with quotation number"
+    );
   }
 
-  static async uploadPaymentSlip(orderId: string, slipUrl: string): Promise<void> {
+  static async uploadPaymentSlip(
+    orderId: string,
+    slipUrl: string
+  ): Promise<void> {
     console.log("[OrderService] Uploading payment slip:", { orderId, slipUrl });
-    
-    await FirestoreService.update<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, orderId, {
-      paymentSlipUrl: slipUrl,
-      paymentStatus: "paid",
-    });
+
+    await FirestoreService.update<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      orderId,
+      {
+        paymentSlipUrl: slipUrl,
+        paymentStatus: "paid",
+      }
+    );
 
     console.log("[OrderService] Payment slip uploaded successfully");
     // TODO: Send payment slip via WhatsApp
@@ -648,19 +783,29 @@ export class OrderService {
 
   static async requestDeliveryCost(orderId: string): Promise<void> {
     console.log("[OrderService] Requesting delivery cost for order:", orderId);
-    
-    await FirestoreService.update<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, orderId, {
-      deliveryCostRequested: true,
-    });
+
+    await FirestoreService.update<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      orderId,
+      {
+        deliveryCostRequested: true,
+      }
+    );
 
     console.log("[OrderService] Delivery cost requested successfully");
     // TODO: Request delivery cost via WhatsApp
     console.log("[OrderService] TODO: Request delivery cost via WhatsApp");
   }
 
-  static async completePurchaseOrder(purchaseOrderId: string, orderData: Partial<Order>): Promise<string> {
-    console.log("[OrderService] Completing purchase order:", { purchaseOrderId, orderData });
-    
+  static async completePurchaseOrder(
+    purchaseOrderId: string,
+    orderData: Partial<Order>
+  ): Promise<string> {
+    console.log("[OrderService] Completing purchase order:", {
+      purchaseOrderId,
+      orderData,
+    });
+
     // Create completed order
     const order: Omit<Order, "id" | "createdAt" | "updatedAt"> = {
       purchaseOrderId,
@@ -668,12 +813,19 @@ export class OrderService {
       completedDate: new Date(),
     } as Omit<Order, "id" | "createdAt" | "updatedAt">;
 
-    const orderId = await FirestoreService.create<Order>(COLLECTIONS.ORDERS, order);
+    const orderId = await FirestoreService.create<Order>(
+      COLLECTIONS.ORDERS,
+      order
+    );
 
     // Update purchase order status
-    await FirestoreService.update<PurchaseOrder>(COLLECTIONS.PURCHASE_ORDERS, purchaseOrderId, {
-      status: "delivered",
-    });
+    await FirestoreService.update<PurchaseOrder>(
+      COLLECTIONS.PURCHASE_ORDERS,
+      purchaseOrderId,
+      {
+        status: "delivered",
+      }
+    );
 
     console.log("[OrderService] Purchase order completed:", orderId);
     return orderId;
