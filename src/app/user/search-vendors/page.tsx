@@ -14,6 +14,9 @@ import {
   VehicleModel,
   GalleryImage,
 } from "@/service/firestoreService";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
+import { useSearchParams } from "next/navigation";
 
 const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -22,7 +25,7 @@ const SearchVendors: React.FC = () => {
     useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [search, setSearch] = useState<string>("");
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
@@ -33,6 +36,11 @@ const SearchVendors: React.FC = () => {
   const [selectedVendorGallery, setSelectedVendorGallery] = useState<
     GalleryImage[]
   >([]);
+  const searchParams = useSearchParams();
+  const initialSearch = (searchParams.get("search") || "").trim();
+  const [search, setSearch] = useState<string>(initialSearch);
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const user = authState.user as any;
 
   const loadVendors = async () => {
     setLoading(true);
