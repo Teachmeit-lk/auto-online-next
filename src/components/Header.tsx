@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   CirclePlus,
@@ -18,7 +19,6 @@ import { HeaderLogo } from "@/assets/Images";
 import { RootState } from "@/app/store/store";
 import { logoutUserAsync } from "@/app/store/slice/authslice";
 import { useFirebase } from "@/contexts/FirebaseContext";
-import { useRouter } from "next/navigation";
 
 export const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -26,6 +26,7 @@ export const Header: React.FC = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
   const userButtonRef = useRef<HTMLButtonElement>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, right: 0 });
+  const [searchValue, setSearchValue] = useState("");
 
   const data = [
     { name: "home", path: "/#home", icon: LayoutGrid },
@@ -41,6 +42,13 @@ export const Header: React.FC = () => {
   const dispatch = useDispatch();
   const { initialized } = useFirebase();
   const router = useRouter();
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchValue.trim();
+    if (!q) return;
+    router.push(`/search?query=${encodeURIComponent(q)}`);
+  };
 
   const navLinks = isAuthenticated
     ? [
@@ -136,14 +144,24 @@ export const Header: React.FC = () => {
 
         {/* Search Bar - Hidden on Small Screens */}
         <div className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
-          <input
-            type="text"
-            className="flex-grow px-4 py-2 text-gray-700 focus:outline-none"
-            placeholder="Search..."
-          />
-          <button className="flex items-center justify-center w-[88px] h-full bg-[#F9C301] hover:bg-yellow-500">
-            <Search color="#111102" />
-          </button>
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden"
+          >
+            <input
+              type="text"
+              className="flex-grow px-4 py-2 text-gray-700 focus:outline-none"
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center w-[88px] h-full bg-[#F9C301] hover:bg-yellow-500"
+            >
+              <Search color="#111102" />
+            </button>
+          </form>
         </div>
 
         {/* Conditional Rendering for Larger Screens */}
@@ -207,14 +225,24 @@ export const Header: React.FC = () => {
       {/* Search Bar for Small Screens */}
       <div className="md:hidden p-4 bg-white flex justify-center">
         <div className="flex items-center w-[328px] h-[28px] border border-gray-300 rounded-[25px] overflow-hidden">
-          <input
-            type="text"
-            className="flex-grow px-3 py-1 text-gray-700 focus:outline-none text-[12px]"
-            placeholder="Search..."
-          />
-          <button className="flex items-center justify-center w-[50px] h-full bg-[#F9C301] hover:bg-yellow-500">
-            <Search size="16px" color="#111102" />
-          </button>
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex items-center w-[328px] h-[28px] border border-gray-300 rounded-[25px] overflow-hidden"
+          >
+            <input
+              type="text"
+              className="flex-grow px-3 py-1 text-gray-700 focus:outline-none text-[12px]"
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center w-[50px] h-full bg-[#F9C301] hover:bg-yellow-500"
+            >
+              <Search size="16px" color="#111102" />
+            </button>
+          </form>
         </div>
       </div>
 
