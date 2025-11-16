@@ -19,6 +19,7 @@ import {
   OService4,
   OService5,
 } from "@/assets/Images";
+import Link from "next/link";
 
 const initialProducts = [
   {
@@ -84,14 +85,14 @@ export const ServiceCategories: React.FC = () => {
   const [showAll, setShowAll] = useState(false);
 
   return (
-    <div className="bg-white md:pt-20 md:pb-20 md:px-20 pt-5 pb-5">
-      <h1 className="md:text-[32px] text-[16px] md:mb-10  text-black md:pl-11 pl-5  font-title">
+    <div className="bg-white xl:pt-5 xl:pb-20 xl:px-20 lg:px-10 md:px-5  pb-5">
+      <h1 className="md:text-[32px] text-[16px] xl:mb-10  text-black xl:pl-11 pl-5  font-title">
         Our Services
       </h1>
 
       {/* Small Screen Display */}
-      <div className="block md:hidden">
-        <div className="grid grid-cols-2  px-1">
+      <div className="block 2xl:hidden">
+        <div className="lg:hidden grid lg:grid-cols-4 grid-cols-2 px-1">
           {(showAll ? initialProducts : initialProducts.slice(0, 2)).map(
             (product, index) => (
               <div key={index} className="bg-white rounded-lg p-4">
@@ -119,9 +120,50 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <button className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500">
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                >
                   Shop Now
-                </button>
+                </Link>
+              </div>
+            )
+          )}
+        </div>
+        <div className="lg:grid hidden lg:grid-cols-4 px-1">
+          {(showAll ? initialProducts : initialProducts.slice(0, 4)).map(
+            (product, index) => (
+              <div key={index} className="bg-white rounded-lg p-4">
+                <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
+                  <Image
+                    src={product.image}
+                    alt={product.type}
+                    className="object-contain w-[84px] h-[66px]"
+                  />
+                </div>
+                <h3 className="text-[10px] pl-1 font-semibold text-black mt-2">
+                  {product.type}
+                </h3>
+                <p className="text-[8px] pl-1 text-gray-600">
+                  {product.description}
+                </p>
+                <div className="flex mt-1 pl-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <span key={i} className="text-yellow-500 text-[12px]">
+                      {i < Math.floor(product.rating) ? (
+                        <Star fill="#FBBF24" size="10px" />
+                      ) : (
+                        <Star size="10px" />
+                      )}
+                    </span>
+                  ))}
+                </div>
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                >
+                  Shop Now
+                </Link>
               </div>
             )
           )}
@@ -156,7 +198,7 @@ export const ServiceCategories: React.FC = () => {
         )}
       </div>
 
-      <div className="hidden relative md:flex items-center justify-center pl-[100px] pr-[80px]">
+      <div className="hidden relative 2xl:flex items-center justify-center pl-[100px] pr-[80px]">
         {/* Arrow Buttons */}
         <button
           className="absolute left-0 text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
@@ -202,9 +244,12 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <button className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px]">
+                <Link 
+                  href="/user/search-vendors"
+                  className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
+                >
                   Shop Now
-                </button>
+                </Link>
               </div>
             </SwiperSlide>
           ))}

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, A11y } from "swiper/modules";
 import { ChevronRight, ChevronLeft, Star } from "lucide-react";
 
 import type { Swiper as SwiperType } from "swiper";
+import { FirestoreService, COLLECTIONS, Product, Category } from "@/service/firestoreService";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -20,6 +21,7 @@ import {
   Product4,
   Product5,
 } from "@/assets/Images";
+import Link from "next/link";
 
 const initialProducts = [
   {
@@ -83,51 +85,213 @@ const initialProducts = [
 export const ProductCategories: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
   const [showAll, setShowAll] = useState(false);
+  
+  // Firebase state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<Array<{
+    category: Category;
+    product: Product;
+    lowestPrice: number;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from Firebase
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCategoryProducts = async () => {
+      try {
+        setLoading(true);
+        
+        const categoriesData = await FirestoreService.getAll<Category>(
+          COLLECTIONS.CATEGORIES,
+          undefined,
+          "sortOrder",
+          "asc"
+        );
+        
+        if (!isMounted) return;
+        setCategories(categoriesData);
+
+        const allProducts = await FirestoreService.getAll<Product>(
+          COLLECTIONS.PRODUCTS,
+          [{ field: "isActive", operator: "==", value: true }]
+        );
+
+        if (!isMounted) return;
+
+        const categoryMap = new Map<string, { product: Product; lowestPrice: number }>();
+
+        allProducts.forEach((product) => {
+          const categoryId = String(product.mainCategory || '').trim();
+          const price = product.price || 0;
+          
+          if (!categoryId) return;
+
+          if (!categoryMap.has(categoryId)) {
+            categoryMap.set(categoryId, { product, lowestPrice: price });
+          } else {
+            const existing = categoryMap.get(categoryId)!;
+            if (price < existing.lowestPrice) {
+              categoryMap.set(categoryId, { product, lowestPrice: price });
+            }
+          }
+        });
+
+        const categoryProductList = categoriesData
+          .map((category) => {
+            const categoryId = (category as any).id || category.name;
+            const productData = categoryMap.get(categoryId);
+            
+            if (productData) {
+              return {
+                category,
+                product: productData.product,
+                lowestPrice: productData.lowestPrice,
+              };
+            }
+            return null;
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null);
+
+        if (!isMounted) return;
+        setCategoryProducts(categoryProductList);
+        
+      } catch (error) {
+        console.error("Error fetching category products:", error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCategoryProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
-    <div className="bg-white md:pt-10 md:pb-20 md:px-20 pt-5 pb-10">
-      <h1 className="md:text-[32px] text-[16px] md:mb-10 text-black md:pl-11 pl-5 font-title">
+    <div className="bg-white xl:pt-10 xl:pb-20 xl:px-20 lg:px-10 md:px-5 pt-5 pb-10">
+      <h1 className="md:text-[32px] text-[16px] xl:mb-10 text-black xl:pl-11 pl-5 font-title">
         Product Categories
       </h1>
 
-      {/* Small Screen Display */}
-      <div className="block md:hidden">
-        <div className="grid grid-cols-2  px-1">
-          {(showAll ? initialProducts : initialProducts.slice(0, 2)).map(
-            (product, index) => (
-              <div key={index} className="bg-white rounded-lg p-4">
-                <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    className="object-contain w-[84px] h-[66px]"
-                  />
+      <div className="block 2xl:hidden">
+        <div className="lg:hidden grid lg:grid-cols-4 grid-cols-2  px-1">
+          {loading ? (
+            <div className="col-span-2 text-center py-10 text-gray-500 text-[10px]">Loading...</div>
+          ) : categoryProducts.length === 0 ? (
+            <div className="col-span-2 text-center py-10 text-gray-500 text-[10px]">No products available</div>
+          ) : (
+            (showAll ? categoryProducts : categoryProducts.slice(0, 2)).map(
+              ({ category, product, lowestPrice }, index) => (
+                <div key={index} className="bg-white rounded-lg p-4">
+                  <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
+                    {product.images && product.images.length > 0 ? (
+                      <Image
+                        src={product.images[0]}
+                        alt={category.name}
+                        width={84}
+                        height={66}
+                        //className="object-contain w-[84px] h-[66px]"
+                        className="object-cover w-[84px] h-[66px] rounded-md"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-[84px] h-[66px] bg-gray-200 flex items-center justify-center text-[8px] text-gray-400">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-[10px] font-semibold text-black mt-2 pl-1">
+                    {category.name}
+                  </h3>
+                  <p className="text-[8px] text-gray-600 pl-1">
+                    Best {category.name.toLowerCase()} from ${lowestPrice.toFixed(2)} now
+                  </p>
+                  <div className="flex mt-1 pl-1">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span key={i} className="text-yellow-500 text-[12px]">
+                        {i < 4 ? (
+                          <Star fill="#FBBF24" size="10px" />
+                        ) : (
+                          <Star size="10px" />
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                  <Link 
+                    href="/user/search-vendors"
+                    className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                  >
+                    Shop Now
+                  </Link>
                 </div>
-                <h3 className="text-[10px] font-semibold text-black mt-2 pl-1">
-                  {product.name}
-                </h3>
-                <p className="text-[8px] text-gray-600 pl-1">
-                  {product.description}
-                </p>
-                <div className="flex mt-1 pl-1">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i} className="text-yellow-500 text-[12px]">
-                      {i < Math.floor(product.rating) ? (
-                        <Star fill="#FBBF24" size="10px" />
-                      ) : (
-                        <Star size="10px" />
-                      )}
-                    </span>
-                  ))}
-                </div>
-                <button className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500">
-                  Shop Now
-                </button>
-              </div>
+              )
             )
           )}
         </div>
-        {!showAll && (
+
+        <div className="lg:grid hidden lg:grid-cols-4   px-1">
+          {loading ? (
+            <div className="col-span-4 text-center py-10 text-gray-500 text-[10px]">Loading...</div>
+          ) : categoryProducts.length === 0 ? (
+            <div className="col-span-4 text-center py-10 text-gray-500 text-[10px]">No products available</div>
+          ) : (
+            (showAll ? categoryProducts : categoryProducts.slice(0, 4)).map(
+              ({ category, product, lowestPrice }, index) => (
+                <div key={index} className="bg-white rounded-lg p-4">
+                  <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
+                    {product.images && product.images.length > 0 ? (
+                      <Image
+                        src={product.images[0]}
+                        alt={category.name}
+                        width={84}
+                        height={66}
+                        //className="object-contain w-[84px] h-[66px]"
+                        className="object-cover w-[84px] h-[66px] rounded-md"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-[84px] h-[66px] bg-gray-200 flex items-center justify-center text-[8px] text-gray-400">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-[10px] font-semibold text-black mt-2 pl-1">
+                    {category.name}
+                  </h3>
+                  <p className="text-[8px] text-gray-600 pl-1">
+                    Best {category.name.toLowerCase()} from ${lowestPrice.toFixed(2)} now
+                  </p>
+                  <div className="flex mt-1 pl-1">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span key={i} className="text-yellow-500 text-[12px]">
+                        {i < 4 ? (
+                          <Star fill="#FBBF24" size="10px" />
+                        ) : (
+                          <Star size="10px" />
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                  <Link 
+                    href="/user/search-vendors"
+                    className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                  >
+                    Shop Now
+                  </Link>
+                </div>
+              )
+            )
+          )}
+        </div>
+
+        {/* View More/Less Buttons */}
+        {!showAll && !loading && categoryProducts.length > 2 && (
           <button
             onClick={() => setShowAll(true)}
             className="mt-4 flex items-center justify-center text-[12px] text-[#111102] font-medium font-body w-full"
@@ -141,7 +305,7 @@ export const ProductCategories: React.FC = () => {
             />
           </button>
         )}
-        {showAll && (
+        {showAll && !loading && categoryProducts.length > 2 && (
           <button
             onClick={() => setShowAll(false)}
             className="mt-4 flex items-center justify-center text-[12px] text-[#111102] font-medium font-body w-full"
@@ -157,66 +321,89 @@ export const ProductCategories: React.FC = () => {
         )}
       </div>
 
-      <div className="hidden md:flex relative  items-center justify-center pl-[100px] pr-[80px]">
-        {/* Arrow Buttons */}
+      {/* Large Screen Swiper */}
+      <div className="hidden 2xl:flex relative items-center justify-center pl-[100px] pr-[80px]">
         <button
           className="absolute left-0 text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slideNext()}
+          onClick={() => swiperRef.current?.slidePrev()}
         >
           <ChevronLeft />
         </button>
         <button
           className="absolute right-[15px] text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slidePrev()}
+          onClick={() => swiperRef.current?.slideNext()}
         >
           <ChevronRight />
         </button>
 
-        {/* Swiper Slider */}
-        <Swiper
-          modules={[Navigation, A11y]}
-          slidesPerView={5}
-          spaceBetween={0}
-          loop={true}
-          className="flex justify-center items-center"
-          onSwiper={(swiper) => (swiperRef.current = swiper)} // Assign swiper instance
-        >
-          {initialProducts.map((product, index) => (
-            <SwiperSlide key={index} className="w-[202px] h-[302px] pr-0 m-0">
-              <div className="w-full h-full bg-white rounded-lg text-left">
-                <div className="w-[202px] h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    className="object-contain w-[159px] h-[123px]"
-                  />
-                </div>
-
-                <h3 className="text-[12px] font-semibold text-black font-body mt-1">
-                  {product.name}
-                </h3>
-                <p className="text-[#000000] text-[12px] font-body">
-                  {product.description}
-                </p>
-
-                <div className="flex">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i} className="text-yellow-500 text-[10px]">
-                      {i < Math.floor(product.rating) ? (
-                        <Star fill="#FBBF24" size="12px" />
+        {/* Content */}
+        <div className="w-full min-h-[350px] flex items-center justify-center">
+          {loading ? (
+            <div className="text-center py-20 text-gray-500">Loading...</div>
+          ) : categoryProducts.length === 0 ? (
+            <div className="text-center py-20 text-gray-500">No products available</div>
+          ) : (
+            <Swiper
+              modules={[Navigation, A11y]}
+              slidesPerView={5}
+              spaceBetween={10}
+              loop={categoryProducts.length >= 5}
+              className="w-full"
+              onSwiper={(swiper) => {
+                swiperRef.current = swiper;
+              }}
+            >
+              {categoryProducts.map(({ category, product, lowestPrice }, index) => (
+                <SwiperSlide key={index}>
+                  <div className="bg-white rounded-lg text-left px-2">
+                    <div className="w-full h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
+                      {product.images && product.images.length > 0 ? (
+                        <Image
+                          src={product.images[0]}
+                          alt={category.name}
+                          width={159}
+                          height={123}
+                          //className="object-contain"
+                          className="object-cover w-[159px] h-[123px] rounded-md"
+                          unoptimized
+                        />
                       ) : (
-                        <Star size="12px" />
+                        <div className="w-[159px] h-[123px] bg-gray-200 flex items-center justify-center text-[10px] text-gray-400">
+                          No Image
+                        </div>
                       )}
-                    </span>
-                  ))}
-                </div>
-                <button className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px]">
-                  Shop Now
-                </button>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+                    </div>
+
+                    <h3 className="text-[12px] font-semibold text-black font-body mt-1">
+                      {category.name}
+                    </h3>
+                    <p className="text-[#000000] text-[12px] font-body">
+                      Best {category.name.toLowerCase()} from ${lowestPrice.toFixed(2)} now
+                    </p>
+
+                    <div className="flex mt-1">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={i} className="text-yellow-500 text-[10px]">
+                          {i < 4 ? (
+                            <Star fill="#FBBF24" size="12px" />
+                          ) : (
+                            <Star size="12px" />
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                    <Link 
+                      href="/user/search-vendors"
+                      className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
+                    >
+                      Shop Now
+                    </Link>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
+        </div>
       </div>
     </div>
   );

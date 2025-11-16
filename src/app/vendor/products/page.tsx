@@ -12,7 +12,15 @@ import {
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { ProductService, Product, FirestoreService, COLLECTIONS, Category, VehicleBrand, VehicleModel } from "@/service/firestoreService";
+import {
+  ProductService,
+  Product,
+  FirestoreService,
+  COLLECTIONS,
+  Category,
+  VehicleBrand,
+  VehicleModel,
+} from "@/service/firestoreService";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -25,12 +33,19 @@ const VendorProducts: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const selectedProduct = React.useMemo(() => products.find((p) => p.id === selectedProductId) || null, [products, selectedProductId]);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null
+  );
+  const selectedProduct = React.useMemo(
+    () => products.find((p) => p.id === selectedProductId) || null,
+    [products, selectedProductId]
+  );
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
   const [models, setModels] = useState<VehicleModel[]>([]);
-  const [vehicleTypes, setVehicleTypes] = useState<Array<{ id?: string; name: string }>>([]);
+  const [vehicleTypes, setVehicleTypes] = useState<
+    Array<{ id?: string; name: string }>
+  >([]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -44,7 +59,7 @@ const VendorProducts: React.FC = () => {
       }
       setProducts(filtered);
     } catch (error) {
-      console.error('Failed to load products:', error);
+      console.error("Failed to load products:", error);
       setProducts([]);
     } finally {
       setLoading(false);
@@ -59,9 +74,24 @@ const VendorProducts: React.FC = () => {
   useEffect(() => {
     (async () => {
       const [cats, brs, mds] = await Promise.all([
-        FirestoreService.getAll<Category>(COLLECTIONS.CATEGORIES, undefined, "sortOrder", "asc"),
-        FirestoreService.getAll<VehicleBrand>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc"),
-        FirestoreService.getAll<VehicleModel>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc"),
+        FirestoreService.getAll<Category>(
+          COLLECTIONS.CATEGORIES,
+          undefined,
+          "sortOrder",
+          "asc"
+        ),
+        FirestoreService.getAll<VehicleBrand>(
+          COLLECTIONS.VEHICLE_BRANDS,
+          undefined,
+          "sortOrder",
+          "asc"
+        ),
+        FirestoreService.getAll<VehicleModel>(
+          COLLECTIONS.VEHICLE_MODELS,
+          undefined,
+          "name",
+          "asc"
+        ),
       ]);
       setCategories(cats);
       setBrands(brs);
@@ -71,14 +101,22 @@ const VendorProducts: React.FC = () => {
 
   useEffect(() => {
     (async () => {
-      const types = await FirestoreService.getAll<any>(COLLECTIONS.VEHICLE_TYPES, undefined, "name", "asc");
+      const types = await FirestoreService.getAll<any>(
+        COLLECTIONS.VEHICLE_TYPES,
+        undefined,
+        "name",
+        "asc"
+      );
       setVehicleTypes(types as any);
     })();
   }, []);
 
   const categoryLabelMap = React.useMemo(() => {
     const map: Record<string, string> = {};
-    categories.forEach((c) => { if ((c as any).id) map[(c as any).id] = c.name; map[c.name] = c.name; });
+    categories.forEach((c) => {
+      if ((c as any).id) map[(c as any).id] = c.name;
+      map[c.name] = c.name;
+    });
     return map;
   }, [categories]);
 
@@ -94,13 +132,19 @@ const VendorProducts: React.FC = () => {
 
   const modelLabelMap = React.useMemo(() => {
     const map: Record<string, string> = {};
-    models.forEach((m) => { if ((m as any).id) map[(m as any).id] = m.name; map[m.name] = m.name; });
+    models.forEach((m) => {
+      if ((m as any).id) map[(m as any).id] = m.name;
+      map[m.name] = m.name;
+    });
     return map;
   }, [models]);
 
   const vehicleTypeLabelMap = React.useMemo(() => {
     const map: Record<string, string> = {};
-    vehicleTypes.forEach((t: any) => { if (t.id) map[t.id] = t.name; map[t.name] = t.name; });
+    vehicleTypes.forEach((t: any) => {
+      if (t.id) map[t.id] = t.name;
+      map[t.name] = t.name;
+    });
     return map;
   }, [vehicleTypes]);
 
@@ -112,13 +156,13 @@ const VendorProducts: React.FC = () => {
   return (
     <TabLayout type="vendor">
       <div
-        className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
+        className="w-full lg:p-8 md:p-6  p-4 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
         id="searchvendors"
       >
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
           Vendor Products
         </h1>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex sm:flex-row flex-col sm:items-center sm:justify-between space-y-4 sm:space-y-0  mb-4">
           {/* Show Entries Dropdown */}
           <div className="flex flex-col ">
             <div>
@@ -128,7 +172,7 @@ const VendorProducts: React.FC = () => {
             </div>
 
             <select
-              className="rounded-[5px] px-3 text-[12px] font-body text-gray-600  w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+              className="rounded-[5px] px-3 text-sm font-body text-gray-600  w-[131px] h-[32px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               onChange={(e) => setEntries(Number(e.target.value))}
               defaultValue="10"
             >
@@ -153,7 +197,7 @@ const VendorProducts: React.FC = () => {
                 id="search"
                 type="text"
                 placeholder="Search"
-                className="w-full h-[28px] pl-3 pr-8 rounded-[5px] font-body text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full h-[32px] pl-3 pr-8 rounded-[5px] font-body text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -169,7 +213,7 @@ const VendorProducts: React.FC = () => {
             </div>
             {/* Add Now Button */}
             <button
-              className="px-4 py-1 w-[89px] h-[28px]  mt-[25px] rounded-[5px] bg-[#F9C301] font-body text-[#111102] hover:bg-yellow-500 text-[12px] "
+              className="sm:px-4 py-1 w-[89px] h-[32px]  mt-[25px] rounded-[5px] bg-[#F9C301] font-body text-[#111102] hover:bg-yellow-500 text-sm "
               onClick={() => setIsModalOpen(true)}
             >
               Add now
@@ -179,7 +223,7 @@ const VendorProducts: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse ">
+          <table className="w-full border-collapse min-w-[750px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white  py-2 px-1">
@@ -209,14 +253,27 @@ const VendorProducts: React.FC = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td className="px-4 py-3 text-left" colSpan={7}>Loading...</td></tr>
+                <tr>
+                  <td className="px-4 py-3 text-left" colSpan={7}>
+                    Loading...
+                  </td>
+                </tr>
               ) : (
                 products
                   .filter((p) => {
                     if (!search) return true;
-        const cat = categoryLabelMap[String(p.mainCategory)] || p.mainCategory || "";
-        const br = brandLabelMap[String(p.vehicleBrand)] || p.vehicleBrand || "";
-        const mdl = modelLabelMap[String(p.vehicleModel)] || p.vehicleModel || "";
+                    const cat =
+                      categoryLabelMap[String(p.mainCategory)] ||
+                      p.mainCategory ||
+                      "";
+                    const br =
+                      brandLabelMap[String(p.vehicleBrand)] ||
+                      p.vehicleBrand ||
+                      "";
+                    const mdl =
+                      modelLabelMap[String(p.vehicleModel)] ||
+                      p.vehicleModel ||
+                      "";
                     const q = search.toLowerCase();
                     return (
                       (p.partName || "").toLowerCase().includes(q) ||
@@ -240,31 +297,43 @@ const VendorProducts: React.FC = () => {
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7  py-2 ">
                         {p.partName}
                       </td>
-          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-            {categoryLabelMap[String(p.mainCategory)] || p.mainCategory}
-          </td>
-          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-            {brandLabelMap[String(p.vehicleBrand)] || p.vehicleBrand}
-          </td>
-          <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-            {modelLabelMap[String(p.vehicleModel)] || p.vehicleModel}
-          </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+                        {categoryLabelMap[String(p.mainCategory)] ||
+                          p.mainCategory}
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+                        {brandLabelMap[String(p.vehicleBrand)] ||
+                          p.vehicleBrand}
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+                        {modelLabelMap[String(p.vehicleModel)] ||
+                          p.vehicleModel}
+                      </td>
                       <td className="grid grid-cols-3 text-center w-full h-full">
                         <button
                           className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => { setSelectedProductId(p.id as string); setIsModalOpen2(true); }}
+                          onClick={() => {
+                            setSelectedProductId(p.id as string);
+                            setIsModalOpen2(true);
+                          }}
                         >
                           View
                         </button>
                         <button
                           className="bg-[#D1D1D1] border-r-2 border-white  py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => { setSelectedProductId(p.id as string); setIsUpdateModalOpen(true); }}
+                          onClick={() => {
+                            setSelectedProductId(p.id as string);
+                            setIsUpdateModalOpen(true);
+                          }}
                         >
                           Edit
                         </button>
                         <button
                           className="bg-[#D1D1D1]  py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => { setSelectedProductId(p.id as string); setIsModalOpen3(true); }}
+                          onClick={() => {
+                            setSelectedProductId(p.id as string);
+                            setIsModalOpen3(true);
+                          }}
                         >
                           Delete
                         </button>
@@ -306,10 +375,22 @@ const VendorProducts: React.FC = () => {
           onUpdated={async () => {
             await loadProducts();
           }}
-          categoryOptions={categories.map(c => ({ value: String((c as any).id || (c as any).categoryId || c.name), label: c.name }))}
-          brandOptions={brands.map(b => ({ value: String((b as any).id || (b as any).brandId || b.name), label: b.country ? `${b.name} - ${b.country}` : b.name }))}
-          modelOptions={models.map(m => ({ value: String((m as any).id || (m as any).modelId || m.name), label: m.name }))}
-          vehicleTypeOptions={vehicleTypes.map(t => ({ value: (t as any).id || (t as any).name, label: (t as any).name }))}
+          categoryOptions={categories.map((c) => ({
+            value: String((c as any).id || (c as any).categoryId || c.name),
+            label: c.name,
+          }))}
+          brandOptions={brands.map((b) => ({
+            value: String((b as any).id || (b as any).brandId || b.name),
+            label: b.country ? `${b.name} - ${b.country}` : b.name,
+          }))}
+          modelOptions={models.map((m) => ({
+            value: String((m as any).id || (m as any).modelId || m.name),
+            label: m.name,
+          }))}
+          vehicleTypeOptions={vehicleTypes.map((t) => ({
+            value: (t as any).id || (t as any).name,
+            label: (t as any).name,
+          }))}
         />
 
         <DeleteItemConfirmation
@@ -318,7 +399,10 @@ const VendorProducts: React.FC = () => {
           onConfirm={async () => {
             try {
               if (selectedProductId) {
-                await FirestoreService.delete(COLLECTIONS.PRODUCTS, selectedProductId);
+                await FirestoreService.delete(
+                  COLLECTIONS.PRODUCTS,
+                  selectedProductId
+                );
                 await loadProducts();
               }
             } finally {

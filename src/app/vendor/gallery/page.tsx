@@ -9,8 +9,15 @@ import {
   VendorGalleryCard,
 } from "@/components/";
 import withAuth from "@/components/authGuard/withAuth";
-import { FirebaseStorageService, FileMetadata } from "@/service/firebaseStorageService";
-import { FirestoreService, COLLECTIONS, GalleryImage } from "@/service/firestoreService";
+import {
+  FirebaseStorageService,
+  FileMetadata,
+} from "@/service/firebaseStorageService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  GalleryImage,
+} from "@/service/firestoreService";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 // import { AddGalleryImageModal } from "@/app/modal";
@@ -29,8 +36,12 @@ const VendorGallery: React.FC = () => {
     );
     // Optional client-side sort by createdAt desc if present
     const sorted = [...list].sort((a: any, b: any) => {
-      const aTime = (a.createdAt?.seconds || 0) * 1000 + (a.createdAt?.nanoseconds || 0) / 1e6;
-      const bTime = (b.createdAt?.seconds || 0) * 1000 + (b.createdAt?.nanoseconds || 0) / 1e6;
+      const aTime =
+        (a.createdAt?.seconds || 0) * 1000 +
+        (a.createdAt?.nanoseconds || 0) / 1e6;
+      const bTime =
+        (b.createdAt?.seconds || 0) * 1000 +
+        (b.createdAt?.nanoseconds || 0) / 1e6;
       return bTime - aTime;
     });
     setImages(sorted);
@@ -51,7 +62,7 @@ const VendorGallery: React.FC = () => {
           Vendor Gallery
         </h1>
 
-        <div className="grid grid-cols-8 pl-12">
+        <div className="grid 2xl:grid-cols-8 xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2  sm:pl-12 pl-4">
           <div
             className="flex flex-col justify-center mb-4 text-[#F9C301] font-body font-bold text-[12px] items-center w-[126px] cursor-pointer h-[137px] border-2 border-[#F9C301] rounded-[10px] transform transition-transform duration-150 hover:scale-105 active:scale-95"
             onClick={() => setIsModalOpen(true)}
@@ -69,21 +80,27 @@ const VendorGallery: React.FC = () => {
             };
             const label = img.title || humanize(img.imageUrl);
             return (
-            <div key={img.id || img.imageUrl} className="group relative">
-              <VendorGalleryCard productname={label} image={img.imageUrl} />
-              <button
-                className="absolute top-1 right-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded"
-                onClick={async () => {
-                  if (!confirm("Delete this image?")) return;
-                  if (img.storagePath) await FirebaseStorageService.deleteFile(img.storagePath);
-                  if (img.id) await FirestoreService.delete(COLLECTIONS.GALLERY, img.id);
-                  await loadImages();
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          )})}
+              <div key={img.id || img.imageUrl} className="group relative">
+                <VendorGalleryCard productname={label} image={img.imageUrl} />
+                <button
+                  className="absolute top-1 right-1 hidden group-hover:block bg-red-600 text-white text-[10px] px-2 py-1 rounded"
+                  onClick={async () => {
+                    if (!confirm("Delete this image?")) return;
+                    if (img.storagePath)
+                      await FirebaseStorageService.deleteFile(img.storagePath);
+                    if (img.id)
+                      await FirestoreService.delete(
+                        COLLECTIONS.GALLERY,
+                        img.id
+                      );
+                    await loadImages();
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            );
+          })}
         </div>
         <AddGalleryImageModal
           isOpen={isModalOpen}

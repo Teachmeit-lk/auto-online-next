@@ -6,7 +6,7 @@ import {
   AutoServices,
   HeroSection,
   ProductCategories,
-  InfoComponent,
+  //InfoComponent,
   ServiceCategories,
   OurStatusSection,
   AboutUs,
@@ -17,11 +17,13 @@ import {
 
 const Home: FC = () => {
   return (
-    <div className="max-w-screen-xl mx-auto w-full px-4 md:px-6">
+    <div className=" w-full">
       <HeroSection />
       <AutoServices />
-      <ProductCategories />
-      <InfoComponent />
+      <div id="product-categories">
+        <ProductCategories />
+      </div>
+      {/* <InfoComponent /> */}
       <ServiceCategories />
       <OurStatusSection />
       <AboutUs />

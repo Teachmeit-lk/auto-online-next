@@ -10,30 +10,44 @@ interface IViewCompletedOrderModalProps {
   order?: any | null;
 }
 
-export const ViewCompletedOrderModal: React.FC<IViewCompletedOrderModalProps> = ({ isOpen, onClose, order }) => {
-  const orderNo = order?.orderNumber || order?.purchaseOrderId || order?.id || "-";
+export const ViewCompletedOrderModal: React.FC<
+  IViewCompletedOrderModalProps
+> = ({ isOpen, onClose, order }) => {
+  const orderNo =
+    order?.orderNumber || order?.purchaseOrderId || order?.id || "-";
   const vendorCode = order?.vendorId || "-";
   const partName = order?.products?.[0]?.partName || "-";
   const itemCount = Array.isArray(order?.products) ? order.products.length : 0;
-  const totalAmount = order?.totalAmount != null ? String(order.totalAmount) : "-";
+  const totalAmount =
+    order?.totalAmount != null ? String(order.totalAmount) : "-";
   const netTotal = totalAmount; // if VAT included separately, compute here
-  const ts = order?.completedDate || order?.deliveredDate || order?.updatedAt || order?.createdAt;
-  const completedDate = ts?.seconds ? new Date(ts.seconds * 1000).toLocaleDateString() : (ts instanceof Date ? ts.toLocaleDateString() : "-");
+  const ts =
+    order?.completedDate ||
+    order?.deliveredDate ||
+    order?.updatedAt ||
+    order?.createdAt;
+  const completedDate = ts?.seconds
+    ? new Date(ts.seconds * 1000).toLocaleDateString()
+    : ts instanceof Date
+    ? ts.toLocaleDateString()
+    : "-";
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
-          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">Completed Order</Dialog.Title>
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
+          <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
+            Completed Order
+          </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] p-8 space-y-6">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6">
             {/* Optional Banner / Placeholder */}
             <div className="flex justify-center"></div>
 
             {/* Form Section */}
-            <form className="grid grid-cols-3 gap-y-4 gap-x-6">
+            <form className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2 sm:h-full h-[500px] overflow-y-auto">
               {/* Order No */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">

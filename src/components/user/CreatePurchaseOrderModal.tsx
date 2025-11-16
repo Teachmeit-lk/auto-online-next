@@ -2,23 +2,26 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { Quotation, OrderService } from "@/service/firestoreService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
+import Image from "next/image";
 
 interface ICreatePurchaseOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   quotation: Quotation | null;
   onSuccess?: () => void;
+  requestImageUrl?: string | null;
 }
 
 interface PurchaseOrderFormData {
   deliveryMethod: "arrange_delivery" | "collect_from_shop";
   paymentMethod: "cash_at_shop" | "bank_transfer" | "pay_online";
+  specialNotes?: string;
   deliveryAddress?: {
     street: string;
     city: string;
@@ -33,8 +36,12 @@ const schema = Yup.object().shape({
     .oneOf(["arrange_delivery", "collect_from_shop"], "Invalid delivery method")
     .required("Delivery method is required"),
   paymentMethod: Yup.string()
-    .oneOf(["cash_at_shop", "bank_transfer", "pay_online"], "Invalid payment method")
+    .oneOf(
+      ["cash_at_shop", "bank_transfer", "pay_online"],
+      "Invalid payment method"
+    )
     .required("Payment method is required"),
+  specialNotes: Yup.string().optional(),
   deliveryAddress: Yup.object().when("deliveryMethod", {
     is: "arrange_delivery",
     then: (schema) =>
@@ -49,15 +56,55 @@ const schema = Yup.object().shape({
   }),
 });
 
-export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> = ({
-  isOpen,
-  onClose,
-  quotation,
-  onSuccess,
-}) => {
+// local representation of line items
+type OrderItem = {
+  id: string;
+  itemDescription: string;
+  partNumber?: string;
+  image?: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+};
+
+export const CreatePurchaseOrderModal: React.FC<
+  ICreatePurchaseOrderModalProps
+> = ({ isOpen, onClose, quotation, onSuccess, requestImageUrl }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [items, setItems] = useState<OrderItem[]>([]);
+
+  console.log("quotation:", quotation);
+
+  // initialise items from quotation
+  useEffect(() => {
+    if (!quotation) {
+      setItems([]);
+      return;
+    }
+    const mapped: OrderItem[] = (quotation.products || []).map(
+      (p: any, idx) => {
+        const qty = Number(p.quantity) || 1;
+        const price = Number(p.unitPrice) || 0;
+        return {
+          id: p.id || String(idx),
+          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
+          partNumber: p.partNumber || "",
+          image: Array.isArray(p.images) ? p.images[0] : undefined,
+          quantity: qty,
+          unitPrice: price,
+          totalPrice: Number(p.totalPrice) || qty * price,
+        };
+      }
+    );
+    setItems(mapped);
+  }, [quotation]);
+
+  const grandTotal = useMemo(
+    () => items.reduce((sum, it) => sum + (it.totalPrice || 0), 0),
+    [items]
+  );
 
   const {
     control,
@@ -70,16 +117,53 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
     defaultValues: {
       deliveryMethod: "collect_from_shop",
       paymentMethod: "cash_at_shop",
+      specialNotes: "",
     },
   });
 
   const deliveryMethod = watch("deliveryMethod");
+  const paymentMethod = watch("paymentMethod");
 
-  console.log("[CreatePurchaseOrderModal] Modal opened:", {
-    isOpen,
-    quotationId: quotation?.id,
-    deliveryMethod,
-  });
+  const handleQtyChange = (index: number, value: string) => {
+    const numeric = Math.max(1, Number(value) || 1);
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === index
+          ? { ...it, quantity: numeric, totalPrice: numeric * it.unitPrice }
+          : it
+      )
+    );
+  };
+
+  useEffect(() => {
+    if (!quotation || !isOpen) {
+      return;
+    }
+
+    const mapped: OrderItem[] = (quotation.products || []).map(
+      (p: any, idx) => {
+        const qty = Number(p.quantity) || 1;
+        const price = Number(p.unitPrice) || 0;
+        return {
+          id: p.id || String(idx),
+          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
+          partNumber: p.partNumber || "",
+          image: Array.isArray(p.images) ? p.images[0] : undefined,
+          quantity: qty,
+          unitPrice: price,
+          totalPrice: Number(p.totalPrice) || qty * price,
+        };
+      }
+    );
+    setItems(mapped);
+  }, [quotation, isOpen]);
+
+  const handleModalClose = () => {
+    reset();
+    setSubmitError(null);
+    setItems([]);
+    onClose();
+  };
 
   const onSubmit = async (data: PurchaseOrderFormData) => {
     if (!quotation || !user?.id) {
@@ -87,89 +171,107 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
       return;
     }
 
-    console.log("[CreatePurchaseOrderModal] Form submitted:", data);
+    if (!items.length) {
+      setSubmitError("No items found in this quotation.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      // Validate form data
-      console.log("[CreatePurchaseOrderModal] Validating form data...");
       await schema.validate(data);
-      console.log("[CreatePurchaseOrderModal] Form validation passed");
 
-      // Generate order number
-      const orderNumber = `PO-${Date.now()}-${quotation.quotationRequestId?.slice(0, 8) || "00000000"}`;
-      console.log("[CreatePurchaseOrderModal] Generated order number:", orderNumber);
+      const orderNumber = `PO-${Date.now()}-${
+        quotation.quotationRequestId?.slice(0, 8) || "00000000"
+      }`;
 
-      // Create purchase order
       const purchaseOrderData = {
         quotationId: quotation.id!,
         quotationRequestId: quotation.quotationRequestId,
         buyerId: user.id,
         vendorId: quotation.vendorId,
         orderNumber,
-        products: quotation.products.map((p) => ({
-          partName: p.partName,
-          quantity: p.quantity,
-          unitPrice: p.unitPrice,
-          totalPrice: p.totalPrice,
+        products: items.map((it) => ({
+          partName: it.itemDescription,
+          partNumber: it.partNumber,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          totalPrice: it.totalPrice,
         })),
-        totalAmount: quotation.totalAmount,
+        totalAmount: grandTotal,
         currency: quotation.currency || "LKR",
         deliveryMethod: data.deliveryMethod,
         paymentMethod: data.paymentMethod,
-        deliveryAddress: data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
-          ? data.deliveryAddress
-          : {
-              street: "",
-              city: "",
-              district: "",
-              zipCode: "",
-              country: "",
-            },
-        expectedDeliveryDate: quotation.validUntil instanceof Date ? quotation.validUntil : new Date(),
+        specialNotes: data.specialNotes || "",
+        deliveryAddress:
+          data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
+            ? data.deliveryAddress
+            : {
+                street: "",
+                city: "",
+                district: "",
+                zipCode: "",
+                country: "",
+              },
+        expectedDeliveryDate:
+          quotation.validUntil instanceof Date
+            ? quotation.validUntil
+            : new Date(),
         status: "pending" as const,
         paymentStatus: "pending" as const,
         deliveryCostRequested: data.deliveryMethod === "arrange_delivery",
       };
 
-      console.log("[CreatePurchaseOrderModal] Creating purchase order with data:", purchaseOrderData);
-
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
 
-      console.log("[CreatePurchaseOrderModal] Purchase order created successfully:", orderId);
-      // TODO: Send order confirmation via WhatsApp
-      console.log("[CreatePurchaseOrderModal] TODO: Send order confirmation via WhatsApp");
+      console.log(
+        "[CreatePurchaseOrderModal] Purchase order created:",
+        orderId
+      );
 
-      if (onSuccess) {
-        onSuccess();
-      }
-
+      onSuccess && onSuccess();
       handleModalClose();
     } catch (error: any) {
-      console.error("[CreatePurchaseOrderModal] Error creating purchase order:", error);
-      setSubmitError(error.message || "Failed to create purchase order. Please try again.");
+      console.error(
+        "[CreatePurchaseOrderModal] Error creating purchase order:",
+        error
+      );
+      setSubmitError(
+        error.message || "Failed to create purchase order. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleModalClose = () => {
-    console.log("[CreatePurchaseOrderModal] Closing modal");
-    reset();
-    setSubmitError(null);
-    onClose();
-  };
+  if (!quotation) return null;
 
-  if (!quotation) {
-    return null;
-  }
+  const today = new Date().toLocaleDateString();
+  const customerName =
+    (user as any)?.firstName + "  " + (user as any)?.lastName || "";
+  const contactNo = (user as any)?.phone || "";
+  const whatsappNo = (user as any)?.whatsApp || contactNo;
+  const baseAddress =
+    (user as any)?.address + " , " + (user as any)?.city || "";
+
+  const deliveryLabel =
+    deliveryMethod === "arrange_delivery"
+      ? "Arrange delivery through vendor"
+      : "Collect from the shop";
+
+  const paymentLabel =
+    paymentMethod === "bank_transfer"
+      ? "Bank transfer"
+      : paymentMethod === "pay_online"
+      ? "Pay online"
+      : "Pay cash at the shop";
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none max-h-[90vh] overflow-y-auto">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:w-[900px] md:w-[750px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none max-h-[90vh] overflow-y-auto">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             Create Purchase Order
           </Dialog.Title>
@@ -180,239 +282,358 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Delivery Method Selection */}
-            <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
-              <label className="text-[12px] font-body font-[500] text-[#111102] block mb-3">
-                Delivery Method *
-              </label>
-              <Controller
-                name="deliveryMethod"
-                control={control}
-                render={({ field }) => (
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        {...field}
-                        value="arrange_delivery"
-                        className="text-[#F9C301] focus:ring-[#F9C301]"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Delivery method changed: arrange_delivery");
-                        }}
-                      />
-                      <span className="text-[12px] font-body text-[#111102]">
-                        Arrange delivery through vendor
-                      </span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        {...field}
-                        value="collect_from_shop"
-                        className="text-[#F9C301] focus:ring-[#F9C301]"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Delivery method changed: collect_from_shop");
-                        }}
-                      />
-                      <span className="text-[12px] font-body text-[#111102]">
-                        Collect from the shop
-                      </span>
-                    </label>
-                  </div>
-                )}
-              />
-              {errors.deliveryMethod && (
-                <p className="text-[10px] text-red-600">{errors.deliveryMethod.message}</p>
-              )}
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full max-h-[65vh] overflow-y-auto no-scrollbar">
+              <div className="sm:grid sm:grid-cols-2 gap-x-8 gap-y-3 sm:space-y-0 space-y-2 text-[11px] font-body text-[#111102]">
+                <div>
+                  <label className="text-[12px] font-[500]">Date</label>
+                  <input
+                    readOnly
+                    value={today}
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-[500]">
+                    Customer name
+                  </label>
+                  <input
+                    readOnly
+                    value={customerName}
+                    placeholder="Customer name"
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-[500]">Contact No</label>
+                  <input
+                    readOnly
+                    value={contactNo}
+                    placeholder="Contact number"
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-[500]">WhatsApp No</label>
+                  <input
+                    readOnly
+                    value={whatsappNo}
+                    placeholder="WhatsApp number"
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-[500]">Address</label>
+                  <input
+                    readOnly
+                    value={baseAddress}
+                    placeholder="Customer address"
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-[500]">
+                    Quotation reference no
+                  </label>
+                  <input
+                    readOnly
+                    value={
+                      quotation.quotationRequestId || quotation.id || "N/A"
+                    }
+                    className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
+                  />
+                </div>
+              </div>
 
-            {/* Delivery Address (conditional) */}
-            {deliveryMethod === "arrange_delivery" && (
-              <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
-                <label className="text-[12px] font-body font-[500] text-[#111102] block mb-3">
-                  Delivery Address *
+              {deliveryMethod === "arrange_delivery" && (
+                <div className="space-y-2">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Delivery Address *
+                  </label>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <Controller
+                      name="deliveryAddress.street"
+                      control={control}
+                      render={({ field }) => (
+                        <div className="sm:col-span-2">
+                          <input
+                            {...field}
+                            placeholder="Street address"
+                            className="w-full h-[32px] px-3 text-[11px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                          />
+                          {errors.deliveryAddress?.street && (
+                            <p className="text-[10px] text-red-600 mt-1">
+                              {errors.deliveryAddress.street.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="deliveryAddress.city"
+                      control={control}
+                      render={({ field }) => (
+                        <div>
+                          <input
+                            {...field}
+                            placeholder="City"
+                            className="w-full h-[32px] px-3 text-[11px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                          />
+                          {errors.deliveryAddress?.city && (
+                            <p className="text-[10px] text-red-600 mt-1">
+                              {errors.deliveryAddress.city.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="deliveryAddress.district"
+                      control={control}
+                      render={({ field }) => (
+                        <div>
+                          <input
+                            {...field}
+                            placeholder="District"
+                            className="w-full h-[32px] px-3 text-[11px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                          />
+                          {errors.deliveryAddress?.district && (
+                            <p className="text-[10px] text-red-600 mt-1">
+                              {errors.deliveryAddress.district.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="deliveryAddress.zipCode"
+                      control={control}
+                      render={({ field }) => (
+                        <div>
+                          <input
+                            {...field}
+                            placeholder="Zip code"
+                            className="w-full h-[32px] px-3 text-[11px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                          />
+                          {errors.deliveryAddress?.zipCode && (
+                            <p className="text-[10px] text-red-600 mt-1">
+                              {errors.deliveryAddress.zipCode.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    />
+                    <Controller
+                      name="deliveryAddress.country"
+                      control={control}
+                      render={({ field }) => (
+                        <div>
+                          <input
+                            {...field}
+                            placeholder="Country"
+                            className="w-full h-[32px] px-3 text-[11px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                          />
+                          {errors.deliveryAddress?.country && (
+                            <p className="text-[10px] text-red-600 mt-1">
+                              {errors.deliveryAddress.country.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="overflow-y-auto  no-scrollbar max-h-[150px] rounded-tl-[8px] rounded-tr-[8px] ">
+                <table className="w-full text-[10px] font-body text-[#111102] border border-white table-fixed min-w-[600px] overflow-x-auto ">
+                  <thead className="bg-[#D1D1D1]">
+                    <tr>
+                      <th className="p-2 border w-[5%]">No.</th>
+                      <th className="p-2 border w-[25%]">Item description</th>
+                      <th className="p-2 border w-[15%]">Part number</th>
+                      <th className="p-2 border w-[15%]">Photo</th>
+                      <th className="p-2 border w-[10%]">No of units</th>
+                      <th className="p-2 border w-[15%]">Unit price</th>
+                      <th className="p-2 border w-[15%]">Total price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr
+                        key={item.id}
+                        className="odd:bg-white even:bg-gray-50 border-b border-white"
+                      >
+                        <td className="p-2 border text-center">{index + 1}</td>
+                        <td className="p-2 border text-center">
+                          {item.itemDescription}
+                        </td>
+                        <td className="p-2 border text-center">
+                          {item.partNumber || "-"}
+                        </td>
+                        <td className="p-2 border text-center">
+                          {requestImageUrl ? (
+                            <div className=" flex justify-center">
+                              <Image
+                                src={requestImageUrl}
+                                alt="Requested part"
+                                width={100}
+                                height={60}
+                                className="w-[80px] h-[50px] rounded-[6px] object-cover border border-[#E5E5E5]"
+                              />
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="p-2 border text-center">
+                          <input
+                            type="number"
+                            min={1}
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleQtyChange(index, e.target.value)
+                            }
+                            className="w-[60px] h-[26px] text-center text-[10px] bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-1 focus:ring-[#F9C301]"
+                          />
+                        </td>
+                        <td className="p-2 border text-right">
+                          {item.unitPrice.toFixed(2)}
+                        </td>
+                        <td className="p-2 border text-right">
+                          {item.totalPrice.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+
+                    <tr className="bg-[#FFF8D9] font-[600]">
+                      <td className="p-2 border text-right" colSpan={6}>
+                        Grand total
+                      </td>
+                      <td className="p-2 border text-right">
+                        {grandTotal.toFixed(2)} {quotation.currency || "LKR"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Special notes
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <Controller
+                  name="specialNotes"
+                  control={control}
+                  render={({ field }) => (
+                    <textarea
+                      {...field}
+                      rows={3}
+                      className="mt-1 w-full text-[11px] font-body bg-[#FEFEFE] rounded-[3px] p-3 focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                      placeholder="Any additional instructions for the vendor…"
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
+                    Delivery Method *
+                  </label>
                   <Controller
-                    name="deliveryAddress.street"
+                    name="deliveryMethod"
                     control={control}
                     render={({ field }) => (
-                      <div className="col-span-2">
-                        <input
-                          {...field}
-                          placeholder="Street Address"
-                          className="w-full h-[36px] px-3 text-[10px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                        />
-                        {errors.deliveryAddress?.street && (
-                          <p className="text-[10px] text-red-600 mt-1">
-                            {errors.deliveryAddress.street.message}
-                          </p>
-                        )}
+                      <div className="space-y-1 text-[11px]">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            {...field}
+                            value="arrange_delivery"
+                            className="text-[#F9C301] focus:ring-[#F9C301]"
+                            checked={field.value === "arrange_delivery"}
+                          />
+                          <span>Arrange delivery through vendor</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            {...field}
+                            value="collect_from_shop"
+                            className="text-[#F9C301] focus:ring-[#F9C301]"
+                            checked={field.value === "collect_from_shop"}
+                          />
+                          <span>Collect from the shop</span>
+                        </label>
                       </div>
                     )}
                   />
+                  {errors.deliveryMethod && (
+                    <p className="text-[10px] text-red-600 mt-1">
+                      {errors.deliveryMethod.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
+                    Payment Method *
+                  </label>
                   <Controller
-                    name="deliveryAddress.city"
+                    name="paymentMethod"
                     control={control}
                     render={({ field }) => (
-                      <div>
-                        <input
-                          {...field}
-                          placeholder="City"
-                          className="w-full h-[36px] px-3 text-[10px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                        />
-                        {errors.deliveryAddress?.city && (
-                          <p className="text-[10px] text-red-600 mt-1">
-                            {errors.deliveryAddress.city.message}
-                          </p>
-                        )}
+                      <div className="space-y-1 text-[11px]">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            {...field}
+                            value="cash_at_shop"
+                            className="text-[#F9C301] focus:ring-[#F9C301]"
+                            checked={field.value === "cash_at_shop"}
+                          />
+                          <span>Pay cash at the shop</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            {...field}
+                            value="bank_transfer"
+                            className="text-[#F9C301] focus:ring-[#F9C301]"
+                            checked={field.value === "bank_transfer"}
+                          />
+                          <span>Bank transfer</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            {...field}
+                            value="pay_online"
+                            className="text-[#F9C301] focus:ring-[#F9C301]"
+                            checked={field.value === "pay_online"}
+                          />
+                          <span>Pay online</span>
+                        </label>
                       </div>
                     )}
                   />
-                  <Controller
-                    name="deliveryAddress.district"
-                    control={control}
-                    render={({ field }) => (
-                      <div>
-                        <input
-                          {...field}
-                          placeholder="District"
-                          className="w-full h-[36px] px-3 text-[10px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                        />
-                        {errors.deliveryAddress?.district && (
-                          <p className="text-[10px] text-red-600 mt-1">
-                            {errors.deliveryAddress.district.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
-                  <Controller
-                    name="deliveryAddress.zipCode"
-                    control={control}
-                    render={({ field }) => (
-                      <div>
-                        <input
-                          {...field}
-                          placeholder="Zip Code"
-                          className="w-full h-[36px] px-3 text-[10px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                        />
-                        {errors.deliveryAddress?.zipCode && (
-                          <p className="text-[10px] text-red-600 mt-1">
-                            {errors.deliveryAddress.zipCode.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
-                  <Controller
-                    name="deliveryAddress.country"
-                    control={control}
-                    render={({ field }) => (
-                      <div>
-                        <input
-                          {...field}
-                          placeholder="Country"
-                          className="w-full h-[36px] px-3 text-[10px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                        />
-                        {errors.deliveryAddress?.country && (
-                          <p className="text-[10px] text-red-600 mt-1">
-                            {errors.deliveryAddress.country.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
+                  {errors.paymentMethod && (
+                    <p className="text-[10px] text-red-600 mt-1">
+                      {errors.paymentMethod.message}
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Payment Method Selection */}
-            <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
-              <label className="text-[12px] font-body font-[500] text-[#111102] block mb-3">
-                Payment Method *
-              </label>
-              <Controller
-                name="paymentMethod"
-                control={control}
-                render={({ field }) => (
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        {...field}
-                        value="cash_at_shop"
-                        className="text-[#F9C301] focus:ring-[#F9C301]"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: cash_at_shop");
-                        }}
-                      />
-                      <span className="text-[12px] font-body text-[#111102]">
-                        Pay cash at the shop
-                      </span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        {...field}
-                        value="bank_transfer"
-                        className="text-[#F9C301] focus:ring-[#F9C301]"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: bank_transfer");
-                        }}
-                      />
-                      <span className="text-[12px] font-body text-[#111102]">
-                        Bank transfer
-                      </span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        {...field}
-                        value="pay_online"
-                        className="text-[#F9C301] focus:ring-[#F9C301]"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          console.log("[CreatePurchaseOrderModal] Payment method changed: pay_online");
-                        }}
-                      />
-                      <span className="text-[12px] font-body text-[#111102]">
-                        Pay online
-                      </span>
-                    </label>
-                  </div>
-                )}
-              />
-              {errors.paymentMethod && (
-                <p className="text-[10px] text-red-600">{errors.paymentMethod.message}</p>
-              )}
+              {/* <div className="text-[10px] text-[#111102] space-y-1 mt-2">
+                <p>Delivery method: {deliveryLabel}</p>
+                <p>Payment: {paymentLabel}</p>
+                <p>Online platform : Auto Online .lk</p>
+              </div> */}
             </div>
 
-            {/* Order Summary */}
-            <div className="bg-[#F8F8F8] rounded-[8px] p-6">
-              <h3 className="text-[12px] font-body font-[600] text-[#111102] mb-3">
-                Order Summary
-              </h3>
-              <div className="space-y-2 text-[11px] font-body text-[#111102]">
-                <div className="flex justify-between">
-                  <span>Total Amount:</span>
-                  <span className="font-[600]">{quotation.totalAmount} {quotation.currency || "LKR"}</span>
-                </div>
-                {quotation.products.map((product, idx) => (
-                  <div key={idx} className="text-[10px] text-[#5B5B5B]">
-                    {product.partName} - {product.quantity} x {product.unitPrice}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4">
+            <div className="mt-6 flex justify-center gap-4">
               <button
                 type="button"
                 onClick={handleModalClose}
@@ -435,7 +656,6 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
             </div>
           </form>
 
-          {/* Close Button */}
           <Dialog.Close asChild>
             <button
               onClick={handleModalClose}
@@ -449,4 +669,3 @@ export const CreatePurchaseOrderModal: React.FC<ICreatePurchaseOrderModalProps> 
     </Dialog.Root>
   );
 };
-

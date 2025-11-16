@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   CirclePlus,
@@ -25,6 +26,7 @@ export const Header: React.FC = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
   const userButtonRef = useRef<HTMLButtonElement>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, right: 0 });
+  const [searchValue, setSearchValue] = useState("");
 
   const data = [
     { name: "home", path: "/#home", icon: LayoutGrid },
@@ -39,23 +41,50 @@ export const Header: React.FC = () => {
   const loading = authState.loading as boolean;
   const dispatch = useDispatch();
   const { initialized } = useFirebase();
+  const router = useRouter();
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchValue.trim();
+    if (!q) return;
+    router.push(`/search?query=${encodeURIComponent(q)}`);
+  };
 
   const navLinks = isAuthenticated
     ? [
         ...data,
         ...(user?.role === "vendor"
-          ? [{ name: "my orders", path: "/vendor/purchase-orders", icon: LayoutGrid }]
-          : [{ name: "my requests", path: "/user/search-vendors", icon: LayoutGrid }]
-        ),
-        ...(user?.role === "admin" ? [{ name: "admin", path: "/admin", icon: LayoutGrid }] : []),
+          ? [
+              {
+                name: "my orders",
+                path: "/vendor/purchase-orders",
+                icon: LayoutGrid,
+              },
+            ]
+          : [
+              {
+                name: "my requests",
+                path: "/user/search-vendors",
+                icon: LayoutGrid,
+              },
+            ]),
+        ...(user?.role === "admin"
+          ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
+          : []),
       ]
     : data;
 
-  const profilePath = user?.role === "vendor" ? "/vendor/profile" : user?.role === "admin" ? "/admin/profile" : "/user/profile";
+  const profilePath =
+    user?.role === "vendor"
+      ? "/vendor/profile"
+      : user?.role === "admin"
+      ? "/admin/profile"
+      : "/user/profile";
 
-  const handleLogout = () => {
-    dispatch(logoutUserAsync() as any);
+  const handleLogout = async () => {
+    await dispatch(logoutUserAsync() as any);
     setIsUserModalOpen(false);
+    router.push("/user/login");
   };
 
   const handleUserModalToggle = () => {
@@ -72,7 +101,7 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 bg-white relative max-w-screen-xl mx-auto w-full">
+      <header className="flex justify-between items-center lg:py-4 lg:pl-4 lg:pr-12 py-4 pl-4 pr-4 bg-white relative  w-full">
         {/* Logo - Hidden on Small Screens */}
         <div className="hidden md:flex items-center">
           <Link href="/">
@@ -103,24 +132,36 @@ export const Header: React.FC = () => {
             >
               <User size="18px" color="#111102" />
             </button>
-          ) : <Link
-          href="/user/login"
-          className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
-        >
-          LOGIN
-        </Link>}
+          ) : (
+            <Link
+              href="/user/login"
+              className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          )}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
         <div className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
-          <input
-            type="text"
-            className="flex-grow px-4 py-2 text-gray-700 focus:outline-none"
-            placeholder="Search..."
-          />
-          <button className="flex items-center justify-center w-[88px] h-full bg-[#F9C301] hover:bg-yellow-500">
-            <Search color="#111102" />
-          </button>
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden"
+          >
+            <input
+              type="text"
+              className="flex-grow px-4 py-2 text-gray-700 focus:outline-none"
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center w-[88px] h-full bg-[#F9C301] hover:bg-yellow-500"
+            >
+              <Search color="#111102" />
+            </button>
+          </form>
         </div>
 
         {/* Conditional Rendering for Larger Screens */}
@@ -134,18 +175,20 @@ export const Header: React.FC = () => {
               <User size="24px" color="#111102" />
             </button>
           </div>
-        ) : (<div className="hidden md:block">
-          <Link
-            href="/user/login"
-            className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
-          >
-            LOGIN
-          </Link>
-        </div>)}
+        ) : (
+          <div className="hidden md:block">
+            <Link
+              href="/user/login"
+              className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+            >
+              LOGIN
+            </Link>
+          </div>
+        )}
 
         {/* User Pop-up Menu positioned below the icon */}
         {isUserModalOpen && (
-          <div 
+          <div
             className="fixed z-50 bg-white rounded-lg shadow-lg w-[200px] border border-gray-200"
             style={{
               top: `${modalPosition.top}px`,
@@ -166,6 +209,7 @@ export const Header: React.FC = () => {
                 >
                   My Profile
                 </Link>
+
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-black text-sm"
@@ -181,14 +225,24 @@ export const Header: React.FC = () => {
       {/* Search Bar for Small Screens */}
       <div className="md:hidden p-4 bg-white flex justify-center">
         <div className="flex items-center w-[328px] h-[28px] border border-gray-300 rounded-[25px] overflow-hidden">
-          <input
-            type="text"
-            className="flex-grow px-3 py-1 text-gray-700 focus:outline-none text-[12px]"
-            placeholder="Search..."
-          />
-          <button className="flex items-center justify-center w-[50px] h-full bg-[#F9C301] hover:bg-yellow-500">
-            <Search size="16px" color="#111102" />
-          </button>
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex items-center w-[328px] h-[28px] border border-gray-300 rounded-[25px] overflow-hidden"
+          >
+            <input
+              type="text"
+              className="flex-grow px-3 py-1 text-gray-700 focus:outline-none text-[12px]"
+              placeholder="Search..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center w-[50px] h-full bg-[#F9C301] hover:bg-yellow-500"
+            >
+              <Search size="16px" color="#111102" />
+            </button>
+          </form>
         </div>
       </div>
 

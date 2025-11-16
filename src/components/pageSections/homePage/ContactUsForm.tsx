@@ -45,8 +45,8 @@ export const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white md:px-20 md:pt-10 md:pb-20 px-1 pt-5 pb-10">
-      <div className="bg-[#F8F8F8] rounded-[15px] md:w-[639px] w-full max-w-[90%] h-auto mx-auto pl-[24px] pr-[33px] md:pl-[55px] md:pr-16 py-8 md:py-12">
+    <div className="bg-white md:px-20 md:pt-10 md:pb-20 px-5 pt-5 pb-10">
+      <div className="bg-[#F8F8F8] rounded-[15px] md:w-[639px] w-full md:max-w-[90%] h-auto mx-auto pl-[24px] pr-[33px] md:pl-[55px] md:pr-16 py-8 md:py-12">
         <h2 className="text-center font-title md:text-[24px] text-[16px] text-[#111102] md:mb-8 mb-5">
           Get In Touch with Us
         </h2>

@@ -27,21 +27,21 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
   return (
     <TabLayout type={type}>
       <div
-        className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
+        className="w-full lg:p-8 md:p-6  p-4 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px] "
         id="quotationrequests"
       >
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
           Completed Orders
         </h1>
 
-        <div className="flex flex-row items-center justify-between  mb-4">
+        <div className="flex sm:flex-row flex-col sm:items-center sm:justify-between space-y-4 sm:space-y-0  mb-4">
           <div>
             <div className="font-body font-[500] text-[14px]  text-[#111102] mb-1">
               Show
             </div>
             <div className="flex space-x-4">
               <select
-                className="rounded-[5px] px-3 font-body  text-[12px] text-gray-600 w-[131px] h-[28px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="rounded-[5px] px-3 font-body  text-sm text-gray-600 w-[131px] h-[32px] focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 onChange={(e) => setEntries(Number(e.target.value))}
                 defaultValue="5"
               >
@@ -56,11 +56,11 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
             <div className="font-body font-[500] text-[14px]  text-[#111102] mb-1">
               Search
             </div>
-            <div className="relative flex items-center rounded-[5px] text-sm text-gray-600 w-[263px] h-[28px]">
+            <div className="relative flex items-center rounded-[5px] text-sm text-gray-600 w-[263px] h-[32px]">
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-[12px] text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full h-full pl-3 pr-8 font-body rounded-[5px] text-sm text-gray-600 outline-none focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 <Search
@@ -76,7 +76,7 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse ">
+          <table className="w-full border-collapse min-w-[750px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white px-[5px]  py-2 ">

@@ -103,8 +103,16 @@ export const ViewQuotationRequestModal: React.FC<
     const unitPriceNum = Number(watchedUnitPrice) || 0;
     const total = unitsNum * unitPriceNum;
     const netTotal = total * 1.12; // 12% VAT
-    setValue("totalPrice", Number.isFinite(total) ? Number(total.toFixed(2)) : 0, { shouldValidate: true });
-    setValue("netTotalPrice", Number.isFinite(netTotal) ? Number(netTotal.toFixed(2)) : 0, { shouldValidate: true });
+    setValue(
+      "totalPrice",
+      Number.isFinite(total) ? Number(total.toFixed(2)) : 0,
+      { shouldValidate: true }
+    );
+    setValue(
+      "netTotalPrice",
+      Number.isFinite(netTotal) ? Number(netTotal.toFixed(2)) : 0,
+      { shouldValidate: true }
+    );
   }, [watchedUnits, watchedUnitPrice, setValue]);
 
   // Form submission handler
@@ -124,20 +132,30 @@ export const ViewQuotationRequestModal: React.FC<
     try {
       let attachmentUrl: string | undefined;
       if (data.image instanceof File) {
-        const upload = await FirebaseStorageService.uploadDocument(user.id!, "quotation-attachments", data.image);
+        const upload = await FirebaseStorageService.uploadDocument(
+          user.id!,
+          "quotation-attachments",
+          data.image
+        );
         attachmentUrl = upload.url;
       }
 
-      const validUntil = new Date(Date.now() + (Number(data.validityDays) || 0) * 24 * 60 * 60 * 1000);
+      const validUntil = new Date(
+        Date.now() + (Number(data.validityDays) || 0) * 24 * 60 * 60 * 1000
+      );
 
       const unitPriceNum = Number(data.unitPrice) || 0;
       const quantityNum = Number(data.noOfUnits) || 0;
-      const totalAmountNum = Number(data.netTotalPrice) || unitPriceNum * quantityNum;
+      const totalAmountNum =
+        Number(data.netTotalPrice) || unitPriceNum * quantityNum;
 
       await QuotationService.createQuotation({
         quotationRequestId: request.id,
         vendorId: user.id!,
-        vendorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email || "",
+        vendorName:
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+          user.email ||
+          "",
         vendorEmail: user.email || "",
         buyerId: request.buyerId,
         products: [
@@ -156,7 +174,9 @@ export const ViewQuotationRequestModal: React.FC<
         deliveryTimeframe: `${data.validityDays} days`,
         terms: data.vendorComments,
         status: "pending",
-        notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${data.contactNumber}${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
+        notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
+          data.contactNumber
+        }${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
@@ -182,12 +202,14 @@ export const ViewQuotationRequestModal: React.FC<
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-[70vh] md:h-[85vh] sm:h-[70vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-3 text-[#111102] font-body">
             Requested Quotation
           </Dialog.Title>
           {submitError && (
-            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-[12px] text-red-600">{submitError}</div>
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-[12px] text-red-600">
+              {submitError}
+            </div>
           )}
 
           <div className="h-full overflow-y-auto no-scrollbar">
@@ -196,63 +218,105 @@ export const ViewQuotationRequestModal: React.FC<
               <button
                 type="button"
                 className="w-full flex items-center justify-between px-4 py-3 text-left"
-                onClick={() => setShowDetails(prev => !prev)}
+                onClick={() => setShowDetails((prev) => !prev)}
               >
-                <span className="text-[13px] font-body font-[700] text-[#111102]">Requested Details</span>
-                <span className="text-[12px] text-[#5B5B5B]">{showDetails ? "Hide" : "Show"}</span>
+                <span className="text-[13px] font-body font-[700] text-[#111102]">
+                  Requested Details
+                </span>
+                <span className="text-[12px] text-[#5B5B5B]">
+                  {showDetails ? "Hide" : "Show"}
+                </span>
               </button>
               {showDetails && (
-                <div className="px-6 pb-4 grid grid-cols-3 gap-x-6 gap-y-3">
+                <div className="px-6 pb-4 sm:grid sm:grid-cols-3 gap-x-6 gap-y-3 sm:space-y-0 space-y-2">
                   <div>
                     <div className="text-[10px] text-[#5B5B5B]">Buyer</div>
-                    <div className="text-[11px] text-[#111102]">{request?.buyerName || request?.buyerId || "-"}</div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.buyerName || request?.buyerId || "-"}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#5B5B5B]">Vehicle Type</div>
-                    <div className="text-[11px] text-[#111102]">{request?.vehicleType || "-"}</div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Vehicle Type
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.vehicleType || "-"}
+                    </div>
                   </div>
                   <div>
                     <div className="text-[10px] text-[#5B5B5B]">Fuel Type</div>
-                    <div className="text-[11px] text-[#111102]">{request?.fuelType || "-"}</div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.fuelType || "-"}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#5B5B5B]">Brand/Model</div>
-                    <div className="text-[11px] text-[#111102]">{request?.model || "-"}</div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Brand/Model
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.model || "-"}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#5B5B5B]">Manufacturing Year</div>
-                    <div className="text-[11px] text-[#111102]">{request?.manufacturingYear || "-"}</div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Manufacturing Year
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.manufacturingYear || "-"}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#5B5B5B]">Measurement</div>
-                    <div className="text-[11px] text-[#111102]">{request?.measurement || "-"}</div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Measurement
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.measurement || "-"}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-[#5B5B5B]">No. of Units</div>
-                    <div className="text-[11px] text-[#111102]">{request?.numberOfUnits ?? "-"}</div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      No. of Units
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.numberOfUnits ?? "-"}
+                    </div>
                   </div>
                   <div className="col-span-3">
-                    <div className="text-[10px] text-[#5B5B5B]">Description</div>
-                    <div className="text-[11px] text-[#111102]">{request?.description || "-"}</div>
-                  </div>
-                  {Array.isArray(request?.attachedImages) && request!.attachedImages.length > 0 && (
-                    <div className="col-span-3">
-                      <div className="text-[10px] text-[#5B5B5B] mb-1">Attached Images</div>
-                      <div className="flex flex-wrap gap-2">
-                        {request!.attachedImages.map((url, idx) => (
-                          <div key={idx} className="w-[64px] h-[48px] border rounded overflow-hidden bg-white">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={url} alt={`attachment-${idx}`} className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                      </div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Description
                     </div>
-                  )}
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.description || "-"}
+                    </div>
+                  </div>
+                  {Array.isArray(request?.attachedImages) &&
+                    request!.attachedImages.length > 0 && (
+                      <div className="col-span-3">
+                        <div className="text-[10px] text-[#5B5B5B] mb-1">
+                          Attached Images
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {request!.attachedImages.map((url, idx) => (
+                            <div
+                              key={idx}
+                              className="w-[64px] h-[48px] border rounded overflow-hidden bg-white"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={url}
+                                alt={`attachment-${idx}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               )}
             </div>
             <form
-              className="grid grid-cols-3 gap-y-4 gap-x-6 bg-[#F8F8F8] rounded-[8px] p-8 mb-11"
+              className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2 bg-[#F8F8F8] rounded-[8px] p-8 mb-11"
               onSubmit={handleSubmit(onSubmit)}
             >
               {/* Item Name */}
@@ -783,7 +847,11 @@ export const ViewQuotationRequestModal: React.FC<
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-[164px] h-[32px] font-[600] font-body text-[12px] rounded-[3px] ${isSubmitting ? "bg-gray-400 text-gray-700 cursor-not-allowed" : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"}`}
+                  className={`w-[164px] h-[32px] font-[600] font-body text-[12px] rounded-[3px] ${
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+                  }`}
                 >
                   {isSubmitting ? "Submitting..." : "Submit to Customer"}
                 </button>

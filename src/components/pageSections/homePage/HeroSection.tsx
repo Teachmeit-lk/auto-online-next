@@ -111,7 +111,7 @@ export const HeroSection: React.FC = () => {
             revolutionize the way you sell and source auto parts.
           </p>
           <button className="mt-4 mb-2  w-full bg-[#F9C301] h-[36px] text-[#111102] font-body text-[10px] md:text-[18px] font-bold md:py-3  rounded-full shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-1 focus:ring-[#F9C301] focus:ring-offset-1">
-            <Link href="/#services" type="submit">
+            <Link href="/#product-categories" type="submit">
               GET STARTED
             </Link>
           </button>
