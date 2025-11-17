@@ -48,7 +48,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -581,7 +581,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   type="submit"
                   className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </form>
