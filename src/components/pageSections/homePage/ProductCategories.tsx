@@ -196,7 +196,6 @@ export const ProductCategories: React.FC = () => {
                         alt={category.name}
                         width={84}
                         height={66}
-                        //className="object-contain w-[84px] h-[66px]"
                         className="object-cover w-[84px] h-[66px] rounded-md"
                         unoptimized
                       />
@@ -251,7 +250,6 @@ export const ProductCategories: React.FC = () => {
                         alt={category.name}
                         width={84}
                         height={66}
-                        //className="object-contain w-[84px] h-[66px]"
                         className="object-cover w-[84px] h-[66px] rounded-md"
                         unoptimized
                       />
@@ -337,7 +335,7 @@ export const ProductCategories: React.FC = () => {
         </button>
 
         {/* Content */}
-        <div className="w-full min-h-[350px] flex items-center justify-center">
+        <div className="w-full flex items-center justify-center">
           {loading ? (
             <div className="text-center py-20 text-gray-500">Loading...</div>
           ) : categoryProducts.length === 0 ? (
@@ -346,7 +344,8 @@ export const ProductCategories: React.FC = () => {
             <Swiper
               modules={[Navigation, A11y]}
               slidesPerView={5}
-              spaceBetween={10}
+              //spaceBetween={10}
+              spaceBetween={0}
               loop={categoryProducts.length >= 5}
               className="w-full"
               onSwiper={(swiper) => {
@@ -354,16 +353,15 @@ export const ProductCategories: React.FC = () => {
               }}
             >
               {categoryProducts.map(({ category, product, lowestPrice }, index) => (
-                <SwiperSlide key={index}>
-                  <div className="bg-white rounded-lg text-left px-2">
-                    <div className="w-full h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
+                <SwiperSlide key={index} className="w-[202px] h-[302px] pr-0 m-0">
+                  <div className="w-full h-full bg-white rounded-lg text-left">
+                    <div className="w-[202px] h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
                       {product.images && product.images.length > 0 ? (
                         <Image
                           src={product.images[0]}
                           alt={category.name}
                           width={159}
                           height={123}
-                          //className="object-contain"
                           className="object-cover w-[159px] h-[123px] rounded-md"
                           unoptimized
                         />
