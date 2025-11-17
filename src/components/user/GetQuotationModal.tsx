@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus, Camera } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
@@ -48,7 +48,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -112,6 +112,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     );
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+      setFileName("");
+    }
+  }, [isOpen, reset]);
 
   // Handle modal close
   const handleModalClose = () => {
@@ -579,9 +586,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               <div className="flex col-span-3 items-center justify-center mt-4">
                 <button
                   type="submit"
-                  className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
+                  className={`w-[164px] h-[32px]   font-[600] font-body text-[12px] rounded-[3px]  ${
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+                  }`}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </form>

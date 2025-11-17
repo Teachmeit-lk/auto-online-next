@@ -425,7 +425,6 @@ export const ViewQuotationRequestModal: React.FC<
                          ? "focus:ring-red-500 focus:border-red-500"
                          : "focus:ring-yellow-500 focus:border-yellow-500"
                      }`}
-                      defaultValue=""
                     >
                       <option value="" className="text-gray-500">
                         Select Unit
