@@ -1,15 +1,18 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { User as FirebaseUser } from "firebase/auth";
-import { 
-  registerUser, 
-  loginUser, 
-  logoutUser, 
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
   getCurrentUserProfile,
   onAuthStateChange,
   UserProfile,
-  FirebaseAuthError
+  FirebaseAuthError,
 } from "@/service/firebaseAuthService";
-import { SignupRequest, LoginRequest } from "@/interfaces/requests/authRequests";
+import {
+  SignupRequest,
+  LoginRequest,
+} from "@/interfaces/requests/authRequests";
 
 export type User = {
   id?: string;
@@ -60,11 +63,17 @@ const initialState: IAuthState = {
 export const registerUserAsync = createAsyncThunk(
   "auth/register",
   async (
-    { userData, userType }: { userData: SignupRequest; userType: "buyer" | "vendor" },
+    {
+      userData,
+      userType,
+    }: { userData: SignupRequest; userType: "buyer" | "vendor" },
     { rejectWithValue }
   ) => {
     try {
-      const { user: firebaseUser, profile } = await registerUser(userData, userType);
+      const { user: firebaseUser, profile } = await registerUser(
+        userData,
+        userType
+      );
       return { firebaseUser: firebaseUser.toJSON(), profile };
     } catch (error) {
       const firebaseError = error as FirebaseAuthError;
@@ -76,12 +85,24 @@ export const registerUserAsync = createAsyncThunk(
 export const loginUserAsync = createAsyncThunk(
   "auth/login",
   async (
-    { credentials, userType }: { credentials: LoginRequest; userType: "buyer" | "vendor" | "admin" },
+    {
+      credentials,
+      userType,
+    }: { credentials: LoginRequest; userType: "buyer" | "vendor" | "admin" },
     { rejectWithValue }
   ) => {
     try {
-      const { user: firebaseUser, profile } = await loginUser(credentials, userType);
-      return { firebaseUser: firebaseUser.toJSON(), profile };
+      const { user: firebaseUser, profile } = await loginUser(
+        credentials,
+        userType
+      );
+
+      const { createdAt, updatedAt, ...safeProfile } = profile as any;
+
+      return {
+        firebaseUser: firebaseUser.toJSON(),
+        profile: safeProfile,
+      };
     } catch (error) {
       const firebaseError = error as FirebaseAuthError;
       return rejectWithValue(firebaseError.message);
@@ -149,8 +170,10 @@ const authSlice = createSlice({
         vehicleBrand: (profile as any).vehicleBrand,
         vehicleModel: (profile as any).vehicleModel,
         isActive: profile.isActive,
-        createdAt: profile.createdAt instanceof Date ? profile.createdAt : new Date(),
-        updatedAt: profile.updatedAt instanceof Date ? profile.updatedAt : new Date(),
+        createdAt:
+          profile.createdAt instanceof Date ? profile.createdAt : new Date(),
+        updatedAt:
+          profile.updatedAt instanceof Date ? profile.updatedAt : new Date(),
       };
       state.isAuthenticated = true;
       state.error = null;
@@ -182,8 +205,14 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.profile.id,
           userId: action.payload.profile.id,
-          buyerId: action.payload.profile.role === "buyer" ? action.payload.profile.id : undefined,
-          vendorId: action.payload.profile.role === "vendor" ? action.payload.profile.id : undefined,
+          buyerId:
+            action.payload.profile.role === "buyer"
+              ? action.payload.profile.id
+              : undefined,
+          vendorId:
+            action.payload.profile.role === "vendor"
+              ? action.payload.profile.id
+              : undefined,
           firstName: action.payload.profile.firstName,
           lastName: action.payload.profile.lastName,
           email: action.payload.profile.email,
@@ -202,8 +231,14 @@ const authSlice = createSlice({
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
           isActive: action.payload.profile.isActive,
-          createdAt: action.payload.profile.createdAt instanceof Date ? action.payload.profile.createdAt : new Date(),
-          updatedAt: action.payload.profile.updatedAt instanceof Date ? action.payload.profile.updatedAt : new Date(),
+          createdAt:
+            action.payload.profile.createdAt instanceof Date
+              ? action.payload.profile.createdAt
+              : new Date(),
+          updatedAt:
+            action.payload.profile.updatedAt instanceof Date
+              ? action.payload.profile.updatedAt
+              : new Date(),
         };
         state.isAuthenticated = true;
         state.error = null;
@@ -226,8 +261,14 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.profile.id,
           userId: action.payload.profile.id,
-          buyerId: action.payload.profile.role === "buyer" ? action.payload.profile.id : undefined,
-          vendorId: action.payload.profile.role === "vendor" ? action.payload.profile.id : undefined,
+          buyerId:
+            action.payload.profile.role === "buyer"
+              ? action.payload.profile.id
+              : undefined,
+          vendorId:
+            action.payload.profile.role === "vendor"
+              ? action.payload.profile.id
+              : undefined,
           firstName: action.payload.profile.firstName,
           lastName: action.payload.profile.lastName,
           email: action.payload.profile.email,
@@ -246,8 +287,14 @@ const authSlice = createSlice({
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
           isActive: action.payload.profile.isActive,
-          createdAt: action.payload.profile.createdAt instanceof Date ? action.payload.profile.createdAt : new Date(),
-          updatedAt: action.payload.profile.updatedAt instanceof Date ? action.payload.profile.updatedAt : new Date(),
+          createdAt:
+            action.payload.profile.createdAt instanceof Date
+              ? action.payload.profile.createdAt
+              : new Date(),
+          updatedAt:
+            action.payload.profile.updatedAt instanceof Date
+              ? action.payload.profile.updatedAt
+              : new Date(),
         };
         state.isAuthenticated = true;
         state.error = null;
@@ -286,8 +333,10 @@ const authSlice = createSlice({
           state.user = {
             id: action.payload.id,
             userId: action.payload.id,
-            buyerId: action.payload.role === "buyer" ? action.payload.id : undefined,
-            vendorId: action.payload.role === "vendor" ? action.payload.id : undefined,
+            buyerId:
+              action.payload.role === "buyer" ? action.payload.id : undefined,
+            vendorId:
+              action.payload.role === "vendor" ? action.payload.id : undefined,
             firstName: action.payload.firstName,
             lastName: action.payload.lastName,
             email: action.payload.email,
@@ -306,8 +355,14 @@ const authSlice = createSlice({
             vehicleBrand: (action.payload as any).vehicleBrand,
             vehicleModel: (action.payload as any).vehicleModel,
             isActive: action.payload.isActive,
-            createdAt: action.payload.createdAt instanceof Date ? action.payload.createdAt : new Date(),
-            updatedAt: action.payload.updatedAt instanceof Date ? action.payload.updatedAt : new Date(),
+            createdAt:
+              action.payload.createdAt instanceof Date
+                ? action.payload.createdAt
+                : new Date(),
+            updatedAt:
+              action.payload.updatedAt instanceof Date
+                ? action.payload.updatedAt
+                : new Date(),
           };
         }
       })
@@ -318,13 +373,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { 
-  setFirebaseUser, 
-  setUser, 
-  clearError, 
-  setInitialized, 
-  logout 
-} = authSlice.actions;
+export const { setFirebaseUser, setUser, clearError, setInitialized, logout } =
+  authSlice.actions;
 
 export default authSlice.reducer;
 
@@ -332,7 +382,7 @@ export default authSlice.reducer;
 export const initializeFirebaseAuth = () => (dispatch: any) => {
   return onAuthStateChange(async (firebaseUser) => {
     dispatch(setFirebaseUser(firebaseUser));
-    
+
     if (firebaseUser) {
       // Get user profile from Firestore
       try {
@@ -344,7 +394,7 @@ export const initializeFirebaseAuth = () => (dispatch: any) => {
         console.error("Error getting user profile:", error);
       }
     }
-    
+
     dispatch(setInitialized(true));
   });
 };
