@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   CirclePlus,
@@ -42,6 +42,8 @@ export const Header: React.FC = () => {
   const dispatch = useDispatch();
   const { initialized } = useFirebase();
   const router = useRouter();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +99,28 @@ export const Header: React.FC = () => {
     }
     setIsUserModalOpen(!isUserModalOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isUserModalOpen &&
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node) &&
+        userButtonRef.current &&
+        !userButtonRef.current.contains(event.target as Node)
+      ) {
+        setIsUserModalOpen(false);
+      }
+    };
+
+    if (isUserModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserModalOpen]);
 
   return (
     <>
@@ -189,6 +213,7 @@ export const Header: React.FC = () => {
         {/* User Pop-up Menu positioned below the icon */}
         {isUserModalOpen && (
           <div
+            ref={modalRef}
             className="fixed z-50 bg-white rounded-lg shadow-lg w-[200px] border border-gray-200"
             style={{
               top: `${modalPosition.top}px`,
@@ -254,7 +279,7 @@ export const Header: React.FC = () => {
               key={name}
               href={path}
               className={`text-[16px] font-body w-[127px] h-[42px] flex items-center justify-center ${
-                activeSection === name
+                pathname === path || pathname.startsWith(path.replace('/#', '/'))
                   ? "bg-yellow-500 text-black"
                   : "text-white hover:text-black hover:bg-yellow-500"
               }`}
