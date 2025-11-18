@@ -75,7 +75,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
     defaultValues: product
@@ -317,7 +317,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
             Update Product
           </Dialog.Title>
           <form
-            className="sm:grid sm:grid-cols-3 gap-x-5 gap-y-4 bg-[#F8F8F8] rounded-[8px] sm:px-9 px-4 pt-10 pb-11 sm:space-y-0 space-y-2  h-[500px] overflow-y-auto"
+            className="sm:grid sm:grid-cols-3 no-scrollbar gap-x-5 gap-y-4 bg-[#F8F8F8] rounded-[8px] sm:px-9 px-4 pt-10 pb-11 sm:space-y-0 space-y-2  h-[500px] overflow-y-auto"
             onSubmit={handleSubmit(onSubmit)}
           >
             {/* Product Name */}
@@ -549,7 +549,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 Country of Manufacture
               </label>
               <Controller
-                name="countryOfManufacture"
+                name="vehicleMadeIn"
                 control={control}
                 render={({ field }) => (
                   <input
@@ -557,16 +557,16 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     type="text"
                     placeholder="Enter Country"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
-                      errors.countryOfManufacture
+                      errors.vehicleMadeIn
                         ? "focus:ring-red-500"
                         : "focus:ring-yellow-500"
                     }`}
                   />
                 )}
               />
-              {errors.countryOfManufacture && (
+              {errors.vehicleMadeIn && (
                 <p className="text-red-500 text-[10px] mt-1">
-                  {errors.countryOfManufacture.message}
+                  {errors.vehicleMadeIn.message}
                 </p>
               )}
             </div>
@@ -684,7 +684,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                         <button
                           type="button"
                           onClick={() => toggleSelectImage(url)}
-                          className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded px-1"
+                          className="absolute top-[-1px] right-[-1px] bg-red-600 text-white text-[10px] rounded px-1"
                         >
                           x
                         </button>
@@ -727,9 +727,14 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
             <div className="col-span-3 flex justify-center">
               <button
                 type="submit"
-                className="w-[164px] h-[36px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[14px] rounded-[3px] hover:bg-yellow-500"
+                disabled={isSubmitting}
+                className={`w-[150px] h-[36px] font-[600] font-body text-[12px] rounded-[3px] ${
+                  isSubmitting
+                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                    : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+                }`}
               >
-                Update Product
+                {isSubmitting ? "Updating.." : "Update Product"}
               </button>
             </div>
           </form>
