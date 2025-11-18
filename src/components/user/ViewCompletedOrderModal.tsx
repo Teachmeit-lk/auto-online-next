@@ -20,7 +20,7 @@ export const ViewCompletedOrderModal: React.FC<
   const itemCount = Array.isArray(order?.products) ? order.products.length : 0;
   const totalAmount =
     order?.totalAmount != null ? String(order.totalAmount) : "-";
-  const netTotal = totalAmount; // if VAT included separately, compute here
+  const netTotal = totalAmount;
   const ts =
     order?.completedDate ||
     order?.deliveredDate ||
@@ -31,9 +31,15 @@ export const ViewCompletedOrderModal: React.FC<
     : ts instanceof Date
     ? ts.toLocaleDateString()
     : "-";
+  const contactNumber = order?.buyerContactNumber || "-";
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
@@ -41,14 +47,10 @@ export const ViewCompletedOrderModal: React.FC<
             Completed Order
           </Dialog.Title>
 
-          {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6">
-            {/* Optional Banner / Placeholder */}
             <div className="flex justify-center"></div>
 
-            {/* Form Section */}
             <form className="sm:grid sm:grid-cols-3 gap-y-4 gap-x-6 sm:space-y-0 space-y-2 sm:h-full h-[500px] overflow-y-auto">
-              {/* Order No */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Order No
@@ -61,7 +63,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Vendor Code */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Vendor Code
@@ -74,7 +75,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Part Name */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Part Name
@@ -87,7 +87,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Booked Date */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Completed Date
@@ -100,20 +99,18 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Contact Number */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Contact Number
                 </label>
                 <input
                   type="text"
-                  placeholder="N/A"
+                  value={contactNumber}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Item Count */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Item Count
@@ -126,7 +123,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Total Price (Rs.) */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Total Price (Rs.)
@@ -139,7 +135,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Net Total Price (Rs.) */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Net Total Price (Rs.)
@@ -152,7 +147,6 @@ export const ViewCompletedOrderModal: React.FC<
                 />
               </div>
 
-              {/* Description */}
               <div className="col-span-3">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Description
@@ -167,7 +161,6 @@ export const ViewCompletedOrderModal: React.FC<
             </form>
           </div>
 
-          {/* Close Button */}
           <Dialog.Close asChild>
             <button
               onClick={onClose}
