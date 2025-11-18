@@ -23,19 +23,31 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     return items.map((p, idx) => ({
       id: idx + 1,
       itemName: p.partName,
+      imageUrl: p.imageUrl || null,
       unit: "Unit",
       description: p.description || "-",
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
       netTotal: p.totalPrice,
-      stock: "-",
-      comment: p.warranty || "-",
+      stock: p.stockAvailability || "-",
+      comment: p.vendorComments || p.warranty || "-",
     }));
   }, [quotation]);
   const [openQuotationConfirmation, setOpenQuotationConfirmation] =
     useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+ 
+  const extractDeliveryCost = (notes?: string): string => {
+    if (!notes) return "-";
+
+    const match = notes.match(/Delivery Cost[:\s]+([0-9]+(?:\.[0-9]{1,2})?)/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    return "-";
+  };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -104,7 +116,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="500.00"
-                  value={quotation?.deliveryTimeframe || ""}
+                  value={extractDeliveryCost(quotation?.notes)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -158,7 +170,19 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                     >
                       <td className="p-3 border "> {item.id}</td>
                       <td className="p-3 border">{item.itemName}</td>
-                      <td className="p-3 border">{item.itemName}</td>
+                      <td className="p-3 border">
+                        {item.imageUrl ? (
+                          <div className="flex justify-center items-center">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.itemName}
+                              className="w-[40px] h-[30px] object-cover rounded"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[8px] text-gray-400">No image</span>
+                        )}
+                      </td>
                       <td className="p-3 border">{item.unit}</td>
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
