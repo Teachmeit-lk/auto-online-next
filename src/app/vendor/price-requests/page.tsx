@@ -46,6 +46,7 @@ const NewPriceRequests: React.FC = () => {
     null
   );
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -84,7 +85,12 @@ const NewPriceRequests: React.FC = () => {
       }
     };
     load();
-  }, [currentUser?.id]);
+  }, [currentUser?.id, reloadToken]);
+
+  const handleQuotationSubmitted = () => {
+    setIsModalOpen2(false);
+    setReloadToken((t) => t + 1);
+  };
 
   const requestRows = useMemo(() => {
     const quotedRequestIds = new Set(
@@ -413,6 +419,7 @@ const NewPriceRequests: React.FC = () => {
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
           request={selectedRequest}
+          onSubmitted={handleQuotationSubmitted}
         />
 
         <ViewQuotationModal
