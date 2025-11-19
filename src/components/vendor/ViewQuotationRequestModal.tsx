@@ -167,6 +167,10 @@ export const ViewQuotationRequestModal: React.FC<
             totalPrice: unitPriceNum * quantityNum,
             description: data.description,
             condition: "new",
+            imageUrl: attachmentUrl || null,
+            stockAvailability: data.stockAvailability,
+            vendorComments: data.vendorComments,
+            warranty: data.vendorComments,
           },
         ],
         description: data.description,
@@ -178,7 +182,7 @@ export const ViewQuotationRequestModal: React.FC<
         status: "pending",
         notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
           data.contactNumber
-        }${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
+        }, Delivery Cost: ${data.deliveryCost || 0}${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
