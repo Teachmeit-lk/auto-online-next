@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import { useMemo } from "react";
 import { PurchaseOrder } from "@/service/firestoreService";
+import Image from "next/image";
 
 interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
@@ -16,26 +17,22 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   onClose,
   order,
 }) => {
-  console.log(
-    "[ViewPurchaseOrderModal] Opening modal for order:",
-    order?.id,
-    order?.orderNumber
-  );
-
   const tableData = useMemo(() => {
     const items = order?.products || [];
     return items.map((p, idx) => ({
       id: idx + 1,
       itemName: p.partName,
-      unit: "Unit",
-      description: "-",
+      unit: p.quantity,
+      description: order?.quotationDescription || "-",
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
       netTotal: p.totalPrice,
       stock: "-",
-      comment: "-",
+      comment: order?.quotationTerms || "-",
     }));
   }, [order]);
+
+  console.log(order);
 
   const getDeliveryMethodLabel = (method?: string) => {
     if (method === "arrange_delivery") return "Arrange delivery through vendor";
@@ -209,7 +206,18 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                     >
                       <td className="p-3 border "> {item.id}</td>
                       <td className="p-3 border">{item.itemName}</td>
-                      <td className="p-3 border">{item.itemName}</td>
+                      <td className="p-3 border">
+                        <Image
+                          className="w-20 h-10"
+                          src={
+                            order?.quotationImageUrl ||
+                            "/images/placeholder.png"
+                          }
+                          alt="order image"
+                          width={200}
+                          height={200}
+                        />
+                      </td>
                       <td className="p-3 border">{item.unit}</td>
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>

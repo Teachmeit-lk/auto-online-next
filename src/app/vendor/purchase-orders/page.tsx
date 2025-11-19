@@ -38,6 +38,20 @@ const NewPurchaseOrders: React.FC = () => {
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [buyerNameMap, setBuyerNameMap] = useState<Record<string, string>>({});
+  const [deliveryCostMap, setDeliveryCostMap] = useState<
+    Record<string, number>
+  >({});
+  const [quotationDetailsMap, setQuotationDetailsMap] = useState<
+    Record<
+      string,
+      {
+        deliveryCost?: number;
+        description?: string;
+        terms?: string;
+        imageUrl?: string;
+      }
+    >
+  >({});
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -112,6 +126,62 @@ const NewPurchaseOrders: React.FC = () => {
     if (orders.length > 0) loadBuyers();
   }, [orders]);
 
+  useEffect(() => {
+    const loadQuotationDetails = async () => {
+      const quotationIds = Array.from(
+        new Set((orders || []).map((o: any) => o.quotationId).filter(Boolean))
+      );
+
+      if (quotationIds.length === 0) return;
+
+      const map: Record<
+        string,
+        {
+          deliveryCost?: number;
+          description?: string;
+          terms?: string;
+          imageUrl?: string;
+        }
+      > = {};
+
+      await Promise.all(
+        quotationIds.map(async (id) => {
+          try {
+            const quotation: any = await FirestoreService.getById(
+              COLLECTIONS.QUOTATIONS,
+              id
+            );
+
+            if (!quotation) return;
+
+            let imageUrl: string | undefined;
+            if (typeof quotation.notes === "string") {
+              const match = quotation.notes.match(/https?:\/\/\S+/);
+              if (match) {
+                imageUrl = match[0];
+              }
+            }
+
+            map[id] = {
+              deliveryCost: quotation.deliveryCost,
+              description: quotation.description,
+              terms: quotation.terms,
+              imageUrl,
+            };
+          } catch (e) {
+            console.error("[PurchaseOrders] Failed to load quotation", id, e);
+          }
+        })
+      );
+
+      setQuotationDetailsMap(map);
+    };
+
+    if (orders.length > 0) {
+      loadQuotationDetails();
+    }
+  }, [orders]);
+
   const rows = useMemo(() => {
     return (orders || []).map((order: any, idx: number) => {
       const ts = order.updatedAt || order.createdAt;
@@ -120,6 +190,12 @@ const NewPurchaseOrders: React.FC = () => {
         : ts instanceof Date
         ? ts
         : null;
+
+      const quotationDetails =
+        order.quotationId && quotationDetailsMap[order.quotationId]
+          ? quotationDetailsMap[order.quotationId]
+          : {};
+
       return {
         id: order.id,
         rcode: order.orderNumber || order.quotationRequestId || "-",
@@ -128,11 +204,18 @@ const NewPurchaseOrders: React.FC = () => {
         pname: order.products?.[0]?.partName || "-",
         bdate: d ? d.toLocaleDateString() : "-",
         status: order.status,
-        raw: order as PurchaseOrder,
+
+        raw: {
+          ...(order as PurchaseOrder),
+          deliveryCost: quotationDetails.deliveryCost,
+          quotationDescription: quotationDetails.description,
+          quotationTerms: quotationDetails.terms,
+          quotationImageUrl: quotationDetails.imageUrl,
+        },
         no: idx + 1,
       };
     });
-  }, [orders, buyerNameMap]);
+  }, [orders, buyerNameMap, quotationDetailsMap]);
 
   // const handleConfirmAlert = () => {
   //   console.log("Estimate confirmed!");

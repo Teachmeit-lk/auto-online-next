@@ -158,6 +158,7 @@ export const ViewQuotationRequestModal: React.FC<
           "",
         vendorEmail: user.email || "",
         buyerId: request.buyerId,
+        deliveryCost: data.deliveryCost,
         products: [
           {
             partName: data.itemName,
@@ -168,6 +169,7 @@ export const ViewQuotationRequestModal: React.FC<
             condition: "new",
           },
         ],
+        description: data.description,
         totalAmount: totalAmountNum,
         currency: "LKR",
         validUntil,
