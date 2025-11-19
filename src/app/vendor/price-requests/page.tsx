@@ -259,9 +259,9 @@ const NewPriceRequests: React.FC = () => {
                 <th className="border border-r-2 border-b-2  border-white  py-2">
                   Customer Name
                 </th>
-                <th className="border border-r-2 border-b-2 border-white py-2">
+                {/* <th className="border border-r-2 border-b-2 border-white py-2">
                   Main Category
-                </th>
+                </th> */}
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Vehicle Type
                 </th>
@@ -305,9 +305,9 @@ const NewPriceRequests: React.FC = () => {
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {vendor.cname}
                     </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
+                    {/* <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {vendor.mcategory}
-                    </td>
+                    </td> */}
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {vendor.vtype}
                     </td>

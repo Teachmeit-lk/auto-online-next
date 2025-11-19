@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import * as Yup from "yup";
@@ -128,6 +128,12 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     if (!product?.id) return;
+    if (!selectedImageUrls || selectedImageUrls.length === 0) {
+      setImageError("At least one image is required.");
+      return;
+    } else {
+      setImageError(null);
+    }
 
     try {
       const updateData: Partial<Product> = {
@@ -178,6 +184,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
   // Reset form when product changes
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const [galleryImages, setGalleryImages] = React.useState<GalleryImage[]>([]);
   const [selectedImageUrls, setSelectedImageUrls] = React.useState<string[]>(
@@ -498,6 +505,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 render={({ field }) => (
                   <input
                     {...field}
+                    min={1}
                     type="number"
                     placeholder="Enter Price"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
@@ -526,6 +534,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 render={({ field }) => (
                   <input
                     {...field}
+                    min={0}
                     type="number"
                     placeholder="Enter Quantity"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
@@ -692,6 +701,9 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                     ))}
                   </div>
                 </div>
+              )}
+              {imageError && (
+                <p className="text-red-500 text-[10px] mt-1">{imageError}</p>
               )}
             </div>
 
