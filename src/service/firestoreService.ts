@@ -130,9 +130,12 @@ export interface Quotation extends BaseDocument {
 export interface PurchaseOrder extends BaseDocument {
   quotationId: string;
   quotationRequestId: string;
+  quotationImageUrl?: string;
   buyerId: string;
   vendorId: string;
+  quotationTerms?: string;
   orderNumber: string;
+  quotationDescription?: string;
   products: Array<{
     productId?: string;
     partName: string;
