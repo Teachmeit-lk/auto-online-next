@@ -49,6 +49,7 @@ const NewPurchaseOrders: React.FC = () => {
         description?: string;
         terms?: string;
         imageUrl?: string;
+        stockAvailability?: string;
       }
     >
   >({});
@@ -141,6 +142,7 @@ const NewPurchaseOrders: React.FC = () => {
           description?: string;
           terms?: string;
           imageUrl?: string;
+          stockAvailability?: string;
         }
       > = {};
 
@@ -154,8 +156,17 @@ const NewPurchaseOrders: React.FC = () => {
 
             if (!quotation) return;
 
-            let imageUrl: string | undefined;
-            if (typeof quotation.notes === "string") {
+            const firstProduct = Array.isArray(quotation.products)
+              ? quotation.products[0]
+              : undefined;
+
+            // imageUrl can now come directly from the product; fall back to notes if needed
+            let imageUrl: string | undefined =
+              typeof firstProduct?.imageUrl === "string"
+                ? firstProduct.imageUrl
+                : undefined;
+
+            if (!imageUrl && typeof quotation.notes === "string") {
               const match = quotation.notes.match(/https?:\/\/\S+/);
               if (match) {
                 imageUrl = match[0];
@@ -166,6 +177,7 @@ const NewPurchaseOrders: React.FC = () => {
               deliveryCost: quotation.deliveryCost,
               description: quotation.description,
               terms: quotation.terms,
+              stockAvailability: firstProduct?.stockAvailability, // 👈 HERE
               imageUrl,
             };
           } catch (e) {
@@ -211,6 +223,7 @@ const NewPurchaseOrders: React.FC = () => {
           quotationDescription: quotationDetails.description,
           quotationTerms: quotationDetails.terms,
           quotationImageUrl: quotationDetails.imageUrl,
+          stockAvailability: quotationDetails.stockAvailability,
         },
         no: idx + 1,
       };

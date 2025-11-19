@@ -29,6 +29,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
       netTotal: p.totalPrice,
       stock: "-",
       comment: order?.quotationTerms || "-",
+      stockAvailability: order?.stockAvailability || "-",
     }));
   }, [order]);
 
@@ -223,7 +224,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
                       <td className="p-3 border">{item.netTotal}</td>
-                      <td className="p-3 border">{item.stock}</td>
+                      <td className="p-3 border">{item.stockAvailability}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>
                   ))}

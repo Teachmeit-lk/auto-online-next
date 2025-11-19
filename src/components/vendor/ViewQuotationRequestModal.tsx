@@ -14,6 +14,7 @@ interface IViewQuotationRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   request?: QuotationRequest | null;
+  onSubmitted?: () => void;
 }
 
 interface IFormValues {
@@ -37,7 +38,7 @@ interface IFormValues {
 
 export const ViewQuotationRequestModal: React.FC<
   IViewQuotationRequestModalProps
-> = ({ isOpen, onClose, request }) => {
+> = ({ isOpen, onClose, request, onSubmitted }) => {
   const [fileName, setFileName] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -182,12 +183,14 @@ export const ViewQuotationRequestModal: React.FC<
         status: "pending",
         notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
           data.contactNumber
-        }, Delivery Cost: ${data.deliveryCost || 0}${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
+        }, Delivery Cost: ${data.deliveryCost || 0}${
+          attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""
+        }`,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
       } as any);
-
+      onSubmitted?.();
       handleModalClose();
     } catch (e: any) {
       console.error("Error submitting quotation", e);
@@ -455,7 +458,7 @@ export const ViewQuotationRequestModal: React.FC<
                 <Controller
                   name="noOfUnits"
                   control={control}
-                  defaultValue={(request?.numberOfUnits as any) || 1}
+                  defaultValue={0}
                   render={({ field }) => (
                     <input
                       {...field}
