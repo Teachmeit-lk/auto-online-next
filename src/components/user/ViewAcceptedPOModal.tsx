@@ -25,6 +25,7 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
   quotation,
 }) => {
   const [request, setRequest] = useState<QuotationRequest | null>(null);
+  const [vendorInfo, setVendorInfo] = useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -39,6 +40,41 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
       }
     })();
   }, [quotation?.quotationRequestId]);
+
+  useEffect(() => {
+    (async () => {
+      if (quotation?.vendorId) {
+        try {
+          const vendor = await FirestoreService.getById<any>(
+            COLLECTIONS.VENDORS,
+            quotation.vendorId
+          );
+          
+          if (vendor) {
+            const companyName = 
+              vendor.companyName || 
+              vendor.name || 
+              vendor.businessName || 
+              vendor.shopName || 
+              vendor.displayName ||
+              vendor.firstName + (vendor.lastName ? " " + vendor.lastName : "") ||
+              "-"; 
+            setVendorInfo({
+              name: companyName,
+              email: vendor.email || vendor.contactEmail || "-"
+            });
+          } else {
+            setVendorInfo(null);
+          }
+        } catch (error) {
+          console.error("Error fetching vendor:", error);
+          setVendorInfo(null);
+        }
+      } else {
+        setVendorInfo(null);
+      }
+    })();
+  }, [quotation?.vendorId]);
 
   const acceptedDate = useMemo(() => {
     const ts: any =
@@ -62,9 +98,8 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            Accepted Purchase Order by {quotation?.vendorName || "Vendor"}
+            Accepted Purchase Order by {vendorInfo?.name || quotation?.vendorName || "Vendor"}
           </Dialog.Title>
-
           {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
             {/* Image Section */}
@@ -123,7 +158,8 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={quotation?.vendorName || "-"}
+                  //value={quotation?.vendorName || "-"}
+                  value={vendorInfo?.name || quotation?.vendorName || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -177,7 +213,8 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={quotation?.vendorEmail || "-"}
+                  //value={quotation?.vendorEmail || "-"}
+                  value={vendorInfo?.email || quotation?.vendorEmail || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
