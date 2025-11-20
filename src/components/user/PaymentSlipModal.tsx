@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { CirclePlus } from "lucide-react";
+import { Camera, CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { OrderService } from "@/service/firestoreService";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
@@ -172,13 +172,23 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
                   Payment Slip (Image or PDF) *
                 </label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,application/pdf"
-                  onChange={handleFileSelect}
-                  disabled={isSubmitting}
-                  className="w-full h-[36px] px-3 text-[12px] font-body bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] disabled:opacity-50"
-                />
+                <div className="col-span-3">
+                  <label
+                    htmlFor="file-upload"
+                    className="flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE]"
+                  >
+                    <Camera size="16px" color="#5B5B5B" />
+                  </label>
+
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={handleFileSelect}
+                    disabled={isSubmitting}
+                    className="hidden"
+                  />
+                </div>
                 <p className="text-[10px] text-[#5B5B5B] mt-1">
                   Accepted formats: JPEG, PNG, PDF (Max 10MB)
                 </p>
