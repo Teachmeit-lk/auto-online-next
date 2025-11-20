@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import * as Yup from "yup";
@@ -100,6 +100,7 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
   const [measurementOptions, setMeasurementOptions] = React.useState<
     { value: string; label: string }[]
   >([]);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   React.useEffect(() => {
     (async () => {
@@ -200,6 +201,12 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
   const onSubmit = async (data: FormValues) => {
     try {
       if (!currentUser?.id) throw new Error("Vendor not found");
+      if (!selectedImageUrls || selectedImageUrls.length === 0) {
+        setImageError("At least one image is required.");
+        return;
+      } else {
+        setImageError(null);
+      }
 
       // Map modal form values to Firestore product fields
       const productData = {
@@ -452,6 +459,7 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                 render={({ field }) => (
                   <input
                     {...field}
+                    min={1}
                     type="number"
                     placeholder="Enter Price"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
@@ -481,6 +489,7 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                 render={({ field }) => (
                   <input
                     {...field}
+                    min={1}
                     type="number"
                     placeholder="Enter Quantity"
                     className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102] focus:outline-none focus:ring-2 ${
@@ -671,7 +680,7 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                         <button
                           type="button"
                           onClick={() => toggleSelectImage(url)}
-                          className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded px-1"
+                          className="absolute top-[1px] right-0 bg-red-600 text-white text-[10px] rounded px-1"
                         >
                           x
                         </button>
@@ -679,6 +688,9 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
                     ))}
                   </div>
                 </div>
+              )}
+              {imageError && (
+                <p className="text-red-500 text-[10px] mt-1">{imageError}</p>
               )}
             </div>
 
