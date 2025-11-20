@@ -52,8 +52,16 @@ export const ViewQuotationRequestModal: React.FC<
     measurement: Yup.string().required("Measurement is required"),
     noOfUnits: Yup.number()
       .required("No of Units is required")
-      .positive("Must be a positive number")
-      .integer("Must be an integer"),
+      .integer("Must be an integer")
+      .when("stockAvailability", {
+        is: "Out of Stock",
+        then: (schema) =>
+          schema
+            .min(0, "Units cannot be negative")
+            .max(0, "No of Units must be 0 when out of stock"),
+        otherwise: (schema) =>
+          schema.min(1, "No of Units must be at least 1 when in stock"),
+      }),
     unitPrice: Yup.number()
       .required("Unit Price is required")
       .positive("Must be a positive number"),
@@ -115,6 +123,14 @@ export const ViewQuotationRequestModal: React.FC<
       { shouldValidate: true }
     );
   }, [watchedUnits, watchedUnitPrice, setValue]);
+
+  const watchedStock = watch("stockAvailability");
+
+  useEffect(() => {
+    if (watchedStock === "Out of Stock") {
+      setValue("noOfUnits", 0, { shouldValidate: true });
+    }
+  }, [watchedStock, setValue]);
 
   // Form submission handler
   const onSubmit = async (data: IFormValues) => {
@@ -464,6 +480,7 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="number"
                       id="noOfUnits"
+                      disabled={watchedStock === "Out of Stock"}
                       placeholder="Enter number of units"
                       value={field.value ?? ""}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
@@ -686,7 +703,7 @@ export const ViewQuotationRequestModal: React.FC<
               </div>
 
               <div className="flex col-span-3 gap-x-3 items-center justify-center mt-2">
-                <button
+                {/* <button
                   type="submit"
                   className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
                 >
@@ -698,7 +715,7 @@ export const ViewQuotationRequestModal: React.FC<
                   className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
                 >
                   Add as Empty
-                </button>
+                </button> */}
               </div>
               {/* Sales Person Details */}
               <h2 className="text-[15px] text-center col-span-3  mt-8 font-bold mb-2 text-[#111102] font-body">
