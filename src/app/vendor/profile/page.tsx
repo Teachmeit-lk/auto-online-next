@@ -8,9 +8,18 @@ import Select from "react-select";
 import { PasswordInput } from "@/components";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { updateUserProfile, changePassword } from "@/service/firebaseAuthService";
+import {
+  updateUserProfile,
+  changePassword,
+} from "@/service/firebaseAuthService";
 import { refreshUserProfile } from "@/app/store/slice/authslice";
-import { FirestoreService, COLLECTIONS, Category, VehicleBrand, VehicleModel } from "@/service/firestoreService";
+import {
+  FirestoreService,
+  COLLECTIONS,
+  Category,
+  VehicleBrand,
+  VehicleModel,
+} from "@/service/firestoreService";
 
 interface UserProfileFormData {
   companyName: string;
@@ -51,9 +60,15 @@ const VendorProfile = () => {
   const dispatch = useDispatch();
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
-  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>(categoryOptionsStatic);
-  const [brandOptionsDynamic, setBrandOptionsDynamic] = useState<{ value: string; label: string }[]>([]);
-  const [modelOptionsDynamic, setModelOptionsDynamic] = useState<{ value: string; label: string }[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<
+    { value: string; label: string }[]
+  >(categoryOptionsStatic);
+  const [brandOptionsDynamic, setBrandOptionsDynamic] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [modelOptionsDynamic, setModelOptionsDynamic] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -77,12 +92,11 @@ const VendorProfile = () => {
         /^0\d{9}$/,
         "Mobile number must start with 0 and contain exactly 10 digits."
       ),
-    currentPassword: Yup.string()
-      .when("newPassword", {
-        is: (val: string | null | undefined) => !!val && val.length > 0,
-        then: (schema) => schema.required("Current password is required."),
-        otherwise: (schema) => schema.notRequired(),
-      }),
+    currentPassword: Yup.string().when("newPassword", {
+      is: (val: string | null | undefined) => !!val && val.length > 0,
+      then: (schema) => schema.required("Current password is required."),
+      otherwise: (schema) => schema.notRequired(),
+    }),
     newPassword: Yup.string()
       .nullable()
       .notRequired()
@@ -107,7 +121,7 @@ const VendorProfile = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     reset,
     setValue,
   } = useForm<UserProfileFormData>({
@@ -115,12 +129,15 @@ const VendorProfile = () => {
     defaultValues: {},
   });
 
+  console.log(currentUser);
+
   // Set default values from Firebase profile
   useEffect(() => {
-    const mapStringArrayToOptions = (arr?: string[]) => (arr || []).map((v) => ({ value: v, label: v }));
+    const mapStringArrayToOptions = (arr?: string[]) =>
+      (arr || []).map((v) => ({ value: v, label: v }));
     const initialValues: UserProfileFormData = {
-      companyName: currentUser?.firstName || "",
-      contactPerson: currentUser?.lastName || "",
+      companyName: currentUser?.companyName || "",
+      contactPerson: currentUser?.contactPerson || "",
       companyMobileNumber: currentUser?.phone || "",
       whatsappNumber: currentUser?.whatsApp || "",
       email: currentUser?.email || "",
@@ -144,15 +161,25 @@ const VendorProfile = () => {
     let mounted = true;
     (async () => {
       try {
-        const list = await FirestoreService.getAll<Category>(COLLECTIONS.CATEGORIES, undefined, "sortOrder", "asc");
+        const list = await FirestoreService.getAll<Category>(
+          COLLECTIONS.CATEGORIES,
+          undefined,
+          "sortOrder",
+          "asc"
+        );
         if (!mounted) return;
-        const opts = (list || []).map((c) => ({ value: c.id || c.name, label: c.name }));
+        const opts = (list || []).map((c) => ({
+          value: c.id || c.name,
+          label: c.name,
+        }));
         setCategoryOptions(opts);
       } catch (e) {
         // silent fail
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Re-map saved IDs to option labels once options are loaded
@@ -162,7 +189,10 @@ const VendorProfile = () => {
       const selected = (currentUser.mainCategories || [])
         .map((id: string) => categoryOptions.find((o) => o.value === id))
         .filter(Boolean) as { value: string; label: string }[];
-      setValue("mainCategories", selected, { shouldValidate: false, shouldDirty: false });
+      setValue("mainCategories", selected, {
+        shouldValidate: false,
+        shouldDirty: false,
+      });
     }
   }, [categoryOptions, currentUser, setValue]);
 
@@ -172,7 +202,10 @@ const VendorProfile = () => {
       const selected = (currentUser.vehicleBrand || [])
         .map((id: string) => brandOptionsDynamic.find((o) => o.value === id))
         .filter(Boolean) as { value: string; label: string }[];
-      setValue("vehicleBrand", selected, { shouldValidate: false, shouldDirty: false });
+      setValue("vehicleBrand", selected, {
+        shouldValidate: false,
+        shouldDirty: false,
+      });
     }
   }, [brandOptionsDynamic, currentUser, setValue]);
 
@@ -182,7 +215,10 @@ const VendorProfile = () => {
       const selected = (currentUser.vehicleModel || [])
         .map((id: string) => modelOptionsDynamic.find((o) => o.value === id))
         .filter(Boolean) as { value: string; label: string }[];
-      setValue("vehicleModel", selected, { shouldValidate: false, shouldDirty: false });
+      setValue("vehicleModel", selected, {
+        shouldValidate: false,
+        shouldDirty: false,
+      });
     }
   }, [modelOptionsDynamic, currentUser, setValue]);
 
@@ -191,7 +227,12 @@ const VendorProfile = () => {
     let mounted = true;
     (async () => {
       try {
-        const list = await FirestoreService.getAll<VehicleBrand>(COLLECTIONS.VEHICLE_BRANDS, undefined, "sortOrder", "asc");
+        const list = await FirestoreService.getAll<VehicleBrand>(
+          COLLECTIONS.VEHICLE_BRANDS,
+          undefined,
+          "sortOrder",
+          "asc"
+        );
         if (!mounted) return;
         const opts = (list || []).map((b) => ({
           value: b.id || b.name,
@@ -202,7 +243,9 @@ const VendorProfile = () => {
         // silent fail
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Load vehicle models from Firestore
@@ -210,15 +253,25 @@ const VendorProfile = () => {
     let mounted = true;
     (async () => {
       try {
-        const list = await FirestoreService.getAll<VehicleModel>(COLLECTIONS.VEHICLE_MODELS, undefined, "name", "asc");
+        const list = await FirestoreService.getAll<VehicleModel>(
+          COLLECTIONS.VEHICLE_MODELS,
+          undefined,
+          "name",
+          "asc"
+        );
         if (!mounted) return;
-        const opts = (list || []).map((m) => ({ value: m.id || m.name, label: m.name }));
+        const opts = (list || []).map((m) => ({
+          value: m.id || m.name,
+          label: m.name,
+        }));
         setModelOptionsDynamic(opts);
       } catch (e) {
         // silent fail
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (!defaultValues) return <p>Loading...</p>;
@@ -230,7 +283,9 @@ const VendorProfile = () => {
       setIsEditable(true);
     }
   };
-  const onSubmit: SubmitHandler<Partial<UserProfileFormData>> = async (data) => {
+  const onSubmit: SubmitHandler<Partial<UserProfileFormData>> = async (
+    data
+  ) => {
     try {
       // Update password first if requested
       if (data.newPassword && data.currentPassword) {
@@ -241,6 +296,8 @@ const VendorProfile = () => {
       if (currentUser?.id || currentUser?.userId) {
         const userId = (currentUser.id || currentUser.userId) as string;
         const updates: any = {
+          contactPerson: data.contactPerson,
+          companyName: data.companyName,
           email: data.email,
           phone: data.companyMobileNumber,
           whatsApp: data.whatsappNumber,
@@ -256,18 +313,14 @@ const VendorProfile = () => {
         await (dispatch as any)(refreshUserProfile());
       }
 
-      alert("Profile updated successfully.");
+      // alert("Profile updated successfully.");
       setIsEditable(false);
-      reset({
-        ...data,
-        locationLink: data.locationLink ?? "",
-      });
     } catch (err: any) {
       alert(err?.message || "Failed to update profile.");
     }
   };
   return (
-    <div className="w-full py-10 px-4 md:px-12 bg-white max-w-screen-xl mx-auto">
+    <div className="w-full py-10 px-4 md:px-12 bg-white max-w-screen-lg mx-auto">
       <div className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px]">
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
           Vendor Profile - {control._formValues.companyName}
@@ -276,7 +329,7 @@ const VendorProfile = () => {
           onSubmit={
             isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
           }
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="md:grid  md:grid-cols-2 gap-6 space-y-4 md:space-y-0"
         >
           {/* First Name */}
           <div>
@@ -475,7 +528,7 @@ const VendorProfile = () => {
               render={({ field }) => (
                 <PasswordInput
                   {...field}
-                  readOnly
+                  readOnly={!isEditable}
                   inputClassName="px-3 py-2"
                   error={!!errors.currentPassword}
                 />
@@ -644,7 +697,9 @@ const VendorProfile = () => {
                   options={categoryOptions}
                   isMulti
                   isDisabled={!isEditable}
-                  menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
+                  menuPortalTarget={
+                    typeof document !== "undefined" ? document.body : undefined
+                  }
                   menuPosition="fixed"
                   styles={{
                     control: (provided, state) => ({
@@ -914,12 +969,13 @@ const VendorProfile = () => {
 
           {/* Edit / Save Button */}
           <div className="col-span-1 md:col-span-2 mt-2 flex justify-end gap-3">
-            {isEditable && (
+            {isEditable && !isSubmitting && (
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => {
                   setIsEditable(false);
-                  reset(defaultValues || {} as UserProfileFormData);
+                  reset(defaultValues || ({} as UserProfileFormData));
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm text-[#111102] bg-white hover:bg-gray-100"
               >
@@ -929,9 +985,18 @@ const VendorProfile = () => {
             <button
               type="button"
               onClick={handleEditToggle}
-              className="px-4 py-2 bg-[#F9C301] hover:bg-yellow-500 rounded-md text-sm font-body font-semibold text-[#111102]"
+              disabled={isSubmitting}
+              className={`px-4 py-2  rounded-md text-sm font-body font-semibold ${
+                isSubmitting
+                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                  : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+              }`}
             >
-              {isEditable ? "Save Profile" : "Edit Profile"}
+              {isEditable && !isSubmitting
+                ? "Save Profile"
+                : isEditable && isSubmitting
+                ? "Saving"
+                : "Edit Profile"}
             </button>
           </div>
         </form>
