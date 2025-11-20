@@ -74,6 +74,8 @@ export const CreatePurchaseOrderModal: React.FC<
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
+  const [hasOutOfStock, setHasOutOfStock] = useState(false);
+  const [showOutOfStockAlert, setShowOutOfStockAlert] = useState(false);
 
   console.log("quotation:", quotation);
 
@@ -135,37 +137,56 @@ export const CreatePurchaseOrderModal: React.FC<
     );
   };
 
-  useEffect(() => {
-    if (!quotation || !isOpen) {
-      return;
-    }
+useEffect(() => {
+  if (!quotation || !isOpen) {
+    return;
+  }
 
-    const mapped: OrderItem[] = (quotation.products || []).map(
-      (p: any, idx) => {
-        const qty = Number(p.quantity) || 1;
-        const price = Number(p.unitPrice) || 0;
-        return {
-          id: p.id || String(idx),
-          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
-          partNumber: p.partNumber || "",
-          image: Array.isArray(p.images) ? p.images[0] : undefined,
-          quantity: qty,
-          unitPrice: price,
-          totalPrice: Number(p.totalPrice) || qty * price,
-        };
-      }
-    );
-    setItems(mapped);
-  }, [quotation, isOpen]);
+  const mapped: OrderItem[] = (quotation.products || []).map(
+    (p: any, idx) => {
+      const qty = Number(p.quantity) || 1;
+      const price = Number(p.unitPrice) || 0;
+      return {
+        id: p.id || String(idx),
+        itemDescription: p.partName || p.description || `Item ${idx + 1}`,
+        partNumber: p.partNumber || "",
+        image: Array.isArray(p.images) ? p.images[0] : undefined,
+        quantity: qty,
+        unitPrice: price,
+        totalPrice: Number(p.totalPrice) || qty * price,
+      };
+    }
+  );
+  setItems(mapped);
+
+  const outOfStock = (quotation.products || []).some(
+    (p: any) => 
+      p.stockAvailability && 
+      p.stockAvailability.toLowerCase().includes('out of stock')
+  );
+  setHasOutOfStock(outOfStock);
+
+  // Show alert immediately if out of stock
+  if (outOfStock) {
+    setShowOutOfStockAlert(true);
+  }
+}, [quotation, isOpen]);
 
   const handleModalClose = () => {
     reset();
     setSubmitError(null);
     setItems([]);
+    setHasOutOfStock(false);
+    setShowOutOfStockAlert(false);
     onClose();
   };
 
   const onSubmit = async (data: PurchaseOrderFormData) => {
+    if (hasOutOfStock) {
+      setShowOutOfStockAlert(true);
+      return;
+    }
+
     if (!quotation || !user?.id) {
       setSubmitError("Missing quotation or user information");
       return;
@@ -642,7 +663,7 @@ export const CreatePurchaseOrderModal: React.FC<
               >
                 Cancel
               </button>
-              <button
+              {/* <button
                 type="submit"
                 disabled={isSubmitting}
                 className={`w-[120px] h-[36px] font-[600] font-body text-[12px] rounded-[3px] ${
@@ -652,10 +673,56 @@ export const CreatePurchaseOrderModal: React.FC<
                 }`}
               >
                 {isSubmitting ? "Creating..." : "Create Order"}
+              </button> */}
+              <button
+                type="submit"
+                disabled={isSubmitting || hasOutOfStock}
+                className={`w-[120px] h-[36px] font-[600] font-body text-[12px] rounded-[3px] ${
+                  isSubmitting || hasOutOfStock
+                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                    : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+                }`}
+              >
+                {isSubmitting ? "Creating..." : hasOutOfStock ? "Out of Stock" : "Create Order"}
               </button>
             </div>
           </form>
-
+          {/* Out of Stock Alert */}
+          {showOutOfStockAlert && (
+            <Dialog.Root open={showOutOfStockAlert} onOpenChange={setShowOutOfStockAlert}>
+              <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
+                <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[180px] bg-white rounded-[8px] shadow-lg focus:outline-none z-[70]">
+                  <Dialog.Title className="text-[14px] font-bold text-[#111102] font-body text-left mt-3 pl-4">
+                    Out of Stock
+                  </Dialog.Title>
+                  <div className="bg-[#F8F8F8] rounded-[5px] ml-4 mr-4 mt-2 p-4 flex flex-col items-center justify-center">
+                    <div>
+                      <p className="text-[11px] text-[#111102] font-body font-[500] text-center">
+                        Sorry, one or more items are currently out of stock. You cannot create a purchase order at this time.
+                      </p>
+                    </div>
+                    <div className="flex justify-center gap-x-6 mt-8">
+                      <button
+                        onClick={() => setShowOutOfStockAlert(false)}
+                        className="w-[100px] h-[24px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[11px] rounded-[4px] hover:bg-yellow-500"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  </div>
+                  <Dialog.Close asChild>
+                    <button
+                      onClick={() => setShowOutOfStockAlert(false)}
+                      className="absolute top-3 right-4 text-gray-500 hover:text-[#F9C301]"
+                    >
+                      <CirclePlus className="rotate-45" size={18} />
+                    </button>
+                  </Dialog.Close>
+                </Dialog.Content>
+              </Dialog.Portal>
+            </Dialog.Root>
+          )}
           <Dialog.Close asChild>
             <button
               onClick={handleModalClose}
