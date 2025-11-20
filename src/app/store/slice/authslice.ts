@@ -16,6 +16,8 @@ import {
 
 export type User = {
   id?: string;
+  companyName?: string;
+  contactPerson?: string;
   userId?: string;
   buyerId?: string;
   vendorId?: string;
@@ -122,14 +124,15 @@ export const logoutUserAsync = createAsyncThunk(
   }
 );
 
-export const refreshUserProfile = createAsyncThunk(
+export const refreshUserProfile = createAsyncThunk<UserProfile, void>(
   "auth/refreshProfile",
   async (_, { rejectWithValue }) => {
     try {
       const profile = await getCurrentUserProfile();
-      return profile;
+      const { updatedAt, createdAt, ...cleanedProfile } = profile || {};
+      return cleanedProfile as UserProfile;
     } catch (error) {
-      return rejectWithValue("Failed to refresh user profile");
+      return rejectWithValue("Failed to refresh user profile") as any;
     }
   }
 );
@@ -150,6 +153,8 @@ const authSlice = createSlice({
       state.user = {
         id: profile.id,
         userId: profile.id,
+        companyName: (profile as any).companyName || "",
+        contactPerson: (profile as any).contactPerson || "",
         buyerId: profile.role === "buyer" ? profile.id : undefined,
         vendorId: profile.role === "vendor" ? profile.id : undefined,
         firstName: profile.firstName,
@@ -205,6 +210,8 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.profile.id,
           userId: action.payload.profile.id,
+          companyName: (action.payload.profile as any).companyName || "",
+          contactPerson: (action.payload.profile as any).contactPerson || "",
           buyerId:
             action.payload.profile.role === "buyer"
               ? action.payload.profile.id
@@ -261,6 +268,8 @@ const authSlice = createSlice({
         state.user = {
           id: action.payload.profile.id,
           userId: action.payload.profile.id,
+          companyName: (action.payload.profile as any).companyName || "",
+          contactPerson: (action.payload.profile as any).contactPerson || "",
           buyerId:
             action.payload.profile.role === "buyer"
               ? action.payload.profile.id
@@ -333,6 +342,8 @@ const authSlice = createSlice({
           state.user = {
             id: action.payload.id,
             userId: action.payload.id,
+            companyName: (action.payload as any).companyName || "",
+            contactPerson: (action.payload as any).contactPerson || "",
             buyerId:
               action.payload.role === "buyer" ? action.payload.id : undefined,
             vendorId:
