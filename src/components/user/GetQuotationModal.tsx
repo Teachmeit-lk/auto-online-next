@@ -484,7 +484,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 <Controller
                   name="noofunits"
                   control={control}
-                  defaultValue={undefined}
+                  defaultValue=""
                   render={({ field }) => (
                     <input
                       {...field}
@@ -494,7 +494,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       min="1"
                       step="1"
                       onKeyDown={(e) => {
-                        // Prevent minus sign, plus sign, and 'e' (scientific notation)
                         if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
                           e.preventDefault();
                         }
@@ -502,10 +501,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       onInput={(e) => {
                         const target = e.target as HTMLInputElement;
                         const value = target.value;
-                        // Remove any non-digit characters except for valid numbers
                         if (value && (Number(value) <= 0 || value.includes('-'))) {
                           target.value = '';
-                          field.onChange('');
+                          field.onChange(undefined);
                         }
                       }}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
