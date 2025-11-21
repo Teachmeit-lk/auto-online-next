@@ -24,7 +24,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
       id: idx + 1,
       itemName: p.partName,
       imageUrl: p.imageUrl || null,
-      unit: "Unit",
+      unit: p.quantity,
       description: p.description || "-",
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
