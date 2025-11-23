@@ -130,15 +130,20 @@ export interface Quotation extends BaseDocument {
 export interface PurchaseOrder extends BaseDocument {
   quotationId: string;
   quotationRequestId: string;
+  quotationImageUrl?: string;
   buyerId: string;
   vendorId: string;
+  quotationTerms?: string;
   orderNumber: string;
+  quotationDescription?: string;
+  stockAvailability?: string;
   products: Array<{
     productId?: string;
     partName: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    stockAvailability?: string;
   }>;
   totalAmount: number;
   currency: string;

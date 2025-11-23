@@ -14,6 +14,7 @@ interface IViewQuotationRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   request?: QuotationRequest | null;
+  onSubmitted?: () => void;
 }
 
 interface IFormValues {
@@ -37,7 +38,7 @@ interface IFormValues {
 
 export const ViewQuotationRequestModal: React.FC<
   IViewQuotationRequestModalProps
-> = ({ isOpen, onClose, request }) => {
+> = ({ isOpen, onClose, request, onSubmitted }) => {
   const [fileName, setFileName] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -51,8 +52,16 @@ export const ViewQuotationRequestModal: React.FC<
     measurement: Yup.string().required("Measurement is required"),
     noOfUnits: Yup.number()
       .required("No of Units is required")
-      .positive("Must be a positive number")
-      .integer("Must be an integer"),
+      .integer("Must be an integer")
+      .when("stockAvailability", {
+        is: "Out of Stock",
+        then: (schema) =>
+          schema
+            .min(0, "Units cannot be negative")
+            .max(0, "No of Units must be 0 when out of stock"),
+        otherwise: (schema) =>
+          schema.min(1, "No of Units must be at least 1 when in stock"),
+      }),
     unitPrice: Yup.number()
       .required("Unit Price is required")
       .positive("Must be a positive number"),
@@ -115,6 +124,14 @@ export const ViewQuotationRequestModal: React.FC<
     );
   }, [watchedUnits, watchedUnitPrice, setValue]);
 
+  const watchedStock = watch("stockAvailability");
+
+  useEffect(() => {
+    if (watchedStock === "Out of Stock") {
+      setValue("noOfUnits", 0, { shouldValidate: true });
+    }
+  }, [watchedStock, setValue]);
+
   // Form submission handler
   const onSubmit = async (data: IFormValues) => {
     if (!user) {
@@ -158,6 +175,7 @@ export const ViewQuotationRequestModal: React.FC<
           "",
         vendorEmail: user.email || "",
         buyerId: request.buyerId,
+        deliveryCost: data.deliveryCost,
         products: [
           {
             partName: data.itemName,
@@ -166,8 +184,13 @@ export const ViewQuotationRequestModal: React.FC<
             totalPrice: unitPriceNum * quantityNum,
             description: data.description,
             condition: "new",
+            imageUrl: attachmentUrl || null,
+            stockAvailability: data.stockAvailability,
+            vendorComments: data.vendorComments,
+            warranty: data.vendorComments,
           },
         ],
+        description: data.description,
         totalAmount: totalAmountNum,
         currency: "LKR",
         validUntil,
@@ -176,12 +199,14 @@ export const ViewQuotationRequestModal: React.FC<
         status: "pending",
         notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
           data.contactNumber
-        }${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""}`,
+        }, Delivery Cost: ${data.deliveryCost || 0}${
+          attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""
+        }`,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
       } as any);
-
+      onSubmitted?.();
       handleModalClose();
     } catch (e: any) {
       console.error("Error submitting quotation", e);
@@ -449,12 +474,13 @@ export const ViewQuotationRequestModal: React.FC<
                 <Controller
                   name="noOfUnits"
                   control={control}
-                  defaultValue={(request?.numberOfUnits as any) || 1}
+                  defaultValue={0}
                   render={({ field }) => (
                     <input
                       {...field}
                       type="number"
                       id="noOfUnits"
+                      disabled={watchedStock === "Out of Stock"}
                       placeholder="Enter number of units"
                       value={field.value ?? ""}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
@@ -677,7 +703,7 @@ export const ViewQuotationRequestModal: React.FC<
               </div>
 
               <div className="flex col-span-3 gap-x-3 items-center justify-center mt-2">
-                <button
+                {/* <button
                   type="submit"
                   className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
                 >
@@ -689,7 +715,7 @@ export const ViewQuotationRequestModal: React.FC<
                   className="w-[164px] h-[32px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[12px] rounded-[3px] hover:bg-yellow-500"
                 >
                   Add as Empty
-                </button>
+                </button> */}
               </div>
               {/* Sales Person Details */}
               <h2 className="text-[15px] text-center col-span-3  mt-8 font-bold mb-2 text-[#111102] font-body">

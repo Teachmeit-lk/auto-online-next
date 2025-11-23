@@ -34,7 +34,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           type={isVisible ? "text" : "password"}
           className={
             `w-full text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 focus:outline-none focus:ring-2 border ` +
-            `${error ? "focus:ring-red-500 border-red-300" : "focus:ring-yellow-500 border-gray-300"} ` +
+            `${
+              error
+                ? "focus:ring-red-500 border-red-300"
+                : "focus:ring-yellow-500 border-gray-300"
+            } ` +
             `${inputClassName ?? ""} ${className ?? ""}`
           }
           readOnly={readOnly}
@@ -50,9 +54,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             aria-label={isVisible ? "Hide password" : "Show password"}
           >
             {isVisible ? (
-              <EyeOff className="size-[12px] md:size-[16px]" />
-            ) : (
               <Eye className="size-[12px] md:size-[16px]" />
+            ) : (
+              <EyeOff className="size-[12px] md:size-[16px]" />
             )}
           </button>
         )}
@@ -62,5 +66,3 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 );
 
 PasswordInput.displayName = "PasswordInput";
-
-

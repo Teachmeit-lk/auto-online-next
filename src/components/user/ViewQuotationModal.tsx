@@ -2,40 +2,48 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { ConfirmQuotationConfirmationModal } from "./ConfirmQuotationConfirmationModal";
+import { useMemo } from "react";
 import { Quotation } from "@/service/firestoreService";
-import { FirestoreService, COLLECTIONS } from "@/service/firestoreService";
 
 interface IViewQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
   quotation?: Quotation | null;
+  onOpenPurchaseOrder?: (quotation: Quotation) => void;
 }
 
 export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
   isOpen,
   onClose,
   quotation,
+  onOpenPurchaseOrder,
 }) => {
   const tableData = useMemo(() => {
     const items = quotation?.products || [];
     return items.map((p, idx) => ({
       id: idx + 1,
       itemName: p.partName,
+      imageUrl: p.imageUrl || null,
       unit: "Unit",
       description: p.description || "-",
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
       netTotal: p.totalPrice,
-      stock: "-",
-      comment: p.warranty || "-",
+      stock: p.stockAvailability || "-",
+      comment: p.vendorComments || p.warranty || "-",
     }));
   }, [quotation]);
-  const [openQuotationConfirmation, setOpenQuotationConfirmation] =
-    useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+ 
+  const extractDeliveryCost = (notes?: string): string => {
+    if (!notes) return "-";
+
+    const match = notes.match(/Delivery Cost[:\s]+([0-9]+(?:\.[0-9]{1,2})?)/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    return "-";
+  };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -45,11 +53,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             {quotation?.vendorName || "Vendor"} Estimate
           </Dialog.Title>
-          {submitError && (
-            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-[12px] text-red-600">
-              {submitError}
-            </div>
-          )}
 
           {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
@@ -104,7 +107,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="500.00"
-                  value={quotation?.deliveryTimeframe || ""}
+                  value={extractDeliveryCost(quotation?.notes)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -158,7 +161,19 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                     >
                       <td className="p-3 border "> {item.id}</td>
                       <td className="p-3 border">{item.itemName}</td>
-                      <td className="p-3 border">{item.itemName}</td>
+                      <td className="p-3 border">
+                        {item.imageUrl ? (
+                          <div className="flex justify-center items-center">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.itemName}
+                              className="w-[40px] h-[30px] object-cover rounded"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[8px] text-gray-400">No image</span>
+                        )}
+                      </td>
                       <td className="p-3 border">{item.unit}</td>
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
@@ -171,24 +186,19 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 </tbody>
               </table>
             </div>
-
-            {/* Confirm Button */}
             {quotation?.status !== "accepted" && (
               <div className="flex justify-center">
                 <button
                   type="button"
-                  disabled={isSubmitting}
-                  className={`w-[164px] h-[36px] font-[600] font-body text-[14px] rounded-[3px] ${
-                    isSubmitting
-                      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                      : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
-                  }`}
+                  className="w-[164px] h-[36px] font-[600] font-body text-[14px] rounded-[3px] bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
                   onClick={() => {
-                    setSubmitError(null);
-                    setOpenQuotationConfirmation(true);
+                    if (quotation && onOpenPurchaseOrder) {
+                      onClose();
+                      onOpenPurchaseOrder(quotation);
+                    }
                   }}
                 >
-                  {isSubmitting ? "Confirming..." : "Confirm Estimate"}
+                  Confirm Estimate
                 </button>
               </div>
             )}
@@ -205,29 +215,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
-
-      <ConfirmQuotationConfirmationModal
-        onClose={() => setOpenQuotationConfirmation(false)}
-        onConfirm={async () => {
-          if (!quotation?.id) return;
-          setIsSubmitting(true);
-          setSubmitError(null);
-          try {
-            await FirestoreService.update<Quotation>(
-              COLLECTIONS.QUOTATIONS,
-              (quotation as any).id!,
-              { status: "accepted" } as any
-            );
-            setOpenQuotationConfirmation(false);
-            onClose();
-          } catch (e: any) {
-            setSubmitError(e?.message || "Failed to confirm quotation");
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-        isOpen={openQuotationConfirmation}
-      />
     </Dialog.Root>
   );
 };

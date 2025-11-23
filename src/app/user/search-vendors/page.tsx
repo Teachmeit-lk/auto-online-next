@@ -36,10 +36,18 @@ const SearchVendors: React.FC = () => {
   const [selectedVendorGallery, setSelectedVendorGallery] = useState<
     GalleryImage[]
   >([]);
+
   const searchParams = useSearchParams();
   const initialSearch = (searchParams.get("search") || "").trim();
   const [search, setSearch] = useState<string>(initialSearch);
   const authState = useSelector((state: RootState) => state.auth as any);
+
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get("category");
+    if (categoryFromUrl) {
+      setFilterCategory(categoryFromUrl);
+    }
+  }, [searchParams]);
   const user = authState.user as any;
 
   const loadVendors = async () => {

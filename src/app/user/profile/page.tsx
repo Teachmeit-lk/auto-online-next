@@ -8,7 +8,10 @@ import { PasswordInput } from "@/components";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { refreshUserProfile } from "@/app/store/slice/authslice";
-import { updateUserProfile as updateUserProfileSvc } from "@/service/firebaseAuthService";
+import {
+  changePassword,
+  updateUserProfile as updateUserProfileSvc,
+} from "@/service/firebaseAuthService";
 
 interface UserProfileFormData {
   firstName: string;
@@ -17,7 +20,7 @@ interface UserProfileFormData {
   email: string;
   mobileNumber: string;
   whatsappNumber: string;
-  currentPassword: string;
+  currentPassword?: string;
   newPassword?: string | null;
   district: string;
 }
@@ -55,7 +58,11 @@ const UserProfile = () => {
         /^0\d{9}$/,
         "Mobile number must start with 0 and contain exactly 10 digits."
       ),
-    currentPassword: Yup.string().required("Current password is required."),
+    currentPassword: Yup.string().when("newPassword", {
+      is: (val: string | null | undefined) => !!val && val.length > 0,
+      then: (schema) => schema.required("Current password is required."),
+      otherwise: (schema) => schema.notRequired(),
+    }),
     newPassword: Yup.string()
       .nullable()
       .notRequired()
@@ -115,9 +122,15 @@ const UserProfile = () => {
 
   const onSubmit = async (data: UserProfileFormData) => {
     if (!currentUser?.id) return;
+
     setSaving(true);
     setSaveError(null);
+
     try {
+      if (data.newPassword && data.currentPassword) {
+        await changePassword(data.currentPassword, data.newPassword);
+      }
+
       const updates = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -130,6 +143,19 @@ const UserProfile = () => {
 
       await updateUserProfileSvc(currentUser.id, updates);
       await dispatch(refreshUserProfile() as any);
+
+      reset({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        nic: data.nic,
+        email: data.email,
+        mobileNumber: data.mobileNumber,
+        whatsappNumber: data.whatsappNumber,
+        currentPassword: "",
+        newPassword: "",
+        district: data.district,
+      });
+
       setIsEditable(false);
     } catch (e: any) {
       setSaveError(e?.message || "Failed to update profile. Please try again.");
@@ -350,7 +376,7 @@ const UserProfile = () => {
               render={({ field }) => (
                 <PasswordInput
                   {...field}
-                  readOnly
+                  readOnly={!isEditable}
                   inputClassName="px-3 py-2"
                   error={!!errors.currentPassword}
                 />

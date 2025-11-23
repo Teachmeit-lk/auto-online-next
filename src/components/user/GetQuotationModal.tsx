@@ -37,7 +37,12 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     manufactoringyear: Yup.string().required("Manufacturing Year is required"),
     fueltype: Yup.string().required("Fuel type is required"),
     measurement: Yup.string().required("Measurement is required"),
-    noofunits: Yup.string().required("No of units are required"),
+    noofunits: Yup.number()
+      .typeError("Must be a valid number")
+      .positive("Must be greater than 0")
+      .integer("Must be a whole number")
+      .min(1, "Must be at least 1")
+      .required("No of units are required"),
     description: Yup.string().required("Description is required"),
     district: Yup.string().required("District is required"),
     image: Yup.mixed().required("Image is required"),
@@ -62,7 +67,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     manufactoringyear: string;
     fueltype: string;
     measurement: string;
-    noofunits: string;
+    noofunits: number;
     description: string;
     image: File;
   }) => {
@@ -100,7 +105,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       manufacturingYear: data.manufactoringyear,
       fuelType: data.fueltype,
       measurement: data.measurement,
-      numberOfUnits: Number(data.noofunits) || 0,
+      //numberOfUnits: Number(data.noofunits) || 0,
+      numberOfUnits: data.noofunits,
       description: data.description,
       attachedImages: uploadedUrl ? [uploadedUrl] : [],
       status: "pending",
@@ -478,19 +484,36 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 <Controller
                   name="noofunits"
                   control={control}
-                  defaultValue=""
+                  defaultValue={undefined}
                   render={({ field }) => (
                     <input
                       {...field}
                       type="number"
                       id="noofunits"
-                      placeholder="0"
+                      placeholder="Enter units"
+                      min="1"
+                      step="1"
+                      onKeyDown={(e) => {
+                        // Prevent minus sign, plus sign, and 'e' (scientific notation)
+                        if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                          e.preventDefault();
+                        }
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        const value = target.value;
+                        // Remove any non-digit characters except for valid numbers
+                        if (value && (Number(value) <= 0 || value.includes('-'))) {
+                          target.value = '';
+                          field.onChange('');
+                        }
+                      }}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.noofunits
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                      ${
+                        errors.noofunits
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
                     />
                   )}
                 />

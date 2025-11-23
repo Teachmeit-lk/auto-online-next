@@ -4,9 +4,17 @@ import React from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
+import { db } from "@/config/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+
+type ContactFormValues = {
+  name: string;
+  message: string;
+  email: string;
+  whatsapp: string;
+};
 
 export const ContactForm: React.FC = () => {
-  // Yup schema for validation
   const schema = Yup.object().shape({
     name: Yup.string().required("Name is required"),
     message: Yup.string().required("Message is required"),
@@ -24,24 +32,31 @@ export const ContactForm: React.FC = () => {
       ),
   });
 
-  // Initialize react-hook-form
   const {
     control,
     handleSubmit,
-    formState: { errors },
-  } = useForm({
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ContactFormValues>({
     resolver: yupResolver(schema),
   });
 
-  // Form submission handler
-  const onSubmit = (data: {
-    name: string;
-    message: string;
-    email: string;
-    whatsapp: string;
-  }) => {
-    console.log("Form submitted:", data);
-    // submit logic here
+  const onSubmit = async (data: ContactFormValues) => {
+    try {
+      const whatsappNumber = data.whatsapp;
+
+      await addDoc(collection(db, "getInTouchWithUs"), {
+        name: data.name,
+        message: data.message,
+        email: data.email,
+        whatsappNumber,
+        createdAt: serverTimestamp(),
+      });
+
+      reset();
+    } catch (err) {
+      console.error("Error saving contact form:", err);
+    }
   };
 
   return (
@@ -54,7 +69,6 @@ export const ContactForm: React.FC = () => {
           className="md:space-y-6 space-y-3 pl-2 w-full"
           onSubmit={handleSubmit(onSubmit)}
         >
-          {/* Name Field */}
           <div className="flex flex-col">
             <label
               htmlFor="name"
@@ -71,7 +85,7 @@ export const ContactForm: React.FC = () => {
                   {...field}
                   type="text"
                   id="name"
-                  className={`mt-2 p-3 w-full text-[#111102]  text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                  className={`mt-2 p-3 w-full text-[#111102] text-[12px] md:text-[15px] h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                     errors.name
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -81,13 +95,12 @@ export const ContactForm: React.FC = () => {
               )}
             />
             {errors.name && (
-              <p className="text-red-500  md:text-sm text-[12px]  mt-1">
+              <p className="text-red-500 md:text-sm text-[12px] mt-1">
                 {errors.name.message}
               </p>
             )}
           </div>
 
-          {/* Email Field */}
           <div className="flex flex-col">
             <label
               htmlFor="email"
@@ -104,7 +117,7 @@ export const ContactForm: React.FC = () => {
                   {...field}
                   type="text"
                   id="email"
-                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px] h-[36px] md:h-[50px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                     errors.email
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -114,13 +127,12 @@ export const ContactForm: React.FC = () => {
               )}
             />
             {errors.email && (
-              <p className="text-red-500  md:text-sm text-[12px]  mt-1">
+              <p className="text-red-500 md:text-sm text-[12px] mt-1">
                 {errors.email.message}
               </p>
             )}
           </div>
 
-          {/* WhatsApp Number Field */}
           <div className="flex flex-col">
             <label
               htmlFor="whatsapp"
@@ -147,13 +159,12 @@ export const ContactForm: React.FC = () => {
               )}
             />
             {errors.whatsapp && (
-              <p className="text-red-500 md:text-sm text-[12px]  mt-1">
+              <p className="text-red-500 md:text-sm text-[12px] mt-1">
                 {errors.whatsapp.message}
               </p>
             )}
           </div>
 
-          {/* Message Field */}
           <div className="flex flex-col">
             <label
               htmlFor="message"
@@ -170,7 +181,7 @@ export const ContactForm: React.FC = () => {
                   {...field}
                   id="message"
                   rows={4}
-                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px]  bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
+                  className={`mt-2 p-3 text-[#111102] w-full text-[12px] md:text-[15px] bg-white rounded-[8px] focus:outline-none focus:ring-2 ${
                     errors.message
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -186,13 +197,13 @@ export const ContactForm: React.FC = () => {
             )}
           </div>
 
-          {/* Submit Button */}
           <div className="flex flex-col">
             <button
               type="submit"
-              className="mt-4 mb-2 w-full bg-[#F9C301] h-[36px] md:h-[50px] text-[#111102] font-body text-[14px] md:text-[18px] font-bold md:py-3 px-4 rounded-[8px] shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-1 focus:ring-[#F9C301] focus:ring-offset-1"
+              disabled={isSubmitting}
+              className="mt-4 mb-2 w-full bg-[#F9C301] h-[36px] md:h-[50px] text-[#111102] font-body text-[14px] md:text-[18px] font-bold md:py-3 px-4 rounded-[8px] shadow-md hover:bg-yellow-600 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-[#F9C301] focus:ring-offset-1"
             >
-              SEND
+              {isSubmitting ? "SENDING..." : "SEND"}
             </button>
           </div>
         </form>

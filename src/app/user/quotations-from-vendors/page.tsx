@@ -318,6 +318,12 @@ const QuotationsFromVendors: React.FC = () => {
         isOpen={viewOpen}
         onClose={() => setViewOpen(false)}
         quotation={selectedQuotation as any}
+        onOpenPurchaseOrder={async (quotation) => {
+          console.log("[QuotationsFromVendors] Opening CreatePurchaseOrderModal from ViewQuotationModal");
+          setSelectedQuotation(quotation);
+          await loadRequestImage(quotation?.quotationRequestId);
+          setOpenQuotationConfirmation(true);
+        }}
       />
       <OpenChatConfirmationModal
         isOpen={openChatOpenConfirmation}

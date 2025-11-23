@@ -106,7 +106,7 @@ export const ServiceCategories: React.FC = () => {
                 <h3 className="text-[10px] pl-1 font-semibold text-black mt-2">
                   {product.type}
                 </h3>
-                <p className="text-[8px] pl-1 text-gray-600">
+                <p className="text-[8px] pl-1 text-gray-600 mt-[1px]">
                   {product.description}
                 </p>
                 <div className="flex mt-1 pl-1">
@@ -120,7 +120,7 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <Link 
+                <Link
                   href="/user/search-vendors"
                   className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                 >
@@ -144,7 +144,7 @@ export const ServiceCategories: React.FC = () => {
                 <h3 className="text-[10px] pl-1 font-semibold text-black mt-2">
                   {product.type}
                 </h3>
-                <p className="text-[8px] pl-1 text-gray-600">
+                <p className="text-[8px] pl-1 text-gray-600 mt-[1px]">
                   {product.description}
                 </p>
                 <div className="flex mt-1 pl-1">
@@ -158,7 +158,7 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <Link 
+                <Link
                   href="/user/search-vendors"
                   className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                 >
@@ -229,11 +229,11 @@ export const ServiceCategories: React.FC = () => {
                 <h3 className="text-[12px] font-semibold text-black font-body mt-1">
                   {product.type}
                 </h3>
-                <p className="text-[#000000] text-[12px] font-body ">
+                <p className="text-[#000000] text-[12px] font-body mt-[1px]">
                   {product.description}
                 </p>
 
-                <div className="flex ">
+                <div className="flex mt-1">
                   {Array.from({ length: 5 }, (_, i) => (
                     <span key={i} className="text-yellow-500 text-[10px]">
                       {i < Math.floor(product.rating) ? (
@@ -244,9 +244,9 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <Link 
+                <Link
                   href="/user/search-vendors"
-                  className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-13 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
+                  className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
                 >
                   Shop Now
                 </Link>
