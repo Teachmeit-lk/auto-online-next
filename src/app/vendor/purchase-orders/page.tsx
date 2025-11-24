@@ -18,6 +18,8 @@ import {
   PurchaseOrder,
   OrderService,
 } from "@/service/firestoreService";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
 
 // import {
 //   NewPriceChatAlert,
@@ -358,10 +360,10 @@ const NewPurchaseOrders: React.FC = () => {
                         {vendor.no}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {vendor.rcode}
+                        {useRefactoredIdLast("ON", vendor.rcode)}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {vendor.ccode}
+                        {useRefactoredId("CC", vendor.ccode)}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                         {vendor.cname}

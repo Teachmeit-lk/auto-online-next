@@ -11,6 +11,8 @@ import {
   PurchaseOrder,
   OrderService,
 } from "@/service/firestoreService";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
 
 const AcceptedPO: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -244,10 +246,10 @@ const AcceptedPO: React.FC = () => {
                       {index + 1}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.cecode}
+                      {useRefactoredIdLast("ON", row.cecode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.crcode}
+                      {useRefactoredId("RC", row.crcode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {row.cname}

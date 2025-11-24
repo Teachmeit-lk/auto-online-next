@@ -9,6 +9,7 @@ import * as Yup from "yup";
 import { Quotation, OrderService } from "@/service/firestoreService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import Image from "next/image";
+import { useRefactoredId } from "../hooks/useRefactoredId";
 
 interface ICreatePurchaseOrderModalProps {
   isOpen: boolean;
@@ -104,20 +105,17 @@ export const CreatePurchaseOrderModal: React.FC<
     setItems(mapped);
   }, [quotation]);
 
-  const grandTotal = useMemo(
-    () => {
-      const itemsTotal = items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
-      return itemsTotal + deliveryCost;
-    },
-    [items, deliveryCost]
-  );
+  const grandTotal = useMemo(() => {
+    const itemsTotal = items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+    return itemsTotal + deliveryCost;
+  }, [items, deliveryCost]);
 
   const {
     control,
     handleSubmit,
     reset,
     watch,
-    setValue, 
+    setValue,
     formState: { errors },
   } = useForm<PurchaseOrderFormData>({
     resolver: yupResolver(schema),
@@ -142,52 +140,58 @@ export const CreatePurchaseOrderModal: React.FC<
     );
   };
 
-useEffect(() => {
-  if (!quotation || !isOpen) {
-    return;
-  }
-
-  const mapped: OrderItem[] = (quotation.products || []).map(
-    (p: any, idx) => {
-      const qty = Number(p.quantity) || 1;
-      const price = Number(p.unitPrice) || 0;
-      return {
-        id: p.id || String(idx),
-        itemDescription: p.partName || p.description || `Item ${idx + 1}`,
-        partNumber: p.partNumber || "",
-        image: Array.isArray(p.images) ? p.images[0] : undefined,
-        quantity: qty,
-        unitPrice: price,
-        totalPrice: Number(p.totalPrice) || qty * price,
-      };
+  useEffect(() => {
+    if (!quotation || !isOpen) {
+      return;
     }
-  );
-  setItems(mapped);
 
-  setDeliveryCost(Number(quotation.deliveryCost) || 0);
+    const mapped: OrderItem[] = (quotation.products || []).map(
+      (p: any, idx) => {
+        const qty = Number(p.quantity) || 1;
+        const price = Number(p.unitPrice) || 0;
+        return {
+          id: p.id || String(idx),
+          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
+          partNumber: p.partNumber || "",
+          image: Array.isArray(p.images) ? p.images[0] : undefined,
+          quantity: qty,
+          unitPrice: price,
+          totalPrice: Number(p.totalPrice) || qty * price,
+        };
+      }
+    );
+    setItems(mapped);
 
-  const outOfStock = (quotation.products || []).some(
-    (p: any) => 
-      p.stockAvailability && 
-      p.stockAvailability.toLowerCase().includes('out of stock')
-  );
-  setHasOutOfStock(outOfStock);
+    setDeliveryCost(Number(quotation.deliveryCost) || 0);
 
-  // Show alert immediately if out of stock
-  if (outOfStock) {
+    const outOfStock = (quotation.products || []).some(
+      (p: any) =>
+        p.stockAvailability &&
+        p.stockAvailability.toLowerCase().includes("out of stock")
+    );
+    setHasOutOfStock(outOfStock);
+
+    // Show alert immediately if out of stock
+    if (outOfStock) {
       setShowOutOfStockAlert(true);
     }
   }, [quotation, isOpen]);
 
-useEffect(() => {
-  if (deliveryMethod === "arrange_delivery" && paymentMethod === "cash_at_shop") {
-    setValue("deliveryMethod", "collect_from_shop");
-  }
-  
-  if (paymentMethod === "cash_at_shop" && deliveryMethod === "arrange_delivery") {
-    setValue("deliveryMethod", "collect_from_shop");
-  }
-}, [deliveryMethod, paymentMethod, setValue]);
+  useEffect(() => {
+    if (
+      deliveryMethod === "arrange_delivery" &&
+      paymentMethod === "cash_at_shop"
+    ) {
+      setValue("deliveryMethod", "collect_from_shop");
+    }
+
+    if (
+      paymentMethod === "cash_at_shop" &&
+      deliveryMethod === "arrange_delivery"
+    ) {
+      setValue("deliveryMethod", "collect_from_shop");
+    }
+  }, [deliveryMethod, paymentMethod, setValue]);
 
   const handleModalClose = () => {
     reset();
@@ -306,7 +310,6 @@ useEffect(() => {
       ? "Pay online"
       : "Pay cash at the shop";
 
-
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
       <Dialog.Portal>
@@ -378,7 +381,9 @@ useEffect(() => {
                   <input
                     readOnly
                     value={
-                      quotation.quotationRequestId || quotation.id || "N/A"
+                      useRefactoredId("QR", quotation.quotationRequestId) ||
+                      useRefactoredId("QR", quotation.id) ||
+                      "N/A"
                     }
                     className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
                   />
@@ -591,9 +596,13 @@ useEffect(() => {
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
-                        <label className={`flex items-center space-x-2 cursor-pointer ${
-                          paymentMethod === "cash_at_shop" ? "opacity-50 cursor-not-allowed" : ""
-                        }`}>
+                        <label
+                          className={`flex items-center space-x-2 cursor-pointer ${
+                            paymentMethod === "cash_at_shop"
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
                           <input
                             type="radio"
                             {...field}
@@ -633,9 +642,13 @@ useEffect(() => {
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
-                        <label className={`flex items-center space-x-2 cursor-pointer ${
-                          deliveryMethod === "arrange_delivery" ? "opacity-50 cursor-not-allowed" : ""
-                        }`}>
+                        <label
+                          className={`flex items-center space-x-2 cursor-pointer ${
+                            deliveryMethod === "arrange_delivery"
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
                           <input
                             type="radio"
                             {...field}
@@ -713,13 +726,20 @@ useEffect(() => {
                     : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
                 }`}
               >
-                {isSubmitting ? "Creating..." : hasOutOfStock ? "Out of Stock" : "Create Order"}
+                {isSubmitting
+                  ? "Creating..."
+                  : hasOutOfStock
+                  ? "Out of Stock"
+                  : "Create Order"}
               </button>
             </div>
           </form>
           {/* Out of Stock Alert */}
           {showOutOfStockAlert && (
-            <Dialog.Root open={showOutOfStockAlert} onOpenChange={setShowOutOfStockAlert}>
+            <Dialog.Root
+              open={showOutOfStockAlert}
+              onOpenChange={setShowOutOfStockAlert}
+            >
               <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]" />
                 <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[180px] bg-white rounded-[8px] shadow-lg focus:outline-none z-[70]">
@@ -729,7 +749,8 @@ useEffect(() => {
                   <div className="bg-[#F8F8F8] rounded-[5px] ml-4 mr-4 mt-2 p-4 flex flex-col items-center justify-center">
                     <div>
                       <p className="text-[11px] text-[#111102] font-body font-[500] text-center">
-                        Sorry, one or more items are currently out of stock. You cannot create a purchase order at this time.
+                        Sorry, one or more items are currently out of stock. You
+                        cannot create a purchase order at this time.
                       </p>
                     </div>
                     <div className="flex justify-center gap-x-6 mt-8">

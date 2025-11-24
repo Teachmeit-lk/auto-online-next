@@ -15,6 +15,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "@/config/firebase";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
 
 interface ITempCompletedOrderCommon {
   type: "vendor" | "user";
@@ -218,10 +220,10 @@ export const CompletedOrders: React.FC<ITempCompletedOrderCommon> = ({
                       {index + 1}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
-                      {orderNumber}
+                      {useRefactoredIdLast("ON", orderNumber)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
-                      {order.vendorId}
+                      {useRefactoredId("VC", order.vendorId)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
                       {partName}

@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import { useMemo } from "react";
 import { Quotation } from "@/service/firestoreService";
+import { useRefactoredId } from "../hooks/useRefactoredId";
 
 interface IViewQuotationModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
       comment: p.vendorComments || p.warranty || "-",
     }));
   }, [quotation]);
- 
+
   const extractDeliveryCost = (notes?: string): string => {
     if (!notes) return "-";
 
@@ -41,7 +42,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     if (match && match[1]) {
       return match[1];
     }
-    
+
     return "-";
   };
 
@@ -63,10 +64,11 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Staff ID
                 </label>
+
                 <input
                   type="text"
                   placeholder="200212904000"
-                  value={quotation?.vendorId || ""}
+                  value={useRefactoredId("ST", quotation?.vendorId) || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -171,7 +173,9 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                             />
                           </div>
                         ) : (
-                          <span className="text-[8px] text-gray-400">No image</span>
+                          <span className="text-[8px] text-gray-400">
+                            No image
+                          </span>
                         )}
                       </td>
                       <td className="p-3 border">{item.unit}</td>
