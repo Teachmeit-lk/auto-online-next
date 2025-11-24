@@ -114,11 +114,11 @@ export const Header: React.FC = () => {
     };
 
     if (isUserModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isUserModalOpen]);
 
@@ -127,7 +127,7 @@ export const Header: React.FC = () => {
       {/* Header */}
       <header className="flex justify-between items-center lg:py-4 lg:pl-4 lg:pr-12 py-4 pl-4 pr-4 bg-white relative  w-full">
         {/* Logo - Hidden on Small Screens */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden lg:flex items-center">
           <Link href="/">
             <Image
               src={HeaderLogo}
@@ -138,7 +138,7 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Flex Container for Small Screens */}
-        <div className="md:hidden flex items-center w-full relative pt-10">
+        <div className="lg:hidden flex items-center w-full relative pt-10">
           {/* Hamburger Menu Icon (Left) */}
           <button
             onClick={() => setIsMenuOpen(true)}
@@ -158,32 +158,33 @@ export const Header: React.FC = () => {
             </button>
           ) : (
             <div className="absolute right-0 flex gap-2">
-          <Link
-            href="/user/login"
-            className={`${
-              pathname === "/user/login" || pathname === "/vendor/login"
-                ? "bg-[#F9C301] text-black"
-                : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
-            } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center`}
-          >
-            LOGIN
-          </Link>
-          <Link
-            href="/user/register"
-            className={`${
-              pathname === "/user/register" || pathname === "/vendor/register"
-                ? "bg-[#F9C301] text-black"
-                : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
-            } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center whitespace-nowrap`}
-          >
-            SIGN UP
-          </Link>
-        </div>
+              <Link
+                href="/user/login"
+                className={`${
+                  pathname === "/user/login" || pathname === "/vendor/login"
+                    ? "bg-[#F9C301] text-black"
+                    : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
+                } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center`}
+              >
+                LOGIN
+              </Link>
+              <Link
+                href="/user/register"
+                className={`${
+                  pathname === "/user/register" ||
+                  pathname === "/vendor/register"
+                    ? "bg-[#F9C301] text-black"
+                    : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
+                } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center whitespace-nowrap`}
+              >
+                SIGN UP
+              </Link>
+            </div>
           )}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
-        <div className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
+        <div className="hidden lg:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
           <form
             onSubmit={handleSearchSubmit}
             className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden"
@@ -206,7 +207,7 @@ export const Header: React.FC = () => {
 
         {/* Conditional Rendering for Larger Screens */}
         {isAuthenticated ? (
-          <div className="hidden md:flex items-center relative flex-shrink-0">
+          <div className="hidden lg:flex items-center relative flex-shrink-0">
             <button
               ref={userButtonRef}
               onClick={handleUserModalToggle}
@@ -216,7 +217,7 @@ export const Header: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="hidden md:flex items-center gap-3 mr-[30px] flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-3 mr-[30px] flex-shrink-0">
             <Link
               href="/user/login"
               className={`${
@@ -309,7 +310,8 @@ export const Header: React.FC = () => {
               key={name}
               href={path}
               className={`text-[16px] font-body w-[127px] h-[42px] flex items-center justify-center ${
-                pathname === path || pathname.startsWith(path.replace('/#', '/'))
+                pathname === path ||
+                pathname.startsWith(path.replace("/#", "/"))
                   ? "bg-yellow-500 text-black"
                   : "text-white hover:text-black hover:bg-yellow-500"
               }`}
