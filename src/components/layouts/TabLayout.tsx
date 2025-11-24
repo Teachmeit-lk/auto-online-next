@@ -2,8 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { FC, ReactNode } from "react";
+import { useSelector } from "react-redux";
 
-import { CustomerTabList, VendorTabList } from "@/config";
+import { getCustomerTabList, VendorTabList } from "@/config";
+import { RootState } from "@/app/store/store";
 import Link from "next/link";
 
 interface ITabLayoutProps {
@@ -13,8 +15,15 @@ interface ITabLayoutProps {
 
 export const TabLayout: FC<ITabLayoutProps> = ({ children, type }) => {
   const pathname = usePathname();
+  
+  // Get authentication state
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const isAuthenticated = authState.isAuthenticated as boolean;
 
-  const tabs = type === "vendor" ? VendorTabList : CustomerTabList;
+  // Get tabs based on type and authentication
+  const tabs = type === "vendor" 
+    ? VendorTabList 
+    : getCustomerTabList(isAuthenticated);
 
   const currentPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
   const currentTab = tabs.find((tab) => tab.path === currentPath);

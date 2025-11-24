@@ -52,29 +52,26 @@ export const Header: React.FC = () => {
     router.push(`/search?query=${encodeURIComponent(q)}`);
   };
 
-  const navLinks = isAuthenticated
-    ? [
-        ...data,
-        ...(user?.role === "vendor"
-          ? [
-              {
-                name: "my orders",
-                path: "/vendor/purchase-orders",
-                icon: LayoutGrid,
-              },
-            ]
-          : [
-              {
-                name: "my requests",
-                path: "/user/search-vendors",
-                icon: LayoutGrid,
-              },
-            ]),
-        ...(user?.role === "admin"
-          ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
-          : []),
-      ]
-    : data;
+  const navLinks = [
+    ...data,
+    {
+      name: "my requests",
+      path: "/user/search-vendors",
+      icon: LayoutGrid,
+    },
+    ...(isAuthenticated && user?.role === "vendor"
+      ? [
+          {
+            name: "my orders",
+            path: "/vendor/purchase-orders",
+            icon: LayoutGrid,
+          },
+        ]
+      : []),
+    ...(isAuthenticated && user?.role === "admin"
+      ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
+      : []),
+  ];
 
   const profilePath =
     user?.role === "vendor"
