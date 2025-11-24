@@ -29,7 +29,10 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
   const buyerSchema = Yup.object().shape({
     phone: Yup.string()
       .required("Mobile number is required.")
-      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
+      .matches(
+        /^0\d{9}$/,
+        "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
+      ),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -79,14 +82,16 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
           ? { phone: data.phone, password: data.password }
           : { email: data.email, password: data.password };
 
-      const result = await dispatch(loginUserAsync({ 
-        credentials: loginData, 
-        userType: type 
-      }) as any);
+      const result = await dispatch(
+        loginUserAsync({
+          credentials: loginData,
+          userType: type,
+        }) as any
+      );
 
       if (loginUserAsync.fulfilled.match(result)) {
         console.log("Firebase login successful");
-        
+
         // Redirect based on user type
         if (type === "buyer") {
           router.push("/user/search-vendors");
@@ -109,13 +114,15 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
       id="login"
     >
       <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-4 md:mb-0 mt-4 md:mt-0">
-          <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
-            <Link
-              href="/user/login"
-              className={`
-                ${type === "buyer" 
-                  ? "bg-[#F9C301] text-[#111102]" 
-                  : "bg-white text-[#111102]"}
+        <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
+          <Link
+            href="/user/login"
+            className={`
+                ${
+                  type === "buyer"
+                    ? "bg-[#F9C301] text-[#111102]"
+                    : "bg-white text-[#111102]"
+                }
                 font-bold font-body text-[12px] md:text-[16px] 
                 px-6 md:px-8 py-2 md:py-2.5 
                 transition-all duration-200 
@@ -123,26 +130,28 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                 min-w-[100px] md:min-w-[120px] 
                 text-center
                 border-r border-[#111102]`}
-            >
-              Buyer
-            </Link>
-            <Link
-              href="/vendor/login"
-              className={`
-                ${type === "vendor" 
-                  ? "bg-[#F9C301] text-[#111102]" 
-                  : "bg-white text-[#111102]"}
+          >
+            Buyer
+          </Link>
+          <Link
+            href="/vendor/login"
+            className={`
+                ${
+                  type === "vendor"
+                    ? "bg-[#F9C301] text-[#111102]"
+                    : "bg-white text-[#111102]"
+                }
                 font-bold font-body text-[12px] md:text-[16px] 
                 px-6 md:px-8 py-2 md:py-2.5 
                 transition-all duration-200 
                 hover:bg-[#F9C301] hover:bg-opacity-50
                 min-w-[100px] md:min-w-[120px] 
                 text-center`}
-            >
-              Vendor
-            </Link>
-          </div>
+          >
+            Vendor
+          </Link>
         </div>
+      </div>
 
       {/* Login Heading */}
       <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
@@ -162,7 +171,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
             </div>
           )}
           <form
-            className="md:space-y-6 space-y-5 w-full"
+            className="sm:space-y-6 w-full space-y-4"
             onSubmit={handleSubmit(onSubmit)}
           >
             {type === "buyer" ? (
@@ -262,7 +271,11 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
               type="submit"
               disabled={loading}
               className={`w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] md:text-[16px] text-[12px] font-bold font-body py-2 rounded-[5px] transition
-                ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-500"}`}
+                ${
+                  loading
+                    ? "opacity-70 cursor-not-allowed"
+                    : "hover:bg-yellow-500"
+                }`}
             >
               {loading ? "LOGGING IN..." : "LOGIN"}
             </button>
@@ -279,10 +292,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
               </Link>
             </p>
             <p>
-              <a
-                href="#"
-                className="text-[#111102] underline"
-              >
+              <a href="#" className="text-[#111102] underline">
                 Forgot Password?
               </a>
             </p>
