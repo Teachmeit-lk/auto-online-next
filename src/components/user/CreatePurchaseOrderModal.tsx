@@ -76,6 +76,7 @@ export const CreatePurchaseOrderModal: React.FC<
   const [items, setItems] = useState<OrderItem[]>([]);
   const [hasOutOfStock, setHasOutOfStock] = useState(false);
   const [showOutOfStockAlert, setShowOutOfStockAlert] = useState(false);
+  const [deliveryCost, setDeliveryCost] = useState<number>(0);
 
   console.log("quotation:", quotation);
 
@@ -104,8 +105,11 @@ export const CreatePurchaseOrderModal: React.FC<
   }, [quotation]);
 
   const grandTotal = useMemo(
-    () => items.reduce((sum, it) => sum + (it.totalPrice || 0), 0),
-    [items]
+    () => {
+      const itemsTotal = items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+      return itemsTotal + deliveryCost;
+    },
+    [items, deliveryCost]
   );
 
   const {
@@ -113,6 +117,7 @@ export const CreatePurchaseOrderModal: React.FC<
     handleSubmit,
     reset,
     watch,
+    setValue, 
     formState: { errors },
   } = useForm<PurchaseOrderFormData>({
     resolver: yupResolver(schema),
@@ -159,6 +164,8 @@ useEffect(() => {
   );
   setItems(mapped);
 
+  setDeliveryCost(Number(quotation.deliveryCost) || 0);
+
   const outOfStock = (quotation.products || []).some(
     (p: any) => 
       p.stockAvailability && 
@@ -168,9 +175,19 @@ useEffect(() => {
 
   // Show alert immediately if out of stock
   if (outOfStock) {
-    setShowOutOfStockAlert(true);
+      setShowOutOfStockAlert(true);
+    }
+  }, [quotation, isOpen]);
+
+useEffect(() => {
+  if (deliveryMethod === "arrange_delivery" && paymentMethod === "cash_at_shop") {
+    setValue("deliveryMethod", "collect_from_shop");
   }
-}, [quotation, isOpen]);
+  
+  if (paymentMethod === "cash_at_shop" && deliveryMethod === "arrange_delivery") {
+    setValue("deliveryMethod", "collect_from_shop");
+  }
+}, [deliveryMethod, paymentMethod, setValue]);
 
   const handleModalClose = () => {
     reset();
@@ -178,6 +195,7 @@ useEffect(() => {
     setItems([]);
     setHasOutOfStock(false);
     setShowOutOfStockAlert(false);
+    setDeliveryCost(0);
     onClose();
   };
 
@@ -287,6 +305,7 @@ useEffect(() => {
       : paymentMethod === "pay_online"
       ? "Pay online"
       : "Pay cash at the shop";
+
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
@@ -526,12 +545,17 @@ useEffect(() => {
                         </td>
                       </tr>
                     ))}
-
                     <tr className="bg-[#FFF8D9] font-[600]">
-                      <td className="p-2 border text-right" colSpan={6}>
-                        Grand total
+                      <td className="p-2 border text-right" colSpan={4}>
+                        Delivery Cost
                       </td>
-                      <td className="p-2 border text-right">
+                      <td className="p-2 border text-right" colSpan={1}>
+                        {deliveryCost.toFixed(2)} {quotation.currency || "LKR"}
+                      </td>
+                      <td className="p-2 border text-right" colSpan={1}>
+                        Grand Total
+                      </td>
+                      <td className="p-2 border text-right" colSpan={1}>
                         {grandTotal.toFixed(2)} {quotation.currency || "LKR"}
                       </td>
                     </tr>
@@ -567,13 +591,16 @@ useEffect(() => {
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
-                        <label className="flex items-center space-x-2 cursor-pointer">
+                        <label className={`flex items-center space-x-2 cursor-pointer ${
+                          paymentMethod === "cash_at_shop" ? "opacity-50 cursor-not-allowed" : ""
+                        }`}>
                           <input
                             type="radio"
                             {...field}
                             value="arrange_delivery"
                             className="text-[#F9C301] focus:ring-[#F9C301]"
                             checked={field.value === "arrange_delivery"}
+                            disabled={paymentMethod === "cash_at_shop"}
                           />
                           <span>Arrange delivery through vendor</span>
                         </label>
@@ -606,13 +633,16 @@ useEffect(() => {
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
-                        <label className="flex items-center space-x-2 cursor-pointer">
+                        <label className={`flex items-center space-x-2 cursor-pointer ${
+                          deliveryMethod === "arrange_delivery" ? "opacity-50 cursor-not-allowed" : ""
+                        }`}>
                           <input
                             type="radio"
                             {...field}
                             value="cash_at_shop"
                             className="text-[#F9C301] focus:ring-[#F9C301]"
                             checked={field.value === "cash_at_shop"}
+                            disabled={deliveryMethod === "arrange_delivery"}
                           />
                           <span>Pay cash at the shop</span>
                         </label>
