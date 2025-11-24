@@ -124,48 +124,50 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
       className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10 w-full mx-auto max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"
       id="register"
     >
-      <div className="hidden md:flex absolute top-4 right-5 md:right-12 md:space-x-6 space-x-3">
-        <Link
-          href="/user/register"
-          className={`
-            ${type === "buyer" ? "text-[#F9C301]" : "text-[#111102]"}
-            font-bold font-body text-[12px] md:text-[16px]`}
-        >
-          Buyer
-        </Link>
-        <Link
-          href="/vendor/register"
-          className={`
-            ${type === "vendor" ? "text-[#F9C301]" : "text-[#111102]"}
-            font-bold font-body text-[12px] md:text-[16px]`}
-        >
-          Vendor
-        </Link>
-      </div>
-
       <div className="w-full max-w-[420px] md:max-w-[520px] lg:max-w-[560px] flex flex-col items-center">
-        <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 mt-5 md:mt-5">
+      <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-3 md:mb-0 mt-4 md:mt-0">
+        <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-4 md:mb-0 mt-4 md:mt-0">
+          <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
+            <Link
+              href="/user/register"
+              className={`
+                ${type === "buyer" 
+                  ? "bg-[#F9C301] text-[#111102]" 
+                  : "bg-white text-[#111102]"}
+                font-bold font-body text-[12px] md:text-[16px] 
+                px-6 md:px-8 py-2 md:py-2.5 
+                transition-all duration-200 
+                hover:bg-[#F9C301] hover:bg-opacity-50
+                min-w-[100px] md:min-w-[120px] 
+                text-center
+                border-r border-[#111102]`}
+            >
+              Buyer
+            </Link>
+            <Link
+              href="/vendor/register"
+              className={`
+                ${type === "vendor" 
+                  ? "bg-[#F9C301] text-[#111102]" 
+                  : "bg-white text-[#111102]"}
+                font-bold font-body text-[12px] md:text-[16px] 
+                px-6 md:px-8 py-2 md:py-2.5 
+                transition-all duration-200 
+                hover:bg-[#F9C301] hover:bg-opacity-50
+                min-w-[100px] md:min-w-[120px] 
+                text-center`}
+            >
+              Vendor
+            </Link>
+          </div>
+        </div>
+      </div>
+      {/* Register Heading */}
+      <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
+        <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 w-full">
           {type === "buyer" ? "Buyer" : "Vendor"} Register
         </h1>
-        {/* Mobile toggle */}
-        <div className="flex md:hidden justify-center gap-6 mb-3">
-          <Link
-            href="/user/register"
-            className={`
-              ${type === "buyer" ? "text-[#F9C301]" : "text-[#111102]"}
-              font-bold font-body text-xs`}
-          >
-            Buyer
-          </Link>
-          <Link
-            href="/vendor/register"
-            className={`
-              ${type === "vendor" ? "text-[#F9C301]" : "text-[#111102]"}
-              font-bold font-body text-xs`}
-          >
-            Vendor
-          </Link>
-        </div>
+      </div>
 
         <div className="bg-[#F8F8F8] w-full md:w-auto md:min-w-[420px] md:py-10 md:px-10 py-6 px-5 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center">
           {errorMessage && (

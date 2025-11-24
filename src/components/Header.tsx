@@ -157,12 +157,28 @@ export const Header: React.FC = () => {
               <User size="18px" color="#111102" />
             </button>
           ) : (
-            <Link
-              href="/user/login"
-              className="absolute right-0 w-[70px] h-[24px] bg-[#F9C301] text-black rounded-[3px] text-[12px] font-semibold hover:bg-yellow-500 flex items-center justify-center"
-            >
-              LOGIN
-            </Link>
+            <div className="absolute right-0 flex gap-2">
+          <Link
+            href="/user/login"
+            className={`${
+              pathname === "/user/login" || pathname === "/vendor/login"
+                ? "bg-[#F9C301] text-black"
+                : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
+            } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center`}
+          >
+            LOGIN
+          </Link>
+          <Link
+            href="/user/register"
+            className={`${
+              pathname === "/user/register" || pathname === "/vendor/register"
+                ? "bg-[#F9C301] text-black"
+                : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
+            } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center whitespace-nowrap`}
+          >
+            SIGN UP
+          </Link>
+        </div>
           )}
         </div>
 
@@ -190,7 +206,7 @@ export const Header: React.FC = () => {
 
         {/* Conditional Rendering for Larger Screens */}
         {isAuthenticated ? (
-          <div className="hidden md:flex items-center relative">
+          <div className="hidden md:flex items-center relative flex-shrink-0">
             <button
               ref={userButtonRef}
               onClick={handleUserModalToggle}
@@ -200,12 +216,26 @@ export const Header: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3 mr-[30px] flex-shrink-0">
             <Link
               href="/user/login"
-              className="px-[30px] py-[10px] bg-[#F9C301] text-black rounded-md font-body font-[700] hover:bg-yellow-500 w-[120px] h-[42px] text-[16px] mr-[30px] flex items-center justify-center"
+              className={`${
+                pathname === "/user/login" || pathname === "/vendor/login"
+                  ? "bg-[#F9C301] text-black"
+                  : "bg-white border-2 border-[#F9C301] text-black hover:bg-[#F9C301]"
+              } rounded-md font-body font-[700] w-[120px] h-[42px] text-[14px] flex items-center justify-center`}
             >
               LOGIN
+            </Link>
+            <Link
+              href="/user/register"
+              className={`${
+                pathname === "/user/register" || pathname === "/vendor/register"
+                  ? "bg-[#F9C301] text-black"
+                  : "bg-white border-2 border-[#F9C301] text-black hover:bg-[#F9C301]"
+              } rounded-md font-body font-[700] w-[120px] h-[42px] text-[14px] flex items-center justify-center whitespace-nowrap`}
+            >
+              SIGN UP
             </Link>
           </div>
         )}
