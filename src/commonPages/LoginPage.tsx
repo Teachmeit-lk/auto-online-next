@@ -108,24 +108,41 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
       className="bg-white relative md:px-20 px-5 py-5 md:py-[63px] overflow-hidden min-h-screen w-full mx-auto max-w-screen-xl"
       id="login"
     >
-      <div className="absolute top-4 md:right-12 right-5 flex md:space-x-6 space-x-3">
-        <Link
-          href="/user/login"
-          className={`
-            ${type === "buyer" ? "text-[#F9C301]" : "text-[#111102]"}
-            font-bold font-body text-[12px] md:text-[16px]`}
-        >
-          Buyer
-        </Link>
-        <Link
-          href="/vendor/login"
-          className={`
-            ${type === "vendor" ? "text-[#F9C301]" : "text-[#111102]"}
-            font-bold font-body text-[12px] md:text-[16px]`}
-        >
-          Vendor
-        </Link>
-      </div>
+      <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-4 md:mb-0 mt-4 md:mt-0">
+          <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
+            <Link
+              href="/user/login"
+              className={`
+                ${type === "buyer" 
+                  ? "bg-[#F9C301] text-[#111102]" 
+                  : "bg-white text-[#111102]"}
+                font-bold font-body text-[12px] md:text-[16px] 
+                px-6 md:px-8 py-2 md:py-2.5 
+                transition-all duration-200 
+                hover:bg-[#F9C301] hover:bg-opacity-50
+                min-w-[100px] md:min-w-[120px] 
+                text-center
+                border-r border-[#111102]`}
+            >
+              Buyer
+            </Link>
+            <Link
+              href="/vendor/login"
+              className={`
+                ${type === "vendor" 
+                  ? "bg-[#F9C301] text-[#111102]" 
+                  : "bg-white text-[#111102]"}
+                font-bold font-body text-[12px] md:text-[16px] 
+                px-6 md:px-8 py-2 md:py-2.5 
+                transition-all duration-200 
+                hover:bg-[#F9C301] hover:bg-opacity-50
+                min-w-[100px] md:min-w-[120px] 
+                text-center`}
+            >
+              Vendor
+            </Link>
+          </div>
+        </div>
 
       {/* Login Heading */}
       <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
