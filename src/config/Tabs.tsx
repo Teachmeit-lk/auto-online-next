@@ -42,6 +42,40 @@ export const VendorTabList = [
   },
 ];
 
+export const getCustomerTabList = (isAuthenticated: boolean) => {
+  if (!isAuthenticated) {
+    return [
+      {
+        label: CustomerTabs.SearchVendors,
+        path: "/user/search-vendors",
+      },
+    ];
+  }
+
+  return [
+    {
+      label: CustomerTabs.SearchVendors,
+      path: "/user/search-vendors",
+    },
+    {
+      label: CustomerTabs.QuotationRequests,
+      path: "/user/quotation-requests",
+    },
+    {
+      label: CustomerTabs.QuotationsFromVendors,
+      path: "/user/quotations-from-vendors",
+    },
+    {
+      label: CustomerTabs.AcceptedPOs,
+      path: "/user/accepted-po-list",
+    },
+    {
+      label: CustomerTabs.CompletedOrders,
+      path: "/user/completed-orders",
+    },
+  ];
+};
+
 export const CustomerTabList = [
   // {
   //   label:CustomerTabs.Profile,

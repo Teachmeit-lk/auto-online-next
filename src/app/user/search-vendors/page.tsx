@@ -17,9 +17,11 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
+  const router = useRouter();
   const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
   const [ViewVendorProfileModalOpen, setViewVendorProfileModalOpen] =
     useState(false);
@@ -341,8 +343,11 @@ const SearchVendors: React.FC = () => {
                     <td className="grid grid-cols-2 text-center w-full h-full">
                       <button
                         className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        // onClick={() => setIsModalOpen1(true)}
                         onClick={() => {
+                          if (!authState.isAuthenticated) {
+                            router.push("/user/login");
+                            return;
+                          }
                           setSelectedVendor(vendor);
                           setGetQuotationModalOpen(true);
                         }}
@@ -420,4 +425,5 @@ const SearchVendors: React.FC = () => {
     </TabLayout>
   );
 };
-export default withAuth(SearchVendors);
+
+export default SearchVendors;
