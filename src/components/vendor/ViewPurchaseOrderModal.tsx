@@ -5,6 +5,7 @@ import { CirclePlus } from "lucide-react";
 import { useMemo } from "react";
 import { PurchaseOrder } from "@/service/firestoreService";
 import Image from "next/image";
+import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
 
 interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={order?.orderNumber || ""}
+                  value={useRefactoredIdLast("ON", order?.orderNumber) || ""}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />

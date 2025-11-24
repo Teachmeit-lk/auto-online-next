@@ -12,6 +12,7 @@ import {
 } from "@/service/firestoreService";
 
 import { ViewEstimateModal } from "@/components/user/ViewEstimateModal";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 
 const QuotationRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -193,10 +194,10 @@ const QuotationRequests: React.FC = () => {
                       {index + 1}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.rcode}
+                      {useRefactoredId("RC", row.rcode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.vcode}
+                      {useRefactoredId("VC", row.vcode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {row.cname}
