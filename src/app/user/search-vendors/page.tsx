@@ -291,8 +291,8 @@ const SearchVendors: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full min-w-[660px] overflow-x-auto border-collapse ">
+        <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px] ">
+          <table className="w-full min-w-[660px] overflow-x-auto border-collapse sm:table hidden">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white lg:px-[30px] py-2 ">
@@ -301,7 +301,7 @@ const SearchVendors: React.FC = () => {
                 <th className="border border-r-2 border-b-2  border-white lg:px-[60px] py-2">
                   Company Name
                 </th>
-                <th className="border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
+                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
                   Address
                 </th>
                 <th className="border px-4 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
@@ -371,6 +371,92 @@ const SearchVendors: React.FC = () => {
                       >
                         View More
                       </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          <table className="w-full min-w-[660px] overflow-x-auto border-collapse table sm:hidden">
+            <thead>
+              <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
+                <th className="border border-r-2 border-b-2 border-white lg:px-[30px] py-2 ">
+                  No.
+                </th>
+                <th className="border border-r-2 border-b-2  border-white lg:px-[60px] py-2">
+                  Company Name
+                </th>
+                <th className="border px-4 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                  <ClipboardCheck size="19px" />
+                  <span>Action</span>
+                </th>
+                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
+                  Address
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td className="px-4 py-3" colSpan={4}>
+                    Loading...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-3" colSpan={4}>
+                    No vendors found.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((vendor, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
+                  >
+                    <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                      {(vendor.firstName || "") + " " + (vendor.lastName || "")}
+                    </td>
+                    <td className="grid grid-cols-2 text-center w-full h-full">
+                      <button
+                        className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                        // onClick={() => setIsModalOpen1(true)}
+                        onClick={() => {
+                          setSelectedVendor(vendor);
+                          setGetQuotationModalOpen(true);
+                        }}
+                      >
+                        Get Quotation
+                      </button>
+                      <button
+                        className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                        // onClick={() => setIsModalOpen2(true)}
+                        onClick={async () => {
+                          setSelectedVendor(vendor);
+                          const imgs =
+                            await FirestoreService.getAll<GalleryImage>(
+                              COLLECTIONS.GALLERY,
+                              [
+                                {
+                                  field: "vendorId",
+                                  operator: "==",
+                                  value: (vendor as any).id,
+                                },
+                              ]
+                            );
+                          setSelectedVendorGallery(imgs);
+                          setViewVendorProfileModalOpen(true);
+                        }}
+                      >
+                        View More
+                      </button>
+                    </td>
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                      {vendor.address || "-"}
                     </td>
                   </tr>
                 ))
