@@ -1,4 +1,5 @@
 import { QuotationRequest } from "@/service/firestoreService";
+import { useRefactoredIdLast } from "./useRefactoredIdLast";
 
 export const buildWhatsAppQuotationUrl = ({
   vendor,
@@ -158,4 +159,100 @@ Buyer Login Url - https://auto-online.lk/user/login
 
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   return url;
+};
+
+export const buildPurchaseOrderWhatsAppUrl = ({
+  vendorPhone,
+  vendorName,
+  orderNumber,
+  items,
+  grandTotal,
+  currency,
+  deliveryMethod,
+  paymentMethod,
+  specialNotes,
+  customer,
+  requestImageUrl,
+  deliveryCost,
+  deliveryAddress,
+}: {
+  vendorPhone: string;
+  vendorName: string;
+  orderNumber: string;
+  items: {
+    itemDescription: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }[];
+  grandTotal: number;
+  currency: string;
+  deliveryMethod: string;
+  paymentMethod: string;
+  specialNotes?: string;
+  customer: {
+    name: string;
+    phone: string;
+    address: string;
+  };
+  requestImageUrl?: string | null;
+  deliveryCost?: number;
+  deliveryAddress?: {
+    street: string;
+    city: string;
+    district: string;
+    zipCode: string;
+    country: string;
+  } | null;
+}) => {
+  if (!vendorPhone) return null;
+
+  const phone = "+94" + vendorPhone.replace(/\D/g, "");
+
+  const itemsText = items
+    .map(
+      (it, i) =>
+        `${i + 1}. ${it.itemDescription}
+Qty: ${it.quantity}
+Unit Price: ${it.unitPrice}
+Total: ${it.totalPrice}`
+    )
+    .join("\n\n");
+
+  const deliveryAddressText = deliveryAddress
+    ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.district}, ${deliveryAddress.zipCode}, ${deliveryAddress.country}`
+    : customer.address;
+
+  const msg = `
+Purchase Order from AutoOnline.lk
+
+Vendor: ${vendorName}
+Order No: ${useRefactoredIdLast("ON", orderNumber)}
+
+Customer Details:
+Name: ${customer.name}
+Phone: ${customer.phone}
+Address: ${customer.address}
+
+Items:
+${itemsText}
+
+Delivery:
+Method: ${deliveryMethod}
+Cost: ${
+    typeof deliveryCost === "number" ? `${deliveryCost} ${currency}` : "N/A"
+  }
+Address: ${deliveryAddressText}
+
+Grand Total: ${grandTotal} ${currency}
+
+Payment Method: ${paymentMethod}
+${specialNotes ? `\nSpecial Notes:\n${specialNotes}` : ""}
+
+${requestImageUrl ? `Requested Part Image:\n${requestImageUrl}` : ""}
+
+Vendor Login Url - https://auto-online.lk/vendor/login
+`.trim();
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 };

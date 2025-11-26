@@ -126,6 +126,7 @@ export interface Quotation extends BaseDocument {
   terms: string;
   status: "pending" | "accepted" | "rejected" | "expired";
   notes?: string;
+  vendorPhone?: string;
 }
 
 // Purchase Order interfaces

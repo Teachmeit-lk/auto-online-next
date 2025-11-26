@@ -10,6 +10,7 @@ import { Quotation, OrderService } from "@/service/firestoreService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import Image from "next/image";
 import { useRefactoredId } from "../hooks/useRefactoredId";
+import { buildPurchaseOrderWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 
 interface ICreatePurchaseOrderModalProps {
   isOpen: boolean;
@@ -268,12 +269,50 @@ export const CreatePurchaseOrderModal: React.FC<
 
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
 
-      console.log(
-        "[CreatePurchaseOrderModal] Purchase order created:",
-        orderId
-      );
-
       onSuccess && onSuccess();
+
+      try {
+        const vendorPhone = quotation.vendorPhone || "";
+        const vendorName = quotation.vendorName || "Vendor";
+
+        if (vendorPhone) {
+          const confirmSend = window.confirm(
+            "Do you want to send this Purchase Order to the vendor via WhatsApp?"
+          );
+
+          if (confirmSend) {
+            const waUrl = buildPurchaseOrderWhatsAppUrl({
+              vendorPhone,
+              vendorName,
+              orderNumber,
+              items,
+              grandTotal,
+              currency: quotation.currency || "LKR",
+              deliveryMethod: data.deliveryMethod,
+              paymentMethod: data.paymentMethod,
+              specialNotes: data.specialNotes,
+              customer: {
+                name: customerName,
+                phone: contactNo,
+                address: baseAddress,
+              },
+              requestImageUrl,
+              deliveryCost,
+              deliveryAddress:
+                data.deliveryMethod === "arrange_delivery" &&
+                data.deliveryAddress
+                  ? data.deliveryAddress
+                  : null,
+            });
+
+            if (waUrl) {
+              window.location.href = waUrl;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("WhatsApp sending error", e);
+      }
       handleModalClose();
     } catch (error: any) {
       console.error(

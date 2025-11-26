@@ -71,7 +71,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   } = useForm({
     resolver: yupResolver(schema),
   });
-  console.log(vendor);
   const vendorDisplayName =
     vendor?.companyName ||
     `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||

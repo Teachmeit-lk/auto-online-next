@@ -177,6 +177,7 @@ export const ViewQuotationRequestModal: React.FC<
         vendorEmail: user.email || "",
         buyerId: request.buyerId,
         deliveryCost: data.deliveryCost,
+        vendorPhone: user.whatsApp || "",
         products: [
           {
             partName: data.itemName,
