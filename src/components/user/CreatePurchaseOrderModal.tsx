@@ -123,6 +123,13 @@ export const CreatePurchaseOrderModal: React.FC<
       deliveryMethod: "collect_from_shop",
       paymentMethod: "cash_at_shop",
       specialNotes: "",
+      deliveryAddress: {
+        street: "",
+        city: "",
+        district: "",
+        zipCode: "",
+        country: "",
+      },
     },
   });
 
@@ -194,7 +201,18 @@ export const CreatePurchaseOrderModal: React.FC<
   }, [deliveryMethod, paymentMethod, setValue]);
 
   const handleModalClose = () => {
-    reset();
+    reset({
+      deliveryMethod: "collect_from_shop",
+      paymentMethod: "cash_at_shop",
+      specialNotes: "",
+      deliveryAddress: {
+        street: "",
+        city: "",
+        district: "",
+        zipCode: "",
+        country: "",
+      },
+    });
     setSubmitError(null);
     setItems([]);
     setHasOutOfStock(false);
