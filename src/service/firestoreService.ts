@@ -97,6 +97,8 @@ export interface QuotationRequest extends BaseDocument {
   quotationsReceived: number;
   targetDeliveryDate?: Date | Timestamp;
   maxBudget?: number;
+  brand?: string;
+  category?: string;
 }
 
 // Quotation interfaces

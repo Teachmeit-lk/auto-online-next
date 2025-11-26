@@ -9,6 +9,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
 import { QuotationService, QuotationRequest } from "@/service/firestoreService";
+import { buildVendorQuotationWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 
 interface IViewQuotationRequestModalProps {
   isOpen: boolean;
@@ -163,8 +164,8 @@ export const ViewQuotationRequestModal: React.FC<
 
       const unitPriceNum = Number(data.unitPrice) || 0;
       const quantityNum = Number(data.noOfUnits) || 0;
-      const totalAmountNum =
-        Number(data.netTotalPrice) || unitPriceNum * quantityNum;
+      const totalPriceNum = unitPriceNum * quantityNum;
+      const netTotalNum = Number(data.netTotalPrice) || totalPriceNum * 1.12;
 
       await QuotationService.createQuotation({
         quotationRequestId: request.id,
@@ -181,7 +182,7 @@ export const ViewQuotationRequestModal: React.FC<
             partName: data.itemName,
             quantity: quantityNum,
             unitPrice: unitPriceNum,
-            totalPrice: unitPriceNum * quantityNum,
+            totalPrice: totalPriceNum,
             description: data.description,
             condition: "new",
             imageUrl: attachmentUrl || null,
@@ -191,7 +192,7 @@ export const ViewQuotationRequestModal: React.FC<
           },
         ],
         description: data.description,
-        totalAmount: totalAmountNum,
+        totalAmount: netTotalNum,
         currency: "LKR",
         validUntil,
         deliveryTimeframe: `${data.validityDays} days`,
@@ -206,6 +207,41 @@ export const ViewQuotationRequestModal: React.FC<
         updatedAt: new Date(),
         isActive: true,
       } as any);
+
+      const buyerPhone = (request as any)?.buyerPhone;
+      const buyerName = request?.buyerName;
+
+      if (buyerPhone) {
+        const sendToWhatsApp = window.confirm(
+          "Do you also want to send this quotation to the customer via WhatsApp?"
+        );
+        if (sendToWhatsApp) {
+          const waUrl = buildVendorQuotationWhatsAppUrl({
+            buyerPhone,
+            buyerName,
+            request,
+            vendorUser: user,
+            quotation: {
+              itemName: data.itemName,
+              stockAvailability: data.stockAvailability,
+              measurement: data.measurement,
+              noOfUnits: quantityNum,
+              unitPrice: unitPriceNum,
+              totalPrice: totalPriceNum,
+              netTotalPrice: netTotalNum,
+              deliveryCost: Number(data.deliveryCost) || 0,
+              validityDays: Number(data.validityDays) || 0,
+              vendorComments: data.vendorComments,
+            },
+            attachmentUrl,
+          });
+
+          if (waUrl) {
+            window.location.href = waUrl;
+          }
+        }
+      }
+
       onSubmitted?.();
       handleModalClose();
     } catch (e: any) {

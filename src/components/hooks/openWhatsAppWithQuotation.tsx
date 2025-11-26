@@ -1,3 +1,5 @@
+import { QuotationRequest } from "@/service/firestoreService";
+
 export const buildWhatsAppQuotationUrl = ({
   vendor,
   vendorPhone,
@@ -72,6 +74,86 @@ ${
 (Please open this link to view/download the PDF/image.)`
     : ""
 }
+
+Vendor Login Url - https://auto-online.lk/vendor/login
+`.trim();
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  return url;
+};
+
+export const buildVendorQuotationWhatsAppUrl = ({
+  buyerPhone,
+  buyerName,
+  request,
+  vendorUser,
+  quotation,
+  attachmentUrl,
+}: {
+  buyerPhone?: string | null;
+  buyerName?: string | null;
+  request?: QuotationRequest | null;
+  vendorUser: any;
+  quotation: {
+    itemName: string;
+    stockAvailability: string;
+    measurement: string;
+    noOfUnits: number;
+    unitPrice: number;
+    totalPrice: number;
+    netTotalPrice: number;
+    deliveryCost: number;
+    validityDays: number;
+    vendorComments: string;
+  };
+  attachmentUrl?: string;
+}) => {
+  if (!buyerPhone) return null;
+
+  const phone = "+94" + buyerPhone.replace(/\D/g, "");
+
+  const vendorName =
+    `${vendorUser?.firstName || ""} ${vendorUser?.lastName || ""}`.trim() ||
+    vendorUser?.email ||
+    "Your vendor";
+
+  const message = `
+Dear ${buyerName || "Customer"},
+
+This is ${vendorName}. I am sending you the quotation for your vehicle ${
+    request?.category
+  } request.
+
+Request Details
+Vehicle Type - ${request?.vehicleType || "-"}
+Brand/Model - ${request?.brand || ""} ${request?.model || ""}
+Fuel Type - ${request?.fuelType || "-"}
+Manufacturing Year - ${request?.manufacturingYear || "-"}
+Measurement Requested - ${request?.measurement || "-"}
+No. of Units Requested - ${request?.numberOfUnits ?? "-"}
+
+Quotation Details
+Item Name - ${quotation.itemName}
+Stock Availability - ${quotation.stockAvailability}
+Measurement - ${quotation.measurement}
+No. of Units - ${quotation.noOfUnits}
+Unit Price - Rs. ${quotation.unitPrice.toFixed(2)}
+Total Price (before VAT) - Rs. ${quotation.totalPrice.toFixed(2)}
+Net Total (incl. VAT) - Rs. ${quotation.netTotalPrice.toFixed(2)}
+Delivery Cost - Rs. ${quotation.deliveryCost.toFixed(2)}
+Validity - ${quotation.validityDays} day(s)
+
+Vendor Comments
+${quotation.vendorComments}
+
+${
+  attachmentUrl
+    ? `Attachment URL - ${attachmentUrl}
+(Please open this link to view/download the image.)`
+    : ""
+}
+
+Buyer Login Url - https://auto-online.lk/user/login
 `.trim();
 
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
