@@ -74,6 +74,19 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
                 />
               </div>
 
+              {/* Vehicle Brand */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Vehicle Brand
+                </label>
+                <input
+                  type="text"
+                  value={request?.brand || "-"}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
               {/* Vehicle Model */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
