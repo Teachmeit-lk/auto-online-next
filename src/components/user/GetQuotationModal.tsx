@@ -27,11 +27,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   vendor,
 }) => {
   const [fileName, setFileName] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>("");
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
 
   const schema = Yup.object().shape({
     country: Yup.string().required("Country is required"),
+    brand: Yup.string().required("Brand is required"),
     model: Yup.string().required("Model is required"),
     vehicletype: Yup.string().required("Vehicle type is required"),
     manufactoringyear: Yup.string().required("Manufacturing Year is required"),
@@ -61,6 +63,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   // Form submission handler
   const onSubmit = async (data: {
     country: string;
+    brand: string;
     model: string;
     district: string;
     vehicletype: string;
@@ -99,6 +102,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       vendorId: vendor?.id,
       vendorName: vendor?.name,
       country: data.country,
+      brand: data.brand,
       model: data.model,
       district: data.district,
       vehicleType: data.vehicletype,
@@ -123,18 +127,29 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     if (!isOpen) {
       reset();
       setFileName("");
+      setImagePreview("");
     }
   }, [isOpen, reset]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   // Handle modal close
   const handleModalClose = () => {
     reset();
     setFileName("");
+    setImagePreview("");
     onClose();
   };
 
   // Dynamic options
   const [countryOptions, setCountryOptions] = useState<string[]>([]);
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>([]);
   const [fuelTypeOptions, setFuelTypeOptions] = useState<string[]>([]);
   const [measurementOptions, setMeasurementOptions] = useState<string[]>([]);
@@ -185,6 +200,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
         new Set((brands || []).map((b: any) => b.country).filter(Boolean))
       );
       setCountryOptions(countries);
+      const brandNames = Array.from(
+        new Set((brands || []).map((b: any) => b.name).filter(Boolean))
+      );
+      setBrandOptions(brandNames);
       setVehicleTypeOptions((vtypes || []).map((t: any) => t.name));
       setFuelTypeOptions((fuels || []).map((t: any) => t.name));
       setMeasurementOptions((units || []).map((t: any) => t.name));
@@ -220,7 +239,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               {/* Vehicle Country */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Vehicle Country
+                  Country of Manufacturing
                 </label>
                 <Controller
                   name="country"
@@ -230,7 +249,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="country"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.country
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -254,6 +273,43 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 )}
               </div>
 
+              {/* Vehicle Brand */}
+              <div className="col-span-1">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Vehicle Brand
+                </label>
+                <Controller
+                  name="brand"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="brand"
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                        errors.brand
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                    >
+                      <option value="" className="text-gray-500">
+                        Select Brand
+                      </option>
+                      {brandOptions.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.brand && (
+                  <p className="text-red-500 text-[8px]  mt-1">
+                    {errors.brand.message}
+                  </p>
+                )}
+              </div>
+
               {/* Vehicle Model */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -264,24 +320,17 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <select
+                    <input
                       {...field}
+                      type="text"
                       id="model"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
+                      placeholder="Enter vehicle model"
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
                         errors.model
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
-                    >
-                      <option value="" className="text-gray-500">
-                        Select Model
-                      </option>
-                      {modelOptions.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   )}
                 />
                 {errors.model && (
@@ -294,7 +343,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               {/* District */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  District
+                  Customer District
                 </label>
                 <Controller
                   name="district"
@@ -304,7 +353,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="district"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
                      ${
                        errors.district
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -340,7 +389,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
                      ${
                        errors.vehicletype
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -378,7 +427,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="manufactoringyear"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.manufactoringyear
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -414,7 +463,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.fueltype
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -450,7 +499,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.measurement
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -478,7 +527,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
 
               {/* No of Units */}
               <div className="col-span-1">
-                <label className="text-[10px] font-body font-[500] text-[#111102]">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
                   No of Units
                 </label>
                 <Controller
@@ -506,7 +555,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                           field.onChange(undefined);
                         }
                       }}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                       ${
                         errors.noofunits
                           ? "focus:ring-red-500 focus:border-red-500"
@@ -524,7 +573,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
 
               {/* Description */}
               <div className="col-span-3">
-                <label className="text-[10px] font-body font-[500] text-[#111102]">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Description
                 </label>
                 <Controller
@@ -537,7 +586,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       id="description"
                       rows={3}
                       placeholder="Enter description"
-                      className={`w-full h-[53px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[53px] mt-1 p-3 text-[11px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.description
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -552,25 +601,24 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   </p>
                 )}
               </div>
-
               {/* Image Upload */}
               <div className="col-span-3">
-                <div
-                  className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-               ${
-                 errors.image
-                   ? "focus:ring-red-500 focus:border-red-500"
-                   : "focus:ring-yellow-500 focus:border-yellow-500"
-               }`}
-                >
-                  <Camera size="16px" color="#5B5B5B" />
+                <Controller
+                  name="image"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <>
+                      <div
+                        className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
+                    ${
+                      errors.image
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                      >
+                        <Camera size="16px" color="#5B5B5B" />
 
-                  <Controller
-                    name="image"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <>
                         <input
                           type="file"
                           accept=".jpg, .png"
@@ -579,6 +627,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                             if (file) {
                               field.onChange(file);
                               setFileName(file.name);
+                              // Create preview
+                              const previewUrl = URL.createObjectURL(file);
+                              setImagePreview(previewUrl);
                             }
                           }}
                           className="hidden"
@@ -586,15 +637,41 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         />
                         <label
                           htmlFor="file-upload"
-                          className="cursor-pointer text-[#D1D1D1] font-body text-[9px] pl-1 mt-[2px]"
+                          className="cursor-pointer text-[#D1D1D1] font-body text-[10px] pl-1 mt-[2px]"
                         >
                           {fileName ||
                             "Choose an Image to upload (jpg and png files only)"}
                         </label>
-                      </>
-                    )}
-                  />
-                </div>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-16 h-16 object-cover rounded-[3px] border border-[#D1D1D1]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImagePreview("");
+                              setFileName("");
+                              field.onChange(undefined);
+                              // Reset the file input
+                              const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+                              if (fileInput) fileInput.value = '';
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-700 font-body"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                />
+                
                 {/* Error Message */}
                 {errors.image && (
                   <p className="text-red-500 text-[8px] mt-1">
