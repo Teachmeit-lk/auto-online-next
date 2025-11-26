@@ -2,9 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, A11y } from "swiper/modules";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import type { Swiper as SwiperType } from "swiper";
 
 import "swiper/css";
@@ -198,27 +196,13 @@ export const ServiceCategories: React.FC = () => {
         )}
       </div>
 
-      <div className="hidden relative 2xl:flex items-center justify-center pl-[100px] pr-[80px]">
-        {/* Arrow Buttons */}
-        <button
-          className="absolute left-0 text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slideNext()}
-        >
-          <ChevronLeft />
-        </button>
-
-        <Swiper
-          modules={[Navigation, A11y]}
-          slidesPerView={5}
-          spaceBetween={0}
-          loop={true}
-          className="flex"
-          onSwiper={(swiper) => (swiperRef.current = swiper)}
-        >
-          {initialProducts.map((product, index) => (
-            <SwiperSlide key={index} className="w-[202px] h-[302px] pr-0 m-0">
-              <div className="w-full h-full bg-white rounded-lg text-left">
-                <div className="w-[202px] h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
+      {/* Large Screen Grid */}
+      <div className="hidden 2xl:block px-20">
+        <div className="grid grid-cols-5 gap-4">
+          {(showAll ? initialProducts : initialProducts.slice(0, 5)).map(
+            (product, index) => (
+              <div key={index} className="bg-white rounded-lg p-4">
+                <div className="w-full h-[232px] bg-[#F8F8F8] rounded-lg flex justify-center items-center mb-3">
                   <Image
                     src={product.image}
                     alt={product.type}
@@ -244,6 +228,7 @@ export const ServiceCategories: React.FC = () => {
                     </span>
                   ))}
                 </div>
+
                 <Link
                   href="/user/search-vendors"
                   className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
@@ -251,16 +236,39 @@ export const ServiceCategories: React.FC = () => {
                   Shop Now
                 </Link>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            )
+          )}
+        </div>
 
-        <button
-          className="absolute right-[20px] text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slidePrev()}
-        >
-          <ChevronRight />
-        </button>
+        {/* View More/Less Buttons for Large Screen */}
+        {!showAll && initialProducts.length > 5 && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="mt-6 flex items-center justify-center text-[14px] text-[#111102] font-medium font-body w-full"
+          >
+            View More
+            <ChevronRight
+              strokeWidth="2px"
+              size="18px"
+              color="#111102"
+              className="ml-1"
+            />
+          </button>
+        )}
+        {showAll && initialProducts.length > 5 && (
+          <button
+            onClick={() => setShowAll(false)}
+            className="mt-6 flex items-center justify-center text-[14px] text-[#111102] font-medium font-body w-full"
+          >
+            View Less
+            <ChevronRight
+              strokeWidth="2px"
+              size="18px"
+              color="#111102"
+              className="ml-1"
+            />
+          </button>
+        )}
       </div>
     </div>
   );
