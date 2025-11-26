@@ -256,3 +256,138 @@ Vendor Login Url - https://auto-online.lk/vendor/login
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 };
+
+export const buildPurchaseOrderStatusWhatsAppUrl = ({
+  customerPhone,
+  customerName,
+  orderNumber,
+  status,
+  items,
+  totalAmount,
+  currency,
+  deliveryMethod,
+  deliveryCost,
+  deliveryAddress,
+  rejectionReason,
+}: {
+  customerPhone: string;
+  customerName: string;
+  orderNumber: string;
+  status: "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
+  items: {
+    partName?: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }[];
+  totalAmount: number;
+  currency: string;
+  deliveryMethod?: string;
+  deliveryCost?: number;
+  deliveryAddress?: {
+    street: string;
+    city: string;
+    district: string;
+    zipCode: string;
+    country: string;
+  } | null;
+  rejectionReason?: string;
+}) => {
+  if (!customerPhone) return null;
+
+  const phone = "+94" + customerPhone.replace(/\D/g, "");
+
+  const itemsText = (items || [])
+    .map((it, i) => {
+      const name = it.partName || it.description || `Item ${i + 1}`;
+      return `${i + 1}. ${name}
+Qty: ${it.quantity}
+Unit: ${it.unitPrice.toFixed(2)} ${currency}
+Total: ${it.totalPrice.toFixed(2)} ${currency}`;
+    })
+    .join("\n\n");
+
+  const deliveryAddressText = deliveryAddress
+    ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.district}, ${deliveryAddress.zipCode}, ${deliveryAddress.country}`
+    : "";
+
+  let statusLine = "";
+  switch (status) {
+    case "confirmed":
+      statusLine = "Your order has been *CONFIRMED*.";
+      break;
+    case "in_progress":
+      statusLine = "Your order is now *BEING PREPARED*.";
+      break;
+    case "shipped":
+      statusLine = "Your order has been *DISPATCHED*.";
+      break;
+    case "delivered":
+      statusLine = "Your order has been marked as *DELIVERED*.";
+      break;
+    case "cancelled":
+      statusLine = "Your order has been *REJECTED*.";
+      break;
+  }
+
+  if (status === "cancelled") {
+    const msg = `
+Hi ${customerName},
+
+${statusLine}
+
+Order No: ${useRefactoredIdLast("ON", orderNumber)}
+${rejectionReason ? `\nReason for rejection:\n${rejectionReason}\n` : ""}
+
+Buyer Login Url - https://auto-online.lk/user/login
+
+Thank you for using AutoOnline.lk
+    `.trim();
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  }
+
+  const isDeliveryOrder = deliveryMethod === "arrange_delivery";
+
+  let effectiveTotal = totalAmount;
+  if (
+    !isDeliveryOrder &&
+    typeof deliveryCost === "number" &&
+    deliveryCost > 0
+  ) {
+    effectiveTotal = totalAmount - deliveryCost;
+  }
+
+  const deliveryBlock = isDeliveryOrder
+    ? `
+Delivery:
+Method: ${deliveryMethod || "As discussed"}
+${
+  typeof deliveryCost === "number"
+    ? `Cost: ${deliveryCost.toFixed(2)} ${currency}`
+    : ""
+}
+${deliveryAddressText ? `Address: ${deliveryAddressText}` : ""}`
+    : "";
+
+  const msg = `
+Hi ${customerName},
+
+${statusLine}
+
+Order No: ${useRefactoredIdLast("ON", orderNumber)}
+
+Order Summary:
+${itemsText || "Items as per quotation."}
+${deliveryBlock}
+
+Total Payable: ${effectiveTotal.toFixed(2)} ${currency}
+
+Buyer Login Url - https://auto-online.lk/user/login
+
+Thank you for using AutoOnline.lk
+  `.trim();
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+};
