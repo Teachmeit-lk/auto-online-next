@@ -112,11 +112,32 @@ export const buildVendorQuotationWhatsAppUrl = ({
   if (!buyerPhone) return null;
 
   const phone = "+94" + buyerPhone.replace(/\D/g, "");
-
   const vendorName =
     `${vendorUser?.firstName || ""} ${vendorUser?.lastName || ""}`.trim() ||
     vendorUser?.email ||
     "Your vendor";
+
+  const isOutOfStock = quotation.stockAvailability
+    ?.toLowerCase()
+    .includes("out");
+
+  if (isOutOfStock) {
+    const msg = `
+Dear ${buyerName || "Customer"},
+
+This is ${vendorName}.
+
+Regarding your request for ${
+      quotation.itemName
+    }, unfortunately this item is currently *OUT OF STOCK*.
+
+Please check again later or update your request.
+
+Buyer Login Url - https://auto-online.lk/user/login
+    `.trim();
+
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  }
 
   const message = `
 Dear ${buyerName || "Customer"},
@@ -155,10 +176,9 @@ ${
 }
 
 Buyer Login Url - https://auto-online.lk/user/login
-`.trim();
+  `.trim();
 
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-  return url;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 };
 
 export const buildPurchaseOrderWhatsAppUrl = ({
