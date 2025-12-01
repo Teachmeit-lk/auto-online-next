@@ -10,6 +10,7 @@ import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
 import { QuotationService, QuotationRequest } from "@/service/firestoreService";
 import { buildVendorQuotationWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "../user/SendWhatsAppConfirmationModal";
 
 interface IViewQuotationRequestModalProps {
   isOpen: boolean;
@@ -45,6 +46,26 @@ export const ViewQuotationRequestModal: React.FC<
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
   const [showDetails, setShowDetails] = useState<boolean>(true);
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [pendingWhatsAppData, setPendingWhatsAppData] = useState<{
+    buyerPhone: string;
+    buyerName?: string | null;
+    request: QuotationRequest;
+    vendorUser: any;
+    quotation: {
+      itemName: string;
+      stockAvailability: string;
+      measurement: string;
+      noOfUnits: number;
+      unitPrice: number;
+      totalPrice: number;
+      netTotalPrice: number;
+      deliveryCost: number;
+      validityDays: number;
+      vendorComments: string;
+    };
+    attachmentUrl?: string;
+  } | null>(null);
 
   const schema = Yup.object().shape({
     itemName: Yup.string().required("Item Name is required"),
@@ -213,34 +234,29 @@ export const ViewQuotationRequestModal: React.FC<
       const buyerName = request?.buyerName;
 
       if (buyerPhone) {
-        const sendToWhatsApp = window.confirm(
-          "Do you also want to send this quotation to the customer via WhatsApp?"
-        );
-        if (sendToWhatsApp) {
-          const waUrl = buildVendorQuotationWhatsAppUrl({
-            buyerPhone,
-            buyerName,
-            request,
-            vendorUser: user,
-            quotation: {
-              itemName: data.itemName,
-              stockAvailability: data.stockAvailability,
-              measurement: data.measurement,
-              noOfUnits: quantityNum,
-              unitPrice: unitPriceNum,
-              totalPrice: totalPriceNum,
-              netTotalPrice: netTotalNum,
-              deliveryCost: Number(data.deliveryCost) || 0,
-              validityDays: Number(data.validityDays) || 0,
-              vendorComments: data.vendorComments,
-            },
-            attachmentUrl,
-          });
-
-          if (waUrl) {
-            window.location.href = waUrl;
-          }
-        }
+        setPendingWhatsAppData({
+          buyerPhone,
+          buyerName,
+          request,
+          vendorUser: user,
+          quotation: {
+            itemName: data.itemName,
+            stockAvailability: data.stockAvailability,
+            measurement: data.measurement,
+            noOfUnits: quantityNum,
+            unitPrice: unitPriceNum,
+            totalPrice: totalPriceNum,
+            netTotalPrice: netTotalNum,
+            deliveryCost: Number(data.deliveryCost) || 0,
+            validityDays: Number(data.validityDays) || 0,
+            vendorComments: data.vendorComments,
+          },
+          attachmentUrl,
+        });
+        setWhatsAppModalOpen(true);
+      } else {
+        onSubmitted?.();
+        handleModalClose();
       }
 
       onSubmitted?.();
@@ -251,6 +267,44 @@ export const ViewQuotationRequestModal: React.FC<
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleConfirmWhatsApp = () => {
+    if (!pendingWhatsAppData) return;
+
+    const {
+      buyerPhone,
+      buyerName,
+      request,
+      vendorUser,
+      quotation,
+      attachmentUrl,
+    } = pendingWhatsAppData;
+
+    const waUrl = buildVendorQuotationWhatsAppUrl({
+      buyerPhone,
+      buyerName,
+      request,
+      vendorUser,
+      quotation,
+      attachmentUrl,
+    });
+
+    if (waUrl) {
+      window.location.href = waUrl;
+    }
+
+    setWhatsAppModalOpen(false);
+    setPendingWhatsAppData(null);
+    onSubmitted?.();
+    handleModalClose();
+  };
+
+  const handleSkipWhatsApp = () => {
+    setWhatsAppModalOpen(false);
+    setPendingWhatsAppData(null);
+    onSubmitted?.();
+    handleModalClose();
   };
 
   // Handle modal close
@@ -931,6 +985,14 @@ export const ViewQuotationRequestModal: React.FC<
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <SendWhatsAppConfirmationModal
+        isOpen={whatsAppModalOpen}
+        onConfirm={handleConfirmWhatsApp}
+        onSkip={handleSkipWhatsApp}
+        onClose={() => setWhatsAppModalOpen(false)}
+        person="buyer"
+      />
     </Dialog.Root>
   );
 };

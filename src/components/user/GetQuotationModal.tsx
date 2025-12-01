@@ -15,6 +15,7 @@ import {
   QuotationRequest,
 } from "@/service/firestoreService";
 import { buildWhatsAppQuotationUrl } from "../hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
 
 interface Vendor {
   id: string;
@@ -42,6 +43,11 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   const [imagePreview, setImagePreview] = useState<string>("");
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [lastSubmission, setLastSubmission] = useState<{
+    data: any;
+    fileUrl: string;
+  } | null>(null);
 
   const schema = Yup.object().shape({
     country: Yup.string().required("Country is required"),
@@ -94,10 +100,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   }) => {
     if (!currentUser?.id) return;
 
-    const sendToWhatsApp = window.confirm(
-      "Do you also want to send this request as a WhatsApp message to the vendor?"
-    );
-
     const file = data.image;
     let uploadedUrl = "";
     if (file) {
@@ -143,24 +145,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       doc
     );
 
-    if (sendToWhatsApp) {
-      const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
-
-      const waUrl = buildWhatsAppQuotationUrl({
-        vendor: {
-          id: vendor?.id || "",
-          name: vendorDisplayName,
-        },
-        vendorPhone,
-        data,
-        currentUser,
-        fileUrl: uploadedUrl,
-      });
-
-      if (waUrl) {
-        window.location.href = waUrl;
-      }
-    }
+    setLastSubmission({ data, fileUrl: uploadedUrl });
+    setWhatsAppModalOpen(true);
 
     onClose();
   };
@@ -291,6 +277,35 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     for (let y = currentYear; y >= 1945; y--) arr.push(y);
     return arr;
   }, [currentYear]);
+
+  const handleConfirmWhatsApp = () => {
+    if (!lastSubmission || !currentUser) return;
+
+    const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
+
+    const waUrl = buildWhatsAppQuotationUrl({
+      vendor: {
+        id: vendor?.id || "",
+        name: vendorDisplayName,
+      },
+      vendorPhone,
+      data: lastSubmission.data,
+      currentUser,
+      fileUrl: lastSubmission.fileUrl,
+    });
+
+    if (waUrl) {
+      window.location.href = waUrl;
+    }
+
+    setWhatsAppModalOpen(false);
+    onClose();
+  };
+
+  const handleSkipWhatsApp = () => {
+    setWhatsAppModalOpen(false);
+    onClose();
+  };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -826,6 +841,14 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <SendWhatsAppConfirmationModal
+        isOpen={whatsAppModalOpen}
+        onConfirm={handleConfirmWhatsApp}
+        onSkip={handleSkipWhatsApp}
+        onClose={() => setWhatsAppModalOpen(false)}
+        person="vendor"
+      />
     </Dialog.Root>
   );
 };
