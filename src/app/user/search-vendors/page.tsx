@@ -267,8 +267,9 @@ const SearchVendors: React.FC = () => {
               </select>
             </div>
 
+            {/* Search bar temporarily removed based on client request. */}
             {/* Search */}
-            <div className="flex flex-col sm:col-span-2 lg:col-span-1">
+            {/* <div className="flex flex-col sm:col-span-2 lg:col-span-1">
               <label className="font-body font-medium text-sm text-[#111102] mb-1">
                 Search
               </label>
@@ -288,7 +289,8 @@ const SearchVendors: React.FC = () => {
                   />
                 </div>
               </div>
-            </div>
+            </div> */}
+            
           </div>
         </div>
 
@@ -392,12 +394,12 @@ const SearchVendors: React.FC = () => {
                 <th className="border border-r-2 border-b-2  border-white lg:px-[60px] py-2">
                   Company Name
                 </th>
+                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
+                  Address
+                </th>
                 <th className="border px-4 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
-                </th>
-                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
-                  Address
                 </th>
               </tr>
             </thead>
@@ -426,6 +428,9 @@ const SearchVendors: React.FC = () => {
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
                       {(vendor.firstName || "") + " " + (vendor.lastName || "")}
                     </td>
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                      {vendor.address || "-"}
+                    </td>
                     <td className="grid grid-cols-2 text-center w-full h-full">
                       <button
                         className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
@@ -449,7 +454,7 @@ const SearchVendors: React.FC = () => {
                                 {
                                   field: "vendorId",
                                   operator: "==",
-                                  value: (vendor as any).id,
+                                  value: (vendor as any). id,
                                 },
                               ]
                             );
@@ -459,9 +464,6 @@ const SearchVendors: React.FC = () => {
                       >
                         View More
                       </button>
-                    </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {vendor.address || "-"}
                     </td>
                   </tr>
                 ))
