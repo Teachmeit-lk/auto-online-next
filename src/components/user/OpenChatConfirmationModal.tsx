@@ -7,11 +7,12 @@ interface IOpenChatConfirmationModalProps {
   isOpen: boolean;
   onConfirm: () => void;
   onClose: () => void;
+  person?: string;
 }
 
 export const OpenChatConfirmationModal: React.FC<
   IOpenChatConfirmationModalProps
-> = ({ isOpen, onConfirm, onClose }) => {
+> = ({ isOpen, onConfirm, onClose, person }) => {
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -23,7 +24,7 @@ export const OpenChatConfirmationModal: React.FC<
           <div className="bg-[#F8F8F8] rounded-[5px] ml-4 mr-4 mt-2  p-4 flex flex-col items-center justify-center">
             <div className="">
               <p className="text-[11px] text-[#111102] font-body font-[500] text-center">
-                Are you sure to chat with this vendor now?
+                Are you sure to chat with this {person} now?
               </p>
             </div>
             <div className="flex justify-center gap-x-6 mt-8 ">

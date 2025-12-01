@@ -12,6 +12,7 @@ import {
   PurchaseOrder,
 } from "@/service/firestoreService";
 import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
 
 const CompletedOrders: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -271,7 +272,7 @@ const CompletedOrders: React.FC = () => {
                       {row.no}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {useRefactoredId("ON", row.orderNo)}
+                      {useRefactoredIdLast("ON", row.orderNo)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {useRefactoredId("VC", row.vendorCode)}

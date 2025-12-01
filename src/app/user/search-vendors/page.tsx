@@ -488,16 +488,7 @@ const SearchVendors: React.FC = () => {
       <GetQuotationModal
         isOpen={getQuotationModalOpen}
         onClose={() => setGetQuotationModalOpen(false)}
-        vendor={
-          selectedVendor
-            ? {
-                id: (selectedVendor as any).id,
-                name: `${selectedVendor.firstName || ""} ${
-                  selectedVendor.lastName || ""
-                }`.trim(),
-              }
-            : null
-        }
+        vendor={selectedVendor}
       />
       <ViewVendorProfileModal
         isOpen={ViewVendorProfileModalOpen}
