@@ -4,6 +4,8 @@ import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronRight, Star } from "lucide-react";
 import type { Swiper as SwiperType } from "swiper";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/store/store";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -79,8 +81,12 @@ const initialProducts = [
 ];
 
 export const ServiceCategories: React.FC = () => {
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const user = authState.user as any;
   const swiperRef = useRef<SwiperType | null>(null);
   const [showAll, setShowAll] = useState(false);
+
+  const shopNowPath = user?.role === "vendor" ? "/vendor/purchase-orders" : "/user/search-vendors";
 
   return (
     <div className="bg-white xl:pt-5 xl:pb-20 xl:px-20 lg:px-10 md:px-5  pb-5">
@@ -119,7 +125,7 @@ export const ServiceCategories: React.FC = () => {
                   ))}
                 </div>
                 <Link
-                  href="/user/search-vendors"
+                  href={shopNowPath}
                   className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                 >
                   Shop Now
@@ -157,7 +163,7 @@ export const ServiceCategories: React.FC = () => {
                   ))}
                 </div>
                 <Link
-                  href="/user/search-vendors"
+                  href={shopNowPath}
                   className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                 >
                   Shop Now
@@ -230,7 +236,7 @@ export const ServiceCategories: React.FC = () => {
                 </div>
 
                 <Link
-                  href="/user/search-vendors"
+                  href={shopNowPath}
                   className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
                 >
                   Shop Now

@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { useSelector } from "react-redux";
 
 import {
   Toyota,
@@ -24,6 +25,10 @@ const brands = [
 ];
 
 export const AutoServices: React.FC = () => {
+  const authState = useSelector((state: RootState) => state.auth as any);
+  const user = authState.user as any;
+
+  const shopNowPath = user?.role === "vendor" ? "/vendor/purchase-orders" : "/user/search-vendors";
   return (
     <div className="xl:px-20 py-5  xl:py-10 bg-white">
       {/* Brands Section */}
@@ -54,7 +59,7 @@ export const AutoServices: React.FC = () => {
               from us
             </p>
             <Link 
-              href="/user/search-vendors"
+              href={shopNowPath}
               className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] lg:text-[14px] text-[10px] flex items-center justify-center"
             >
               Shop Now
@@ -77,7 +82,7 @@ export const AutoServices: React.FC = () => {
               from us
             </p>
             <Link 
-              href="/user/search-vendors"
+              href={shopNowPath}
               className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] text-[10px] lg:text-[14px] flex items-center justify-center"
             >
               Shop Now
