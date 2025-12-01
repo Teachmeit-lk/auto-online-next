@@ -34,36 +34,30 @@ const CompletedOrders: React.FC = () => {
       if (!currentUser?.id) return;
       setLoading(true);
       try {
-        const list = await FirestoreService.getAll<Order>(COLLECTIONS.ORDERS, [
-          { field: "buyerId", operator: "==", value: currentUser.id },
-        ]);
-        const toMs = (t: any) =>
-          t?.seconds
-            ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
-            : t instanceof Date
-            ? t.getTime()
-            : 0;
-        const sorted = [...list].sort(
-          (a: any, b: any) =>
-            toMs(b?.completedDate || b?.createdAt) -
-            toMs(a?.completedDate || a?.createdAt)
-        );
-        setOrders(sorted);
-
-        // Also include delivered purchase orders
-        const poList = await FirestoreService.getAll<PurchaseOrder>(
+        // Fetch ONLY delivered purchase orders
+        const poList = await FirestoreService. getAll<PurchaseOrder>(
           COLLECTIONS.PURCHASE_ORDERS,
           [
             { field: "buyerId", operator: "==", value: currentUser.id },
             { field: "status", operator: "==", value: "delivered" },
           ]
         );
-        const deliveredSorted = [...poList].sort(
+        
+        const toMs = (t: any) =>
+          t?.seconds
+            ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
+            : t instanceof Date
+            ? t.getTime()
+            : 0;
+        const sorted = [...poList]. sort(
           (a: any, b: any) =>
             toMs(b?.updatedAt || b?.createdAt) -
             toMs(a?.updatedAt || a?.createdAt)
         );
-        setDeliveredPOs(deliveredSorted);
+        
+        setOrders([]);
+        setDeliveredPOs(sorted);
+        
       } catch (e) {
         console.error("[CompletedOrders] Failed to load orders", e);
         setOrders([]);
@@ -110,22 +104,6 @@ const CompletedOrders: React.FC = () => {
   }, [orders, deliveredPOs]);
 
   const rows = useMemo(() => {
-    const fromOrders = (orders || []).map((o: any) => {
-      const ts = o.completedDate || o.createdAt;
-      const d = ts?.seconds
-        ? new Date(ts.seconds * 1000)
-        : ts instanceof Date
-        ? ts
-        : null;
-      return {
-        orderNo: o.orderNumber || o.purchaseOrderId || o.id,
-        vendorCode: o.vendorId,
-        vendorName: vendorNameMap[o.vendorId] || o.vendorId || "-",
-        totalAmount: o.totalAmount,
-        dateCompleted: d ? d.toLocaleDateString() : "-",
-        raw: o as any,
-      };
-    });
     const fromDelivered = (deliveredPOs || []).map((p: any) => {
       const ts = p.updatedAt || p.createdAt;
       const d = ts?.seconds
@@ -142,16 +120,15 @@ const CompletedOrders: React.FC = () => {
         raw: p as any,
       };
     });
-    const combined = [...fromOrders, ...fromDelivered];
-    // sort by dateCompleted desc
-    const toMs = (t: any) => (t ? new Date(t).getTime() : 0);
-    const sorted = combined.sort(
+
+    const sorted = fromDelivered.sort(
       (a: any, b: any) =>
         new Date(b.dateCompleted).getTime() -
         new Date(a.dateCompleted).getTime()
     );
+    
     return sorted.map((r: any, idx: number) => ({ no: idx + 1, ...r }));
-  }, [orders, deliveredPOs, vendorNameMap]);
+  }, [deliveredPOs, vendorNameMap]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -168,6 +145,8 @@ const CompletedOrders: React.FC = () => {
       )
       .slice(0, entries);
   }, [rows, search, entries]);
+
+    console.log("Order :",selected);
 
   return (
     <TabLayout type="user">
