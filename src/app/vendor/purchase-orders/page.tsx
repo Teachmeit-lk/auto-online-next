@@ -21,6 +21,7 @@ import {
 import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
 import { buildPurchaseOrderStatusWhatsAppUrl } from "@/components/hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "@/components/user/SendWhatsAppConfirmationModal";
 
 // import {
 //   NewPriceChatAlert,
@@ -44,6 +45,21 @@ const NewPurchaseOrders: React.FC = () => {
   const [deliveryCostMap, setDeliveryCostMap] = useState<
     Record<string, number>
   >({});
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+
+  const [pendingWhatsAppStatus, setPendingWhatsAppStatus] = useState<{
+    customerPhone: string;
+    customerName: string;
+    orderNumber: string;
+    status: "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
+    items: any[];
+    totalAmount: number;
+    currency: string;
+    deliveryMethod: string;
+    deliveryCost?: number;
+    deliveryAddress?: any;
+    rejectionReason?: string;
+  } | null>(null);
   const [quotationDetailsMap, setQuotationDetailsMap] = useState<
     Record<
       string,
@@ -707,6 +723,21 @@ const NewPurchaseOrders: React.FC = () => {
                 "[PurchaseOrders] Purchase order accepted successfully"
               );
 
+              const list = await OrderService.getPurchaseOrdersByVendor(
+                currentUser.id
+              );
+              const toMs = (t: any) =>
+                t?.seconds
+                  ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
+                  : t instanceof Date
+                  ? t.getTime()
+                  : 0;
+              const sorted = [...list].sort(
+                (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
+              );
+              setOrders(sorted);
+              setIsModalOpen3(false);
+
               try {
                 const buyer: any = await FirestoreService.getById(
                   COLLECTIONS.USERS,
@@ -722,28 +753,19 @@ const NewPurchaseOrders: React.FC = () => {
                   "Customer";
 
                 if (customerPhone) {
-                  const shouldSend = window.confirm(
-                    "Do you want to send a WhatsApp confirmation to the customer?"
-                  );
-
-                  if (shouldSend) {
-                    const waUrl = buildPurchaseOrderStatusWhatsAppUrl({
-                      customerPhone,
-                      customerName,
-                      orderNumber: (selected as any).orderNumber,
-                      status: "confirmed",
-                      items: ((selected as any).products || []) as any,
-                      totalAmount: (selected as any).totalAmount || 0,
-                      currency: (selected as any).currency || "LKR",
-                      deliveryMethod: (selected as any).deliveryMethod,
-                      deliveryCost: (selected as any).deliveryCost,
-                      deliveryAddress: (selected as any).deliveryAddress,
-                    });
-
-                    if (waUrl) {
-                      window.location.href = waUrl;
-                    }
-                  }
+                  setPendingWhatsAppStatus({
+                    customerPhone,
+                    customerName,
+                    orderNumber: (selected as any).orderNumber,
+                    status: "confirmed",
+                    items: ((selected as any).products || []) as any,
+                    totalAmount: (selected as any).totalAmount || 0,
+                    currency: (selected as any).currency || "LKR",
+                    deliveryMethod: (selected as any).deliveryMethod,
+                    deliveryCost: (selected as any).deliveryCost,
+                    deliveryAddress: (selected as any).deliveryAddress,
+                  });
+                  setWhatsAppModalOpen(true);
                 } else {
                   console.warn(
                     "[PurchaseOrders] No phone/WhatsApp number found for buyer"
@@ -751,25 +773,10 @@ const NewPurchaseOrders: React.FC = () => {
                 }
               } catch (waErr) {
                 console.error(
-                  "[PurchaseOrders] Failed to build/send WhatsApp confirmation:",
+                  "[PurchaseOrders] Failed to prepare WhatsApp confirmation:",
                   waErr
                 );
               }
-
-              const list = await OrderService.getPurchaseOrdersByVendor(
-                currentUser.id
-              );
-              const toMs = (t: any) =>
-                t?.seconds
-                  ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
-                  : t instanceof Date
-                  ? t.getTime()
-                  : 0;
-              const sorted = [...list].sort(
-                (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
-              );
-              setOrders(sorted);
-              setIsModalOpen3(false);
             } catch (error: any) {
               console.error(
                 "[PurchaseOrders] Failed to accept purchase order:",
@@ -810,56 +817,6 @@ const NewPurchaseOrders: React.FC = () => {
                 "[PurchaseOrders] Purchase order rejected successfully"
               );
 
-              try {
-                const buyer: any = await FirestoreService.getById(
-                  COLLECTIONS.USERS,
-                  (selected as any).buyerId
-                );
-
-                const customerPhone =
-                  buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
-                const customerName =
-                  buyerNameMap[(selected as any).buyerId] ||
-                  `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
-                  buyer?.companyName ||
-                  "Customer";
-
-                if (customerPhone) {
-                  const shouldSend = window.confirm(
-                    "Do you want to send a WhatsApp rejection / cancellation message to the customer?"
-                  );
-
-                  if (shouldSend) {
-                    const waUrl = buildPurchaseOrderStatusWhatsAppUrl({
-                      customerPhone,
-                      customerName,
-                      orderNumber: (selected as any).orderNumber,
-                      status: "cancelled",
-                      items: ((selected as any).products || []) as any,
-                      totalAmount: (selected as any).totalAmount || 0,
-                      currency: (selected as any).currency || "LKR",
-                      deliveryMethod: (selected as any).deliveryMethod,
-                      deliveryCost: (selected as any).deliveryCost,
-                      deliveryAddress: (selected as any).deliveryAddress,
-                      rejectionReason: reason,
-                    });
-
-                    if (waUrl) {
-                      window.location.href = waUrl;
-                    }
-                  }
-                } else {
-                  console.warn(
-                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
-                  );
-                }
-              } catch (waErr) {
-                console.error(
-                  "[PurchaseOrders] Failed to build/send WhatsApp rejection:",
-                  waErr
-                );
-              }
-
               const list = await OrderService.getPurchaseOrdersByVendor(
                 currentUser.id
               );
@@ -875,6 +832,47 @@ const NewPurchaseOrders: React.FC = () => {
               setOrders(sorted);
               setIsModalOpen4(false);
               setRejectionReason("");
+
+              try {
+                const buyer: any = await FirestoreService.getById(
+                  COLLECTIONS.USERS,
+                  (selected as any).buyerId
+                );
+
+                const customerPhone =
+                  buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+                const customerName =
+                  buyerNameMap[(selected as any).buyerId] ||
+                  `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
+                  buyer?.companyName ||
+                  "Customer";
+
+                if (customerPhone) {
+                  setPendingWhatsAppStatus({
+                    customerPhone,
+                    customerName,
+                    orderNumber: (selected as any).orderNumber,
+                    status: "cancelled",
+                    items: ((selected as any).products || []) as any,
+                    totalAmount: (selected as any).totalAmount || 0,
+                    currency: (selected as any).currency || "LKR",
+                    deliveryMethod: (selected as any).deliveryMethod,
+                    deliveryCost: (selected as any).deliveryCost,
+                    deliveryAddress: (selected as any).deliveryAddress,
+                    rejectionReason: reason,
+                  });
+                  setWhatsAppModalOpen(true);
+                } else {
+                  console.warn(
+                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
+                  );
+                }
+              } catch (waErr) {
+                console.error(
+                  "[PurchaseOrders] Failed to prepare WhatsApp rejection:",
+                  waErr
+                );
+              }
             } catch (error: any) {
               console.error(
                 "[PurchaseOrders] Failed to reject purchase order:",
@@ -951,6 +949,34 @@ Order No: ${
             } finally {
               setIsModalOpen2(false);
             }
+          }}
+        />
+
+        <SendWhatsAppConfirmationModal
+          person="buyer"
+          isOpen={whatsAppModalOpen}
+          onConfirm={() => {
+            if (!pendingWhatsAppStatus) return;
+            try {
+              const waUrl = buildPurchaseOrderStatusWhatsAppUrl(
+                pendingWhatsAppStatus
+              );
+              if (waUrl) {
+                window.location.href = waUrl;
+              }
+            } catch (e) {
+              console.error("[PurchaseOrders] WhatsApp sending error", e);
+            } finally {
+              setWhatsAppModalOpen(false);
+              setPendingWhatsAppStatus(null);
+            }
+          }}
+          onSkip={() => {
+            setWhatsAppModalOpen(false);
+            setPendingWhatsAppStatus(null);
+          }}
+          onClose={() => {
+            setWhatsAppModalOpen(false);
           }}
         />
         {/*

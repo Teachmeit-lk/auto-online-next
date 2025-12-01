@@ -11,6 +11,7 @@ import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import Image from "next/image";
 import { useRefactoredId } from "../hooks/useRefactoredId";
 import { buildPurchaseOrderWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
 
 interface ICreatePurchaseOrderModalProps {
   isOpen: boolean;
@@ -79,8 +80,22 @@ export const CreatePurchaseOrderModal: React.FC<
   const [hasOutOfStock, setHasOutOfStock] = useState(false);
   const [showOutOfStockAlert, setShowOutOfStockAlert] = useState(false);
   const [deliveryCost, setDeliveryCost] = useState<number>(0);
-
-  console.log("quotation:", quotation);
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [pendingWhatsAppData, setPendingWhatsAppData] = useState<{
+    vendorPhone: string;
+    vendorName: string;
+    orderNumber: string;
+    items: OrderItem[];
+    grandTotal: number;
+    currency: string;
+    deliveryMethod: PurchaseOrderFormData["deliveryMethod"];
+    paymentMethod: PurchaseOrderFormData["paymentMethod"];
+    specialNotes?: string;
+    customer: { name: string; phone: string; address: string };
+    requestImageUrl?: string | null;
+    deliveryCost: number;
+    deliveryAddress: PurchaseOrderFormData["deliveryAddress"] | null;
+  } | null>(null);
 
   // initialise items from quotation
   useEffect(() => {
@@ -276,39 +291,31 @@ export const CreatePurchaseOrderModal: React.FC<
         const vendorName = quotation.vendorName || "Vendor";
 
         if (vendorPhone) {
-          const confirmSend = window.confirm(
-            "Do you want to send this Purchase Order to the vendor via WhatsApp?"
-          );
-
-          if (confirmSend) {
-            const waUrl = buildPurchaseOrderWhatsAppUrl({
-              vendorPhone,
-              vendorName,
-              orderNumber,
-              items,
-              grandTotal,
-              currency: quotation.currency || "LKR",
-              deliveryMethod: data.deliveryMethod,
-              paymentMethod: data.paymentMethod,
-              specialNotes: data.specialNotes,
-              customer: {
-                name: customerName,
-                phone: contactNo,
-                address: baseAddress,
-              },
-              requestImageUrl,
-              deliveryCost,
-              deliveryAddress:
-                data.deliveryMethod === "arrange_delivery" &&
-                data.deliveryAddress
-                  ? data.deliveryAddress
-                  : null,
-            });
-
-            if (waUrl) {
-              window.location.href = waUrl;
-            }
-          }
+          setPendingWhatsAppData({
+            vendorPhone,
+            vendorName,
+            orderNumber,
+            items,
+            grandTotal,
+            currency: quotation.currency || "LKR",
+            deliveryMethod: data.deliveryMethod,
+            paymentMethod: data.paymentMethod,
+            specialNotes: data.specialNotes,
+            customer: {
+              name: customerName,
+              phone: contactNo,
+              address: baseAddress,
+            },
+            requestImageUrl,
+            deliveryCost,
+            deliveryAddress:
+              data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
+                ? data.deliveryAddress
+                : null,
+          });
+          setWhatsAppModalOpen(true);
+        } else {
+          handleModalClose();
         }
       } catch (e) {
         console.error("WhatsApp sending error", e);
@@ -336,6 +343,30 @@ export const CreatePurchaseOrderModal: React.FC<
   const whatsappNo = (user as any)?.whatsApp || contactNo;
   const baseAddress =
     (user as any)?.address + " , " + (user as any)?.city || "";
+
+  const handleConfirmWhatsApp = () => {
+    if (!pendingWhatsAppData) return;
+
+    try {
+      const waUrl = buildPurchaseOrderWhatsAppUrl(pendingWhatsAppData);
+
+      if (waUrl) {
+        window.location.href = waUrl;
+      }
+    } catch (e) {
+      console.error("WhatsApp sending error", e);
+    } finally {
+      setWhatsAppModalOpen(false);
+      setPendingWhatsAppData(null);
+      handleModalClose();
+    }
+  };
+
+  const handleSkipWhatsApp = () => {
+    setWhatsAppModalOpen(false);
+    setPendingWhatsAppData(null);
+    handleModalClose();
+  };
 
   const deliveryLabel =
     deliveryMethod === "arrange_delivery"
@@ -823,6 +854,14 @@ export const CreatePurchaseOrderModal: React.FC<
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <SendWhatsAppConfirmationModal
+        isOpen={whatsAppModalOpen}
+        onConfirm={handleConfirmWhatsApp}
+        onSkip={handleSkipWhatsApp}
+        onClose={() => setWhatsAppModalOpen(false)}
+        person="vendor"
+      />
     </Dialog.Root>
   );
 };
