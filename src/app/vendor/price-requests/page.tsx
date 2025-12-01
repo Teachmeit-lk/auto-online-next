@@ -375,7 +375,10 @@ const NewPriceRequests: React.FC = () => {
                           </button>
                           <button
                             className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                            // onClick={() => setIsModalOpen(true)}
+                            onClick={() => {
+                              setSelectedRequest(vendor.raw);
+                              setIsModalOpen(true);
+                            }}
                           >
                             Chat
                           </button>
