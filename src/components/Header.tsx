@@ -54,11 +54,15 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     ...data,
-    {
-      name: "my requests",
-      path: "/user/search-vendors",
-      icon: LayoutGrid,
-    },
+    ...(!isAuthenticated || (isAuthenticated && user?.role !== "vendor")
+      ? [
+          {
+            name: "my requests",
+            path: "/user/search-vendors",
+            icon: LayoutGrid,
+          },
+        ]
+      : []),
     ...(isAuthenticated && user?.role === "vendor"
       ? [
           {
