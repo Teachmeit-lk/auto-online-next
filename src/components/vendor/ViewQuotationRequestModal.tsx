@@ -365,12 +365,23 @@ export const ViewQuotationRequestModal: React.FC<
                       {request?.fuelType || "-"}
                     </div>
                   </div>
+                  {/* Vehicle Brand */}
                   <div>
                     <div className="text-[10px] text-[#5B5B5B]">
-                      Brand/Model
+                      Vehicle Brand
                     </div>
                     <div className="text-[11px] text-[#111102]">
-                      {request?.model || "-"}
+                      {request?.brand || "-"}
+                    </div>
+                  </div>
+
+                  {/* Vehicle Model */}
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Vehicle Model
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?. model || "-"}
                     </div>
                   </div>
                   <div>
