@@ -81,6 +81,32 @@ export const ViewCompletedOrderModal: React.FC<
         console.warn("No buyerId found in order data");
       }
 
+      // Fetch vendor details
+      if (poData?. vendorId) {
+        try {
+          const vendorData = await FirestoreService.getById(
+            COLLECTIONS.USERS,
+            poData.vendorId
+          );
+          console.log("Fetched Vendor Data:", vendorData);
+          console.log("Vendor Phone:", vendorData?. phoneNumber);
+
+          poData.vendorContactNumber =
+            vendorData?.phoneNumber ||
+            vendorData?.contactNumber ||
+            vendorData?.phone ||
+            vendorData?.mobile ||
+            vendorData?.mobileNumber ||
+            null;
+
+          console.log("Final vendorContactNumber:", poData.vendorContactNumber);
+        } catch (error) {
+          console. error("Error fetching vendor details:", error);
+        }
+      } else {
+        console.warn("No vendorId found in order data");
+      }
+
       if (poData?.quotationId) {
         try {
           const quotationData = await FirestoreService.getById(
@@ -164,6 +190,20 @@ export const ViewCompletedOrderModal: React.FC<
               buyerData?.phone ||
               null;
           }
+          // Fetch vendor details
+          if (poData?. vendorId) {
+            const vendorData = await FirestoreService.getById(
+              COLLECTIONS.USERS,
+              poData.vendorId
+            );
+            transformedData.vendorContactNumber =
+              vendorData?.phoneNumber ||
+              vendorData?.contactNumber ||
+              vendorData?.phone ||
+              vendorData?.mobile ||
+              vendorData?.mobileNumber ||
+              null;
+          }
         } catch (error) {
           console.error("Error fetching PO for vendor:", error);
         }
@@ -177,7 +217,6 @@ export const ViewCompletedOrderModal: React.FC<
     }
   };
 
-  // Use fullOrder if available, otherwise use order prop
   const orderData = fullOrder || order;
 
   // Order Number
@@ -236,12 +275,22 @@ export const ViewCompletedOrderModal: React.FC<
     : "-";
 
   // Contact Number
-  const contactNumber =
-    orderData?.buyerContactNumber ||
-    orderData?.contactNumber ||
-    orderData?.phoneNumber ||
-    orderData?.buyerPhone ||
-    "-";
+  const contactNumber = (() => {
+      if (orderData?.vendorContactNumber && orderData?.buyerContactNumber) {
+        if (order?.quotationId && ! order?.purchaseOrderId) {
+          return orderData. buyerContactNumber;
+        }
+        return orderData.vendorContactNumber;
+      }
+
+      return (
+        orderData?.vendorContactNumber ||
+        orderData?.buyerContactNumber ||
+        orderData?.contactNumber ||
+        orderData?.phoneNumber ||
+        "-"
+      );
+    })();
 
   const description = (() => {
     let desc = "";
