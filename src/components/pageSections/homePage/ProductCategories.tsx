@@ -7,6 +7,7 @@ import { Navigation, A11y } from "swiper/modules";
 import { ChevronRight, ChevronLeft, Star } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
+import { ChevronRight, Star } from "lucide-react";
 
 import type { Swiper as SwiperType } from "swiper";
 import {
@@ -358,90 +359,39 @@ export const ProductCategories: React.FC = () => {
         )}
       </div>
 
-      {/* Large Screen Swiper */}
-      <div className="hidden 2xl:flex relative items-center justify-center pl-[100px] pr-[80px]">
-        <button
-          className="absolute left-0 text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slidePrev()}
-        >
-          <ChevronLeft />
-        </button>
-        <button
-          className="absolute right-[15px] text-[#5B5B5B] p-3 rounded-full hover:bg-gray-50 z-50"
-          onClick={() => swiperRef.current?.slideNext()}
-        >
-          <ChevronRight />
-        </button>
-
-        {/* Content */}
-        <div className="w-full flex items-center justify-center">
-          {loading ? (
-            <div className="text-center py-20 text-gray-500">Loading...</div>
-          ) : categoryProducts.length === 0 ? (
-            <div className="text-center py-20 text-gray-500">
-              No products available
-            </div>
-          ) : (
-            <Swiper
-              modules={[Navigation, A11y]}
-              slidesPerView={5}
-              //spaceBetween={10}
-              spaceBetween={0}
-              loop={categoryProducts.length >= 5}
-              className="w-full"
-              onSwiper={(swiper) => {
-                swiperRef.current = swiper;
-              }}
-            >
-              {categoryProducts.map(
+      {/* Large Screen Grid */}
+      <div className="hidden 2xl:block px-20">
+        {loading ? (
+          <div className="text-center py-20 text-gray-500">Loading...</div>
+        ) : categoryProducts.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
+            No products available
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-5 gap-4">
+              {(showAll ? categoryProducts : categoryProducts.slice(0, 5)).map(
                 ({ category, product, lowestPrice }, index) => {
                   const categoryId = (category as any).id || category.name;
 
                   return (
-                    <SwiperSlide
-                      key={index}
-                      className="w-[202px] h-[302px] pr-0 m-0"
-                    >
-                      <div className="w-full h-full bg-white rounded-lg text-left">
-                        <div className="w-[202px] h-[232px] bg-[#F8F8F8] rounded-lg p-4 mb-3 flex justify-center items-center">
-                          {product.images && product.images.length > 0 ? (
-                            <Image
-                              src={product.images[0]}
-                              alt={category.name}
-                              width={159}
-                              height={123}
-                              className="object-cover w-[159px] h-[123px] rounded-md"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-[159px] h-[123px] bg-gray-200 flex items-center justify-center text-[10px] text-gray-400">
-                              No Image
-                            </div>
-                          )}
-                        </div>
-
-                        <h3 className="text-[12px] font-semibold text-black font-body mt-1">
-                          {category.name}
-                        </h3>
-                        <p className="text-[#000000] text-[12px] font-body">
-                          Best {category.name.toLowerCase()} from $
-                          {lowestPrice.toFixed(2)} now
-                        </p>
-
-                        <div className="flex mt-1">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <span
-                              key={i}
-                              className="text-yellow-500 text-[10px]"
-                            >
-                              {i < 4 ? (
-                                <Star fill="#FBBF24" size="12px" />
-                              ) : (
-                                <Star size="12px" />
-                              )}
-                            </span>
-                          ))}
-                        </div>
+                    <div key={index} className="bg-white rounded-lg p-4">
+                      <div className="w-full h-[232px] bg-[#F8F8F8] rounded-lg flex justify-center items-center mb-3">
+                        {product.images && product.images.length > 0 ? (
+                          <Image
+                            src={product.images[0]}
+                            alt={category.name}
+                            width={159}
+                            height={123}
+                            className="object-cover w-[159px] h-[123px] rounded-md"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-[159px] h-[123px] bg-gray-200 flex items-center justify-center text-[10px] text-gray-400">
+                            No Image
+                          </div>
+                        )}
+                      </div>
 
                         <Link
                           href={getShopNowUrl(categoryId)}
@@ -450,13 +400,52 @@ export const ProductCategories: React.FC = () => {
                           Shop Now
                         </Link>
                       </div>
-                    </SwiperSlide>
+
+                      <Link
+                        href={`/user/search-vendors?category=${encodeURIComponent(
+                          categoryId
+                        )}`}
+                        className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
+                      >
+                        Shop Now
+                      </Link>
+                    </div>
                   );
                 }
               )}
-            </Swiper>
-          )}
-        </div>
+            </div>
+
+            {/* View More/Less Buttons for Large Screen */}
+            {!showAll && categoryProducts.length > 5 && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="mt-6 flex items-center justify-center text-[14px] text-[#111102] font-medium font-body w-full"
+              >
+                View More
+                <ChevronRight
+                  strokeWidth="2px"
+                  size="18px"
+                  color="#111102"
+                  className="ml-1"
+                />
+              </button>
+            )}
+            {showAll && categoryProducts.length > 5 && (
+              <button
+                onClick={() => setShowAll(false)}
+                className="mt-6 flex items-center justify-center text-[14px] text-[#111102] font-medium font-body w-full"
+              >
+                View Less
+                <ChevronRight
+                  strokeWidth="2px"
+                  size="18px"
+                  color="#111102"
+                  className="ml-1"
+                />
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

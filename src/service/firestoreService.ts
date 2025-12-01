@@ -97,6 +97,8 @@ export interface QuotationRequest extends BaseDocument {
   quotationsReceived: number;
   targetDeliveryDate?: Date | Timestamp;
   maxBudget?: number;
+  brand?: string;
+  category?: string;
 }
 
 // Quotation interfaces
@@ -124,6 +126,7 @@ export interface Quotation extends BaseDocument {
   terms: string;
   status: "pending" | "accepted" | "rejected" | "expired";
   notes?: string;
+  vendorPhone?: string;
 }
 
 // Purchase Order interfaces

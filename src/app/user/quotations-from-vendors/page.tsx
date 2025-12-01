@@ -275,7 +275,10 @@ const QuotationsFromVendors: React.FC = () => {
                       </button>
                       <button
                         className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                        onClick={() => setOpenChatOpenConfirmation(true)}
+                        onClick={() => {
+                          setSelectedQuotation(row.raw);
+                          setOpenChatOpenConfirmation(true);
+                        }}
                       >
                         Chat
                       </button>
@@ -330,10 +333,82 @@ const QuotationsFromVendors: React.FC = () => {
       />
       <OpenChatConfirmationModal
         isOpen={openChatOpenConfirmation}
+        person="vendor"
         onClose={() => setOpenChatOpenConfirmation(false)}
-        onConfirm={() => {
-          alert("In development");
-          setOpenChatOpenConfirmation(false);
+        onConfirm={async () => {
+          if (!selectedQuotation) {
+            alert("No quotation selected for chat.");
+            setOpenChatOpenConfirmation(false);
+            return;
+          }
+
+          try {
+            const vendor: any = await FirestoreService.getById(
+              COLLECTIONS.USERS,
+              (selectedQuotation as any).vendorId
+            );
+
+            const vendorPhone =
+              vendor?.whatsApp || vendor?.phone || vendor?.mobileNumber || "";
+            const vendorName =
+              vendor?.companyName ||
+              `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
+              "Vendor";
+
+            if (!vendorPhone) {
+              alert("Vendor phone / WhatsApp number is not available.");
+              setOpenChatOpenConfirmation(false);
+              return;
+            }
+
+            const phone = "+94" + vendorPhone.replace(/\D/g, "");
+
+            const buyerName =
+              `${currentUser?.firstName || ""} ${
+                currentUser?.lastName || ""
+              }`.trim() ||
+              currentUser?.companyName ||
+              "Customer";
+
+            const quotation: any = selectedQuotation;
+            const partName =
+              quotation?.products?.[0]?.partName ||
+              quotation?.products?.[0]?.description ||
+              "-";
+
+            const msg = `
+Hi ${vendorName},
+
+This is ${buyerName} from AutoOnline.lk.
+
+I'm contacting you regarding the quotation you sent:
+
+Request Code: ${useRefactoredId("RC", quotation.quotationRequestId) || "-"} 
+Part: ${partName}
+Issued Date: ${
+              quotation.createdAt?.seconds
+                ? new Date(
+                    quotation.createdAt.seconds * 1000
+                  ).toLocaleDateString()
+                : "-"
+            }
+
+`.trim();
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(
+              msg
+            )}`;
+
+            window.open(url, "_blank");
+          } catch (err) {
+            console.error(
+              "[QuotationsFromVendors] Failed to open WhatsApp chat:",
+              err
+            );
+            alert("Failed to open WhatsApp chat. Please try again.");
+          } finally {
+            setOpenChatOpenConfirmation(false);
+          }
         }}
       />
       <CreatePurchaseOrderModal
