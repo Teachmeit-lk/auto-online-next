@@ -2,11 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, A11y } from "swiper/modules";
-import { ChevronRight, ChevronLeft, Star } from "lucide-react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/store/store";
 import { ChevronRight, Star } from "lucide-react";
 
 import type { Swiper as SwiperType } from "swiper";
@@ -91,8 +86,6 @@ const initialProducts = [
 ];
 
 export const ProductCategories: React.FC = () => {
-  const authState = useSelector((state: RootState) => state.auth as any);
-  const user = authState.user as any;
   const swiperRef = useRef<SwiperType | null>(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -187,13 +180,6 @@ export const ProductCategories: React.FC = () => {
     };
   }, []);
 
-  const getShopNowUrl = (categoryId: string) => {
-    if (user?. role === "vendor") {
-      return "/vendor/purchase-orders";
-    }
-    return `/user/search-vendors?category=${encodeURIComponent(categoryId)}`;
-  };
-
   return (
     <div className="bg-white xl:pt-10 xl:pb-20 xl:px-20 lg:px-10 md:px-5 pt-5 pb-10">
       <h1 className="md:text-[32px] text-[16px] xl:mb-10 text-black xl:pl-11 pl-5 font-title">
@@ -253,7 +239,9 @@ export const ProductCategories: React.FC = () => {
                     </div>
 
                     <Link
-                      href={getShopNowUrl(categoryId)}
+                      href={`/user/search-vendors?category=${encodeURIComponent(
+                        categoryId
+                      )}`}
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
@@ -316,7 +304,9 @@ export const ProductCategories: React.FC = () => {
                       ))}
                     </div>
                     <Link
-                      href={getShopNowUrl(categoryId)}
+                      href={`/user/search-vendors?category=${encodeURIComponent(
+                        categoryId
+                      )}`}
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
@@ -393,12 +383,24 @@ export const ProductCategories: React.FC = () => {
                         )}
                       </div>
 
-                        <Link
-                          href={getShopNowUrl(categoryId)}
-                          className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
-                        >
-                          Shop Now
-                        </Link>
+                      <h3 className="text-[12px] font-semibold text-black font-body mt-1">
+                        {category.name}
+                      </h3>
+                      <p className="text-[#000000] text-[12px] font-body">
+                        Best {category.name.toLowerCase()} from $
+                        {lowestPrice.toFixed(2)} now
+                      </p>
+
+                      <div className="flex mt-1">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span key={i} className="text-yellow-500 text-[10px]">
+                            {i < 4 ? (
+                              <Star fill="#FBBF24" size="12px" />
+                            ) : (
+                              <Star size="12px" />
+                            )}
+                          </span>
+                        ))}
                       </div>
 
                       <Link
