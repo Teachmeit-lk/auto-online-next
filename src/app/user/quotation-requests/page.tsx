@@ -21,7 +21,8 @@ const QuotationRequests: React.FC = () => {
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState<QuotationRequest[]>([] as any);
   const [selected, setSelected] = useState<QuotationRequest | null>(null);
-  const [openChatOpenConfirmation, setOpenChatOpenConfirmation] = useState(false);
+  const [openChatOpenConfirmation, setOpenChatOpenConfirmation] =
+    useState(false);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -221,7 +222,10 @@ const QuotationRequests: React.FC = () => {
                       </button>
                       <button
                         className="bg-[#D1D1D1] px-2 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[11px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
-                        onClick={() => setOpenChatOpenConfirmation(true)}
+                        onClick={() => {
+                          setSelected(row.raw);
+                          setOpenChatOpenConfirmation(true);
+                        }}
                       >
                         Chat
                       </button>
@@ -246,10 +250,70 @@ const QuotationRequests: React.FC = () => {
       </div>
       <OpenChatConfirmationModal
         isOpen={openChatOpenConfirmation}
+        person="vendor"
         onClose={() => setOpenChatOpenConfirmation(false)}
-        onConfirm={() => {
-          alert("In development");
-          setOpenChatOpenConfirmation(false);
+        onConfirm={async () => {
+          if (!selected) {
+            alert("No request selected for chat.");
+            setOpenChatOpenConfirmation(false);
+            return;
+          }
+
+          try {
+            const vendor: any = await FirestoreService.getById(
+              COLLECTIONS.USERS,
+              (selected as any).vendorId
+            );
+
+            const vendorPhone =
+              vendor?.whatsApp || vendor?.phone || vendor?.mobileNumber || "";
+            const vendorName =
+              vendor?.companyName ||
+              `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
+              "Vendor";
+
+            if (!vendorPhone) {
+              alert("Vendor phone / WhatsApp number is not available.");
+              setOpenChatOpenConfirmation(false);
+              return;
+            }
+
+            const phone = "+94" + vendorPhone.replace(/\D/g, "");
+
+            const buyerName =
+              `${currentUser?.firstName || ""} ${
+                currentUser?.lastName || ""
+              }`.trim() ||
+              currentUser?.companyName ||
+              "Customer";
+
+            const msg = `
+Hi ${vendorName},
+
+This is ${buyerName} from AutoOnline.lk.
+
+I'm contacting you regarding my quotation request:
+Request Code: ${useRefactoredId("RC", (selected as any).id) || "-"}    
+Vehicle: ${(selected as any).vehicleType || "-"} ${
+              (selected as any).brand || ""
+            } ${(selected as any).model || ""}
+
+`.trim();
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(
+              msg
+            )}`;
+
+            window.open(url, "_blank");
+          } catch (err) {
+            console.error(
+              "[QuotationRequests] Failed to open WhatsApp chat:",
+              err
+            );
+            alert("Failed to open WhatsApp chat. Please try again.");
+          } finally {
+            setOpenChatOpenConfirmation(false);
+          }
         }}
       />
     </TabLayout>

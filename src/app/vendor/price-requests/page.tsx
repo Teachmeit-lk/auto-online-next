@@ -442,7 +442,6 @@ const NewPriceRequests: React.FC = () => {
               return;
             }
 
-            // try to get buyer phone from the request
             const buyerPhone =
               (selectedRequest as any).buyerPhone ||
               (selectedRequest as any).whatsapp ||

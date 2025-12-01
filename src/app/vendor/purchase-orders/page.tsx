@@ -399,7 +399,10 @@ const NewPurchaseOrders: React.FC = () => {
                         </button>
                         <button
                           className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => setIsModalOpen2(true)}
+                          onClick={() => {
+                            setSelected(vendor.raw);
+                            setIsModalOpen2(true);
+                          }}
                         >
                           Chat
                         </button>
@@ -857,7 +860,6 @@ const NewPurchaseOrders: React.FC = () => {
                 );
               }
 
-              // 🔄 Reload orders
               const list = await OrderService.getPurchaseOrdersByVendor(
                 currentUser.id
               );
@@ -886,9 +888,69 @@ const NewPurchaseOrders: React.FC = () => {
         <OpenChatConfirmationModal
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
-          onConfirm={() => {
-            alert("in development");
-            setIsModalOpen2(false);
+          person="buyer"
+          onConfirm={async () => {
+            if (!selected) {
+              alert("No order selected for chat.");
+              setIsModalOpen2(false);
+              return;
+            }
+
+            try {
+              const buyer: any = await FirestoreService.getById(
+                COLLECTIONS.USERS,
+                (selected as any).buyerId
+              );
+
+              const customerPhone =
+                buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+              const customerName =
+                buyerNameMap[(selected as any).buyerId] ||
+                `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
+                buyer?.companyName ||
+                "Customer";
+
+              if (!customerPhone) {
+                alert("Customer phone / WhatsApp number is not available.");
+                setIsModalOpen2(false);
+                return;
+              }
+
+              const phone = "+94" + customerPhone.replace(/\D/g, "");
+
+              const vendorName =
+                `${currentUser?.firstName || ""} ${
+                  currentUser?.lastName || ""
+                }`.trim() ||
+                currentUser?.companyName ||
+                "Your vendor";
+
+              const msg = `
+Hi ${customerName},
+
+This is ${vendorName} from AutoOnline.lk.
+
+I'm contacting you regarding your order:
+Order No: ${
+                useRefactoredIdLast("ON", (selected as any).orderNumber) || "-"
+              }        
+
+`.trim();
+
+              const url = `https://wa.me/${phone}?text=${encodeURIComponent(
+                msg
+              )}`;
+
+              window.open(url, "_blank");
+            } catch (err) {
+              console.error(
+                "[PurchaseOrders] Failed to open WhatsApp chat:",
+                err
+              );
+              alert("Failed to open WhatsApp chat. Please try again.");
+            } finally {
+              setIsModalOpen2(false);
+            }
           }}
         />
         {/*
