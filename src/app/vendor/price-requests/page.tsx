@@ -10,6 +10,7 @@ import {
   TabLayout,
   ViewQuotationRequestModal,
   ViewQuotationModal,
+  DeleteItemConfirmation,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
@@ -31,8 +32,8 @@ const NewPriceRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
-  // const [isModalOpen3, setIsModalOpen3] = useState(false);
-  // const [isModalOpen4, setIsModalOpen4] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [quotationToDelete, setQuotationToDelete] = useState<string | null>(null);
 
   const [popupImage, setPopupImage] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("New Quotations Requested");
@@ -90,6 +91,26 @@ const NewPriceRequests: React.FC = () => {
   const handleQuotationSubmitted = () => {
     setIsModalOpen2(false);
     setReloadToken((t) => t + 1);
+  };
+
+  const handleDeleteQuotation = async () => {
+    if (!quotationToDelete) return;
+    
+    try {
+      const quotationToRemove = vendorQuotations.find(
+        (q: any) => q.quotationRequestId === quotationToDelete
+      );
+      
+      if (quotationToRemove?. id) {
+        await FirestoreService.delete(COLLECTIONS.QUOTATIONS, quotationToRemove.id);
+        setIsDeleteModalOpen(false);
+        setQuotationToDelete(null);
+        setReloadToken((t) => t + 1);
+      }
+    } catch (error) {
+      console.error("Failed to delete quotation:", error);
+      alert("Failed to delete quotation. Please try again.");
+    }
   };
 
   const requestRows = useMemo(() => {
@@ -382,10 +403,12 @@ const NewPriceRequests: React.FC = () => {
                           >
                             Chat
                           </button>
-
                           <button
                             className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                            // onClick={() => setIsModalOpen4(true)}
+                            onClick={() => {
+                              setQuotationToDelete(vendor.raw. id);
+                              setIsDeleteModalOpen(true);
+                            }}
                           >
                             Delete
                           </button>
@@ -467,15 +490,15 @@ const NewPriceRequests: React.FC = () => {
               "Your vendor";
 
             const msg = `
-Hi ${selectedRequest.buyerName || "Customer"},
+              Hi ${selectedRequest.buyerName || "Customer"},
 
-This is ${vendorName} from AutoOnline.lk.
+              This is ${vendorName} from AutoOnline.lk.
 
-I'm contacting you regarding your price request for:
-Vehicle Type: ${selectedRequest.vehicleType || "-"}
-Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
+              I'm contacting you regarding your price request for:
+              Vehicle Type: ${selectedRequest.vehicleType || "-"}
+              Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
 
-`.trim();
+              `.trim();
 
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(
               msg
@@ -483,6 +506,14 @@ Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
             window.open(url, "_blank");
             setIsModalOpen(false);
           }}
+        />
+        <DeleteItemConfirmation
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setQuotationToDelete(null);
+          }}
+          onConfirm={handleDeleteQuotation}
         />
 
         {/* <NewPriceChatAlert
