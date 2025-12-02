@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRefactoredId } from "../hooks/useRefactoredId";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
+import { set } from "react-hook-form";
 
 interface IViewCompletedOrderModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const ViewCompletedOrderModal: React.FC<
 > = ({ isOpen, onClose, order }) => {
   const [fullOrder, setFullOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [vendorPhone, setvendorPhone] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && order) {
@@ -46,8 +48,6 @@ export const ViewCompletedOrderModal: React.FC<
         COLLECTIONS.PURCHASE_ORDERS,
         poId
       );
-      console.log("Fetched PO Data:", poData);
-      console.log("Buyer ID from PO:", poData?.buyerId);
 
       if (poData?.buyerId) {
         try {
@@ -55,10 +55,6 @@ export const ViewCompletedOrderModal: React.FC<
             COLLECTIONS.USERS,
             poData.buyerId
           );
-          console.log("Fetched Buyer Data:", buyerData);
-          console.log("Buyer Phone:", buyerData?.phoneNumber);
-          console.log("Buyer Contact:", buyerData?.contactNumber);
-          console.log("Buyer Phone (alt):", buyerData?.phone);
 
           poData.buyerContactNumber =
             buyerData?.phoneNumber ||
@@ -67,8 +63,6 @@ export const ViewCompletedOrderModal: React.FC<
             buyerData?.mobile ||
             buyerData?.mobileNumber ||
             null;
-
-          console.log("Final buyerContactNumber:", poData.buyerContactNumber);
 
           poData.buyerName =
             buyerData?.firstName && buyerData?.lastName
@@ -80,16 +74,16 @@ export const ViewCompletedOrderModal: React.FC<
       } else {
         console.warn("No buyerId found in order data");
       }
-
+      console.log("Vendor ID from PO:", poData);
       // Fetch vendor details
-      if (poData?. vendorId) {
+      if (poData?.vendorId) {
         try {
           const vendorData = await FirestoreService.getById(
             COLLECTIONS.USERS,
             poData.vendorId
           );
-          console.log("Fetched Vendor Data:", vendorData);
-          console.log("Vendor Phone:", vendorData?. phoneNumber);
+
+          setvendorPhone(vendorData?.vendorPhone || null);
 
           poData.vendorContactNumber =
             vendorData?.phoneNumber ||
@@ -98,10 +92,8 @@ export const ViewCompletedOrderModal: React.FC<
             vendorData?.mobile ||
             vendorData?.mobileNumber ||
             null;
-
-          console.log("Final vendorContactNumber:", poData.vendorContactNumber);
         } catch (error) {
-          console. error("Error fetching vendor details:", error);
+          console.error("Error fetching vendor details:", error);
         }
       } else {
         console.warn("No vendorId found in order data");
@@ -113,7 +105,6 @@ export const ViewCompletedOrderModal: React.FC<
             COLLECTIONS.QUOTATIONS,
             poData.quotationId
           );
-          console.log("Fetched Quotation Data:", quotationData);
 
           if (
             quotationData?.products &&
@@ -145,13 +136,12 @@ export const ViewCompletedOrderModal: React.FC<
         "@/service/firestoreService"
       );
 
-      console.log("Fetching quotation for vendor:", quotationId);
-
       const quotationData = await FirestoreService.getById(
         COLLECTIONS.QUOTATIONS,
         quotationId
       );
-      console.log("Fetched Quotation Data (VENDOR):", quotationData);
+
+      setvendorPhone(quotationData?.vendorPhone || null);
 
       const transformedData = {
         ...order,
@@ -169,7 +159,6 @@ export const ViewCompletedOrderModal: React.FC<
             COLLECTIONS.PURCHASE_ORDERS,
             order.purchaseOrderId
           );
-          console.log("Fetched PO Data (VENDOR):", poData);
 
           Object.assign(transformedData, {
             buyerId: poData.buyerId,
@@ -191,7 +180,7 @@ export const ViewCompletedOrderModal: React.FC<
               null;
           }
           // Fetch vendor details
-          if (poData?. vendorId) {
+          if (poData?.vendorId) {
             const vendorData = await FirestoreService.getById(
               COLLECTIONS.USERS,
               poData.vendorId
@@ -275,22 +264,7 @@ export const ViewCompletedOrderModal: React.FC<
     : "-";
 
   // Contact Number
-  const contactNumber = (() => {
-      if (orderData?.vendorContactNumber && orderData?.buyerContactNumber) {
-        if (order?.quotationId && ! order?.purchaseOrderId) {
-          return orderData. buyerContactNumber;
-        }
-        return orderData.vendorContactNumber;
-      }
-
-      return (
-        orderData?.vendorContactNumber ||
-        orderData?.buyerContactNumber ||
-        orderData?.contactNumber ||
-        orderData?.phoneNumber ||
-        "-"
-      );
-    })();
+  const contactNumber = vendorPhone || "-";
 
   const description = (() => {
     let desc = "";

@@ -35,29 +35,28 @@ const CompletedOrders: React.FC = () => {
       setLoading(true);
       try {
         // Fetch ONLY delivered purchase orders
-        const poList = await FirestoreService. getAll<PurchaseOrder>(
+        const poList = await FirestoreService.getAll<PurchaseOrder>(
           COLLECTIONS.PURCHASE_ORDERS,
           [
             { field: "buyerId", operator: "==", value: currentUser.id },
             { field: "status", operator: "==", value: "delivered" },
           ]
         );
-        
+
         const toMs = (t: any) =>
           t?.seconds
             ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
             : t instanceof Date
             ? t.getTime()
             : 0;
-        const sorted = [...poList]. sort(
+        const sorted = [...poList].sort(
           (a: any, b: any) =>
             toMs(b?.updatedAt || b?.createdAt) -
             toMs(a?.updatedAt || a?.createdAt)
         );
-        
+
         setOrders([]);
         setDeliveredPOs(sorted);
-        
       } catch (e) {
         console.error("[CompletedOrders] Failed to load orders", e);
         setOrders([]);
@@ -126,7 +125,7 @@ const CompletedOrders: React.FC = () => {
         new Date(b.dateCompleted).getTime() -
         new Date(a.dateCompleted).getTime()
     );
-    
+
     return sorted.map((r: any, idx: number) => ({ no: idx + 1, ...r }));
   }, [deliveredPOs, vendorNameMap]);
 
@@ -145,8 +144,6 @@ const CompletedOrders: React.FC = () => {
       )
       .slice(0, entries);
   }, [rows, search, entries]);
-
-    console.log("Order :",selected);
 
   return (
     <TabLayout type="user">
