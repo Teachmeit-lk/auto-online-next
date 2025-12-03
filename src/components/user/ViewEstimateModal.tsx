@@ -37,7 +37,7 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-[550px] h-[600px] overflow-y-auto no-scrollbar">
             {/* Image Section */}
             <div className="flex justify-center">
               {firstImage ? (
