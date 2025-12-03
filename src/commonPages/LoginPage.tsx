@@ -71,14 +71,16 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
     resolver: yupResolver(schema as any),
   });
 
-
+  // Form submission handler
   const onSubmit = async (data: any) => {
     try {
       console.log(`Firebase login attempt for ${type} with:`, data);
+
+      // Construct loginData based on user type
       const loginData: LoginRequest =
         type === "buyer"
-          ? { phone: data.phone, password: data. password }
-          : { email: data.email, password: data. password };
+          ? { phone: data.phone, password: data.password }
+          : { email: data.email, password: data.password };
 
       const result = await dispatch(
         loginUserAsync({
@@ -87,25 +89,10 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
         }) as any
       );
 
-      if (loginUserAsync.fulfilled. match(result)) {
+      if (loginUserAsync.fulfilled.match(result)) {
         console.log("Firebase login successful");
 
-        const pendingQuotation = localStorage.getItem("pendingQuotation");
-
-        if (type === "buyer" && pendingQuotation) {
-          try {
-            const parsed = JSON. parse(pendingQuotation);
-
-            if (parsed.returnUrl) {
-              router.push(parsed.returnUrl);
-              return;
-            }
-          } catch (error) {
-            console.error("Error parsing pending quotation:", error);
-            localStorage.removeItem("pendingQuotation");
-          }
-        }
-
+        // Redirect based on user type
         if (type === "buyer") {
           router.push("/user/search-vendors");
         } else {

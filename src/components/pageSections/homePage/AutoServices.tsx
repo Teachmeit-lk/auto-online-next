@@ -15,9 +15,6 @@ import {
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { useState } from "react";
-import { GetQuotationModal } from "@/components/user";
-import { useRouter } from "next/navigation";
 
 const brands = [
   { name: "TOYOTA", logo: Toyota },
@@ -32,41 +29,10 @@ export const AutoServices: React.FC = () => {
   const authState = useSelector((state: RootState) => state.auth as any);
   const user = authState.user as any;
 
-  const router = useRouter();
-  const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
-  const [hasFilledQuotation, setHasFilledQuotation] = useState(false);
-
   const shopNowPath =
     user?.role === "vendor"
       ? "/vendor/purchase-orders"
       : "/user/search-vendors";
-
-  const handleShopNow = () => {
-    if (user?.role === "vendor") {
-      router.push("/vendor/purchase-orders");
-    } else {
-      setGetQuotationModalOpen(true);
-    }
-  };
-
-  const handleSearchSubmit = (filters: {
-    country: string;
-    category: string;
-    district: string;
-  }, fullData?: any
-  ) => {
-    const params = new URLSearchParams();
-    if (filters.country !== "all") params.set("filterCountry", filters.country);
-    if (filters.category !== "all") params.set("category", filters.category);
-    if (filters.district !== "all") params.set("filterDistrict", filters.district);
-    params.set("fromShopNow", "true");
-
-    if (fullData) {
-      sessionStorage.setItem("preFilledQuotationData", JSON.stringify(fullData));
-    }
-    
-    router.push(`/user/search-vendors?${params. toString()}`);
-  };
 
   return (
     <div className="xl:px-20 py-5  xl:py-10 bg-white">
@@ -120,12 +86,12 @@ export const AutoServices: React.FC = () => {
             <p className="text-black font-[400] mb-4 lg:text-[20px] text-[17px] font-title">
               from us
             </p>
-            <button
-              onClick={handleShopNow}
+            <Link
+              href={shopNowPath}
               className="bg-yellow-400 text-[#111102] rounded font-body font-[600] hover:bg-yellow-500 lg:w-[100px] lg:h-[32px] w-[76px] h-[22px] text-[10px] lg:text-[14px] flex items-center justify-center"
             >
               Shop Now
-            </button>
+            </Link>
           </div>
           <div className="relative lg:right-[45px] right-[30px]">
             <Image
@@ -141,12 +107,6 @@ export const AutoServices: React.FC = () => {
           </div>
         </div>
       </div>
-      <GetQuotationModal
-        isOpen={getQuotationModalOpen}
-        onClose={() => setGetQuotationModalOpen(false)}
-        mode="search"
-        onSearchSubmit={handleSearchSubmit}
-      />
     </div>
   );
 };

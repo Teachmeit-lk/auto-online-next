@@ -27,8 +27,6 @@ import {
 import Link from "next/link";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
-import { GetQuotationModal } from "@/components/user";
-import { useRouter } from "next/navigation";
 
 const initialProducts = [
   {
@@ -92,11 +90,6 @@ const initialProducts = [
 export const ProductCategories: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
   const [showAll, setShowAll] = useState(false);
-
-  const router = useRouter();
-  const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
 
   // Firebase state
   const [categories, setCategories] = useState<Category[]>([]);
@@ -192,33 +185,11 @@ export const ProductCategories: React.FC = () => {
   const authState = useSelector((state: RootState) => state.auth as any);
   const user = authState.user as any;
 
-  const handleShopNowClick = (categoryId: string, categoryName: string) => {
-  if (user?. role === "vendor") {
-    router.push("/vendor/purchase-orders");
-  } else {
-    setSelectedCategoryId(categoryId);
-    setSelectedCategoryName(categoryName);
-    setGetQuotationModalOpen(true);
-  }
-};
-
-  const handleSearchSubmit = (filters: {
-    country: string;
-    category: string;
-    district: string;
-  }, fullData?: any
-  ) => {
-    const params = new URLSearchParams();
-    if (filters.country !== "all") params. set("filterCountry", filters. country);
-    params.set("category", selectedCategoryName);
-    if (filters.district !== "all") params.set("filterDistrict", filters.district);
-    params. set("fromShopNow", "true");
-
-    if (fullData) {
-      sessionStorage.setItem("preFilledQuotationData", JSON.stringify(fullData));
+  const getShopNowUrl = (categoryId: string) => {
+    if (user?.role === "vendor") {
+      return "/vendor/purchase-orders";
     }
-    
-    router.push(`/user/search-vendors?${params.toString()}`);
+    return `/user/search-vendors?category=${encodeURIComponent(categoryId)}`;
   };
 
   return (
@@ -278,12 +249,13 @@ export const ProductCategories: React.FC = () => {
                         </span>
                       ))}
                     </div>
-                    <button
-                      onClick={() => handleShopNowClick(categoryId, category.name)}
+
+                    <Link
+                      href={getShopNowUrl(categoryId)}
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
-                    </button>
+                    </Link>
                   </div>
                 );
               }
@@ -341,12 +313,12 @@ export const ProductCategories: React.FC = () => {
                         </span>
                       ))}
                     </div>
-                    <button
-                      onClick={() => handleShopNowClick(categoryId, category.name)}
+                    <Link
+                      href={getShopNowUrl(categoryId)}
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
-                    </button>
+                    </Link>
                   </div>
                 );
               }
@@ -438,12 +410,13 @@ export const ProductCategories: React.FC = () => {
                           </span>
                         ))}
                       </div>
-                      <button
-                        onClick={() => handleShopNowClick(categoryId, category.name)}
-                        className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+
+                      <Link
+                        href={getShopNowUrl(categoryId)}
+                        className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
                       >
                         Shop Now
-                      </button>
+                      </Link>
                     </div>
                   );
                 }
@@ -482,17 +455,6 @@ export const ProductCategories: React.FC = () => {
           </>
         )}
       </div>
-      <GetQuotationModal
-        isOpen={getQuotationModalOpen}
-        onClose={() => {
-          setGetQuotationModalOpen(false);
-          setSelectedCategoryId("");
-          setSelectedCategoryName("");
-        }}
-        mode="search"
-        onSearchSubmit={handleSearchSubmit}
-        preSelectedCategory={selectedCategoryName}
-      />
     </div>
   );
 };
