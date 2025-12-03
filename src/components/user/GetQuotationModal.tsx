@@ -32,12 +32,22 @@ interface IGetQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
   vendor?: Vendor | null;
+  mode?: "direct" | "search";
+  onSearchSubmit?: (filters: {
+    country: string;
+    category: string;
+    district: string;
+  }, fullData?: any) => void;
+  preSelectedCategory?: string;
 }
 
 export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   isOpen,
   onClose,
   vendor,
+  mode = "direct",
+  onSearchSubmit,
+  preSelectedCategory,
 }) => {
   const [fileName, setFileName] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -73,6 +83,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
@@ -98,12 +109,42 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     description: string;
     image: File;
   }) => {
-    if (!currentUser?.id) return;
+    if (mode === "search" && onSearchSubmit) {
+    let imageData = null;
+    if (data.image) {
+      imageData = await new Promise<{data: string, name: string, type: string}>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve({
+            data: reader.result as string,
+            name: data. image.name,
+            type: data.image.type,
+          });
+        };
+        reader. readAsDataURL(data.image);
+      });
+    }
+
+    const { image, ...dataWithoutImage } = data;
+    
+    onSearchSubmit({
+      country: data.country,
+      category: data.category,
+      district: data.district,
+    }, {
+      ...dataWithoutImage,
+      imageData,
+    });
+    onClose();
+    return;
+  }
+
+    if (! currentUser?.id) return;
 
     const file = data.image;
     let uploadedUrl = "";
     if (file) {
-      const compressed = file.type.startsWith("image/")
+      const compressed = file.type. startsWith("image/")
         ? await FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
         : file;
 
@@ -119,11 +160,11 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       buyerId: currentUser.id,
       buyerName: `${currentUser.firstName || ""} ${
         currentUser.lastName || ""
-      }`.trim(),
+      }`. trim(),
       buyerEmail: currentUser.email || "",
       buyerPhone: currentUser.phone || "",
       vendorId: vendor?.id,
-      vendorName: vendor?.firstName,
+      vendorName: vendor?. firstName,
       country: data.country,
       brand: data.brand,
       model: data.model,
@@ -134,8 +175,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       fuelType: data.fueltype,
       measurement: data.measurement,
       numberOfUnits: data.noofunits,
-      description: data.description,
-      attachedImages: uploadedUrl ? [uploadedUrl] : [],
+      description: data. description,
+      attachedImages: uploadedUrl ?  [uploadedUrl] : [],
       status: "pending",
       quotationsReceived: 0,
     } as any;
@@ -167,7 +208,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     };
   }, [imagePreview]);
 
-  // Handle modal close
   const handleModalClose = () => {
     reset();
     setFileName("");
@@ -175,7 +215,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     onClose();
   };
 
-  // Dynamic options
   const [countryOptions, setCountryOptions] = useState<string[]>([]);
   const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>([]);
@@ -257,19 +296,30 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!vendor || !allCategories.length) {
-      setVendorCategoryOptions([]);
-      return;
+    if (isOpen && mode === "search" && preSelectedCategory) {
+      setValue("category", preSelectedCategory);
     }
+  }, [isOpen, mode, preSelectedCategory, setValue]);
 
-    const vendorCatIds = (vendor.mainCategories || []) as string[];
+  useEffect(() => {
+  if (mode === "search") {
+    setVendorCategoryOptions(allCategories);
+    return;
+  }
 
-    const matched = allCategories.filter(
-      (c: any) => vendorCatIds.includes(c.id) || vendorCatIds.includes(c.name)
-    );
+  if (! vendor || !allCategories.length) {
+    setVendorCategoryOptions([]);
+    return;
+  }
 
-    setVendorCategoryOptions(matched);
-  }, [vendor, allCategories]);
+  const vendorCatIds = (vendor. mainCategories || []) as string[];
+
+  const matched = allCategories.filter(
+    (c: any) => vendorCatIds.includes(c.id) || vendorCatIds.includes(c.name)
+  );
+
+  setVendorCategoryOptions(matched);
+}, [vendor, allCategories, mode]);
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => {
@@ -313,7 +363,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto md:h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            {vendorDisplayName
+            {mode === "search" 
+              ? "Get Quotation"
+              : vendorDisplayName
               ? `${vendorDisplayName} - Get Quotation`
               : "Get Quotation"}
           </Dialog.Title>
@@ -685,9 +737,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       }`}
                     >
                       <option value="" className="text-gray-500">
-                        {vendorCategoryOptions.length
-                          ? "Select Category"
-                          : "No categories configured"}
+                        Select Category
                       </option>
                       {vendorCategoryOptions.map((c: any) => (
                         <option key={c.id} value={c.name}>
