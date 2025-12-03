@@ -7,11 +7,23 @@ export interface MobileNumberInputProps
   containerClassName?: string;
   inputClassName?: string;
   error?: boolean;
+  border?: boolean;
 }
 
-export const MobileNumberInput = forwardRef<HTMLInputElement, MobileNumberInputProps>(
+export const MobileNumberInput = forwardRef<
+  HTMLInputElement,
+  MobileNumberInputProps
+>(
   (
-    { containerClassName, inputClassName, error, className, onChange, ...props },
+    {
+      containerClassName,
+      inputClassName,
+      error,
+      className,
+      onChange,
+      border,
+      ...props
+    },
     ref
   ) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,8 +49,14 @@ export const MobileNumberInput = forwardRef<HTMLInputElement, MobileNumberInputP
           maxLength={10}
           onChange={handleChange}
           className={
-            `w-full text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 focus:outline-none focus:ring-2 border ` +
-            `${error ? "focus:ring-red-500 border-red-300" : "focus:ring-yellow-500 border-gray-300"} ` +
+            `w-full text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 focus:outline-none focus:ring-2 ${
+              border == true ? "" : "border"
+            }  ` +
+            `${
+              error
+                ? "focus:ring-red-500 border-red-300"
+                : "focus:ring-yellow-500 border-gray-300"
+            } ` +
             `${inputClassName ?? ""} ${className ?? ""}`
           }
           {...props}
@@ -49,5 +67,3 @@ export const MobileNumberInput = forwardRef<HTMLInputElement, MobileNumberInputP
 );
 
 MobileNumberInput.displayName = "MobileNumberInput";
-
-

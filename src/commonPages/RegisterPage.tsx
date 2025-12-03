@@ -33,7 +33,9 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
   const schema = Yup.object().shape({
     firstname: Yup.string().required("First name is required."),
     lastname: Yup.string().required("Last name is required."),
-    email: Yup.string().email("Invalid email format").required("Email is required."),
+    email: Yup.string()
+      .email("Invalid email format")
+      .required("Email is required."),
     address: Yup.string().required("Address is required."),
     city: Yup.string().required("City is required."),
     district: Yup.string().required("District is required."),
@@ -41,10 +43,16 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
     NIC: Yup.string().required("NIC is required."),
     mobileNumber: Yup.string()
       .required("Mobile number is required.")
-      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
+      .matches(
+        /^0\d{9}$/,
+        "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
+      ),
     whatsappNumber: Yup.string()
       .required("WhatsApp number is required.")
-      .matches(/^0\d{9}$/, "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."),
+      .matches(
+        /^0\d{9}$/,
+        "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
+      ),
     password: Yup.string()
       .required("Password is required.")
       .matches(
@@ -107,7 +115,9 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
         setErrorMessage(result.payload as string);
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "Registration failed. Please try again.");
+      setErrorMessage(
+        error.message || "Registration failed. Please try again."
+      );
       console.error("Signup error:", error);
     }
   };
@@ -125,15 +135,17 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
       id="register"
     >
       <div className="w-full max-w-[420px] md:max-w-[520px] lg:max-w-[560px] flex flex-col items-center">
-      <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-3 md:mb-0 mt-4 md:mt-0">
-        <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-4 md:mb-0 mt-4 md:mt-0">
-          <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
-            <Link
-              href="/user/register"
-              className={`
-                ${type === "buyer" 
-                  ? "bg-[#F9C301] text-[#111102]" 
-                  : "bg-white text-[#111102]"}
+        <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-3 md:mb-0 mt-4 md:mt-0">
+          <div className="w-full flex justify-center md:justify-end md:absolute md:top-4 md:right-12 mb-4 md:mb-0 mt-4 md:mt-0">
+            <div className="flex border-2 border-[#111102] rounded-md md:rounded-lg overflow-hidden">
+              <Link
+                href="/user/register"
+                className={`
+                ${
+                  type === "buyer"
+                    ? "bg-[#F9C301] text-[#111102]"
+                    : "bg-white text-[#111102]"
+                }
                 font-bold font-body text-[12px] md:text-[16px] 
                 px-6 md:px-8 py-2 md:py-2.5 
                 transition-all duration-200 
@@ -141,37 +153,41 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 min-w-[100px] md:min-w-[120px] 
                 text-center
                 border-r border-[#111102]`}
-            >
-              Buyer
-            </Link>
-            <Link
-              href="/vendor/register"
-              className={`
-                ${type === "vendor" 
-                  ? "bg-[#F9C301] text-[#111102]" 
-                  : "bg-white text-[#111102]"}
+              >
+                Buyer
+              </Link>
+              <Link
+                href="/vendor/register"
+                className={`
+                ${
+                  type === "vendor"
+                    ? "bg-[#F9C301] text-[#111102]"
+                    : "bg-white text-[#111102]"
+                }
                 font-bold font-body text-[12px] md:text-[16px] 
                 px-6 md:px-8 py-2 md:py-2.5 
                 transition-all duration-200 
                 hover:bg-[#F9C301] hover:bg-opacity-50
                 min-w-[100px] md:min-w-[120px] 
                 text-center`}
-            >
-              Vendor
-            </Link>
+              >
+                Vendor
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
-      {/* Register Heading */}
-      <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
-        <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 w-full">
-          {type === "buyer" ? "Buyer" : "Vendor"} Register
-        </h1>
-      </div>
+        {/* Register Heading */}
+        <div className="top-[10%] w-full md:mb-5 mb-3 md:mt-5 mt-5">
+          <h1 className="text-center text-[16px] md:text-[24px] font-bold font-body text-[#111102] mb-3 md:mb-5 w-full">
+            {type === "buyer" ? "Buyer" : "Vendor"} Register
+          </h1>
+        </div>
 
         <div className="bg-[#F8F8F8] w-full md:w-auto md:min-w-[420px] md:py-10 md:px-10 py-6 px-5 rounded-[10px] md:rounded-[15px] shadow-md flex flex-col justify-center items-center">
           {errorMessage && (
-            <p className="text-red-500 text-[12px] md:text-[14px] mb-4">{errorMessage}</p>
+            <p className="text-red-500 text-[12px] md:text-[14px] mb-4">
+              {errorMessage}
+            </p>
           )}
           <form className="space-y-4 w-full" onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
@@ -347,54 +363,51 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               >
                 District
               </label>
-              <div className="relative">
-                <Controller
-                  name="district"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <>
-                      <select
-                        {...field}
-                        id="district"
-                        className={`w-full text-[10px] md:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 focus:ring-2 focus:outline-none ${
-                          errors.district
-                            ? "focus:ring-red-500 focus:border-red-500"
-                            : "focus:ring-yellow-500 focus:border-yellow-500"
-                        }`}
-                      >
-                        <option value="">Select District</option>
-                        <option value="Colombo">Colombo</option>
-                        <option value="Gampaha">Gampaha</option>
-                        <option value="Kalutara">Kalutara</option>
-                        <option value="Kandy">Kandy</option>
-                        <option value="Matale">Matale</option>
-                        <option value="Nuwara Eliya">Nuwara Eliya</option>
-                        <option value="Galle">Galle</option>
-                        <option value="Matara">Matara</option>
-                        <option value="Hambantota">Hambantota</option>
-                        <option value="Jaffna">Jaffna</option>
-                        <option value="Kilinochchi">Kilinochchi</option>
-                        <option value="Mannar">Mannar</option>
-                        <option value="Vavuniya">Vavuniya</option>
-                        <option value="Mullaitivu">Mullaitivu</option>
-                        <option value="Batticaloa">Batticaloa</option>
-                        <option value="Ampara">Ampara</option>
-                        <option value="Trincomalee">Trincomalee</option>
-                        <option value="Kurunegala">Kurunegala</option>
-                        <option value="Puttalam">Puttalam</option>
-                        <option value="Anuradhapura">Anuradhapura</option>
-                        <option value="Polonnaruwa">Polonnaruwa</option>
-                        <option value="Badulla">Badulla</option>
-                        <option value="Monaragala">Monaragala</option>
-                        <option value="Ratnapura">Ratnapura</option>
-                        <option value="Kegalle">Kegalle</option>
-                      </select>
-                      <ChevronDown className="absolute w-[12px] md:w-[16px] right-3 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
-                    </>
-                  )}
-                />
-              </div>
+
+              <Controller
+                name="district"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    id="district"
+                    className={`w-full text-[10px] md:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 md:pt-0 md:pb-0 focus:ring-2 focus:outline-none ${
+                      errors.district
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                  >
+                    <option value="">Select District</option>
+                    <option value="Colombo">Colombo</option>
+                    <option value="Gampaha">Gampaha</option>
+                    <option value="Kalutara">Kalutara</option>
+                    <option value="Kandy">Kandy</option>
+                    <option value="Matale">Matale</option>
+                    <option value="Nuwara Eliya">Nuwara Eliya</option>
+                    <option value="Galle">Galle</option>
+                    <option value="Matara">Matara</option>
+                    <option value="Hambantota">Hambantota</option>
+                    <option value="Jaffna">Jaffna</option>
+                    <option value="Kilinochchi">Kilinochchi</option>
+                    <option value="Mannar">Mannar</option>
+                    <option value="Vavuniya">Vavuniya</option>
+                    <option value="Mullaitivu">Mullaitivu</option>
+                    <option value="Batticaloa">Batticaloa</option>
+                    <option value="Ampara">Ampara</option>
+                    <option value="Trincomalee">Trincomalee</option>
+                    <option value="Kurunegala">Kurunegala</option>
+                    <option value="Puttalam">Puttalam</option>
+                    <option value="Anuradhapura">Anuradhapura</option>
+                    <option value="Polonnaruwa">Polonnaruwa</option>
+                    <option value="Badulla">Badulla</option>
+                    <option value="Monaragala">Monaragala</option>
+                    <option value="Ratnapura">Ratnapura</option>
+                    <option value="Kegalle">Kegalle</option>
+                  </select>
+                )}
+              />
+
               {errors.district && (
                 <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
                   {errors.district.message}
@@ -484,9 +497,10 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   <MobileNumberInput
                     {...field}
                     id="mobileNumber"
-                    inputClassName="h-[28px] md:h-[40px] py-2"
+                    inputClassName="h-[28px] md:h-[40px] py-2 "
                     placeholder="Mobile Number"
                     error={!!errors.mobileNumber}
+                    border={true}
                   />
                 )}
               />
@@ -516,6 +530,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     inputClassName="h-[28px] md:h-[40px] py-2"
                     placeholder="WhatsApp Number"
                     error={!!errors.whatsappNumber}
+                    border={true}
                   />
                 )}
               />
@@ -534,29 +549,27 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               >
                 Password
               </label>
-              <div className="relative flex flex-col w-full">
-                <div className="flex items-center relative w-full">
-                  <Controller
-                    name="password"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <PasswordInput
-                        {...field}
-                        id="password"
-                        placeholder="Password"
-                        inputClassName="h-[28px] md:h-[40px] py-2"
-                        error={!!errors.password}
-                      />
-                    )}
+
+              <Controller
+                name="password"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <PasswordInput
+                    {...field}
+                    id="password"
+                    placeholder="Password"
+                    inputClassName="h-[28px] md:h-[40px] py-2"
+                    error={!!errors.password}
+                    border={true}
                   />
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.password.message}
-                  </p>
                 )}
-              </div>
+              />
+              {errors.password && (
+                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -567,29 +580,27 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               >
                 Confirm Password
               </label>
-              <div className="relative flex flex-col w-full">
-                <div className="flex items-center relative w-full">
-                  <Controller
-                    name="confirmPassword"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <PasswordInput
-                        {...field}
-                        id="confirmPassword"
-                        placeholder="Confirm Password"
-                        inputClassName="h-[28px] md:h-[40px] py-2"
-                        error={!!errors.confirmPassword}
-                      />
-                    )}
+
+              <Controller
+                name="confirmPassword"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <PasswordInput
+                    {...field}
+                    id="confirmPassword"
+                    placeholder="Confirm Password"
+                    inputClassName="h-[28px] md:h-[40px] py-2 "
+                    error={!!errors.confirmPassword}
+                    border={true}
                   />
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.confirmPassword.message}
-                  </p>
                 )}
-              </div>
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
 
             {/* Register Button */}
@@ -597,7 +608,9 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               type="submit"
               disabled={loading}
               className={`w-full h-[36px] md:h-[42px] bg-[#F9C301] text-[#111102] font-bold text-[12px] md:text-[16px] font-body py-2 rounded-md transition ${
-                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-yellow-500"
+                loading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-yellow-500"
               }`}
             >
               {loading ? "REGISTERING..." : "REGISTER"}
