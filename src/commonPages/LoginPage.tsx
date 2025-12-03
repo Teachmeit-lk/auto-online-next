@@ -291,11 +291,11 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                 Signup
               </Link>
             </p>
-            <p>
+            {/* <p>
               <a href="#" className="text-[#111102] underline">
                 Forgot Password?
               </a>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>
