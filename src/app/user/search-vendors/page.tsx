@@ -5,6 +5,13 @@ import { Search, ClipboardCheck } from "lucide-react";
 import { TabLayout, ViewVendorProfileModal } from "@/components";
 
 import { GetQuotationModal } from "@/components/";
+import { SendWhatsAppConfirmationModal } from "@/components/user/SendWhatsAppConfirmationModal";
+import { FirebaseStorageService } from "@/service/firebaseStorageService";
+import {
+  QuotationRequest,
+} from "@/service/firestoreService";
+import { buildWhatsAppQuotationUrl } from "@/components/hooks/openWhatsAppWithQuotation";
+
 import withAuth from "@/components/authGuard/withAuth";
 import {
   FirestoreService,
@@ -17,12 +24,21 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { GetQuotationConfirmation } from "@/components/atoms/get-quotation-confirmation-modal";
 
 const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
+  const router = useRouter();
   const [getQuotationModalOpen, setGetQuotationModalOpen] = useState(false);
   const [ViewVendorProfileModalOpen, setViewVendorProfileModalOpen] =
     useState(false);
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [pendingVendor, setPendingVendor] = useState<any | null>(null);
+  const [preFilledQuotationData, setPreFilledQuotationData] = useState<any>(null);
+  const [isFromShopNow, setIsFromShopNow] = useState(false);
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -44,10 +60,24 @@ const SearchVendors: React.FC = () => {
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
+    const countryFromUrl = searchParams.get("filterCountry");
+    const districtFromUrl = searchParams.get("filterDistrict");
+    const fromShopNow = searchParams.get("fromShopNow");
+    
     if (categoryFromUrl) {
       setFilterCategory(categoryFromUrl);
     }
+    if (countryFromUrl) {
+      setFilterCountry(countryFromUrl);
+    }
+    if (districtFromUrl && fromShopNow !== "true") {
+      setFilterDistrict(districtFromUrl);
+    }
+    if (fromShopNow === "true") {
+      setIsFromShopNow(true);
+    }
   }, [searchParams]);
+
   const user = authState.user as any;
 
   const loadVendors = async () => {
@@ -92,6 +122,16 @@ const SearchVendors: React.FC = () => {
     })();
   }, []);
 
+useEffect(() => {
+  if (isFromShopNow) {
+    const storedData = sessionStorage.getItem("preFilledQuotationData");
+    if (storedData) {
+      setPreFilledQuotationData(JSON.parse(storedData));
+      sessionStorage.removeItem("preFilledQuotationData");
+    }
+  }
+}, [isFromShopNow]);
+
   const countryOptions = useMemo(() => {
     const set = new Set<string>();
     brands.forEach((b) => b.country && set.add(b.country));
@@ -104,15 +144,77 @@ const SearchVendors: React.FC = () => {
     return Array.from(set.values());
   }, [vendors]);
 
+  useEffect(() => {
+    if (authState. isAuthenticated && ! loading) {
+      const pendingQuotation = localStorage.getItem("pendingQuotation");
+      
+      if (pendingQuotation) {
+        try {
+          const parsed = JSON.parse(pendingQuotation);
+
+          setPreFilledQuotationData(parsed.quotationData);
+          setIsFromShopNow(parsed.fromShopNow);
+
+          if (parsed. returnUrl) {
+            const urlParams = new URLSearchParams(parsed.returnUrl.split('?')[1]);
+            const category = urlParams.get("category");
+            const country = urlParams.get("filterCountry");
+            
+            if (category) setFilterCategory(category);
+            if (country) setFilterCountry(country);
+          }
+
+          const vendor = vendors.find((v: any) => v. id === parsed.vendorId);
+          
+          if (vendor) {
+            setPendingVendor(vendor);
+            setSelectedVendor(vendor);
+
+            setTimeout(() => {
+              setConfirmationModalOpen(true);
+            }, 500);
+          } else if (parsed.vendorInfo) {
+            const vendorInfo = {
+              id: parsed.vendorId,
+              ... parsed.vendorInfo,
+            };
+            setPendingVendor(vendorInfo);
+            setSelectedVendor(vendorInfo);
+            
+            setTimeout(() => {
+              setConfirmationModalOpen(true);
+            }, 500);
+          }
+
+          localStorage.removeItem("pendingQuotation");
+        } catch (error) {
+          console. error("Error restoring pending quotation:", error);
+          localStorage.removeItem("pendingQuotation");
+        }
+      }
+    }
+  }, [authState.isAuthenticated, vendors, loading]);
+
   const filtered = useMemo(() => {
     return vendors
       .filter((v) => {
-        // main category filter
         if (filterCategory !== "all") {
           const mc: string[] = (v.mainCategories || []) as string[];
-          if (!mc.includes(filterCategory)) return false;
+
+          const matchedCategory = categories.find(
+            (cat: any) => cat. name === filterCategory || cat.id === filterCategory
+          );
+          
+          const categoryId = matchedCategory?.id || filterCategory;
+          const categoryName = matchedCategory?.name || filterCategory;
+
+          const hasCategory = mc.some(
+            (vendorCat) => vendorCat === categoryId || vendorCat === categoryName
+          );
+          
+          if (!hasCategory) return false;
+
         }
-        // country filter via brand reference
         if (filterCountry !== "all") {
           const vendorBrandIds: string[] = (v.vehicleBrand || []) as string[];
           const hasCountry = vendorBrandIds.some((id) => {
@@ -123,10 +225,8 @@ const SearchVendors: React.FC = () => {
           });
           if (!hasCountry) return false;
         }
-        // district filter
         if (filterDistrict !== "all" && v.district !== filterDistrict)
           return false;
-        // search
         if (search) {
           const q = search.toLowerCase();
           const name = `${v.firstName || ""} ${v.lastName || ""}`.trim();
@@ -148,7 +248,106 @@ const SearchVendors: React.FC = () => {
     filterDistrict,
     brands,
     search,
+    categories,
   ]);
+
+const handleAutoSubmitQuotation = async (vendor: any) => {
+  if (!preFilledQuotationData || !user?. id) return;
+
+  const data = preFilledQuotationData;
+
+  let uploadedUrl = "";
+  if (data.imageData) {
+    try {
+      const response = await fetch(data.imageData. data);
+      const blob = await response.blob();
+      const file = new File([blob], data.imageData. name, { 
+        type: data.imageData.type 
+      });
+
+      const compressed = file. type. startsWith("image/")
+        ? await FirebaseStorageService. compressImage(file, 1920, 1080, 0.7)
+        : file;
+
+      const res = await FirebaseStorageService.uploadDocument(
+        user.id,
+        "quotation",
+        compressed
+      );
+      uploadedUrl = res.url;
+      setUploadedImageUrl(uploadedUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  }
+
+  const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
+    buyerId: user.id,
+    buyerName: `${user.firstName || ""} ${user.lastName || ""}`. trim(),
+    buyerEmail: user.email || "",
+    buyerPhone: user.phone || "",
+    vendorId: vendor?. id,
+    vendorName: vendor?. firstName,
+    country: data.country,
+    brand: data.brand,
+    model: data.model,
+    category: data.category,
+    district: data.district,
+    vehicleType: data.vehicletype,
+    manufacturingYear: data.manufactoringyear,
+    fuelType: data.fueltype,
+    measurement: data.measurement,
+    numberOfUnits: data.noofunits,
+    description: data. description,
+    attachedImages: uploadedUrl ?  [uploadedUrl] : [],
+    status: "pending",
+    quotationsReceived: 0,
+  } as any;
+
+  await FirestoreService.create<QuotationRequest>(
+    COLLECTIONS.QUOTATION_REQUESTS,
+    doc
+  );
+
+  setWhatsAppModalOpen(true);
+};
+
+const handleConfirmWhatsApp = () => {
+  if (! preFilledQuotationData || ! selectedVendor || !user) return;
+
+  const vendorPhone = selectedVendor?. whatsApp || selectedVendor?.phone || "";
+  const vendorDisplayName =
+    selectedVendor?.companyName ||
+    `${selectedVendor?.firstName || ""} ${selectedVendor?. lastName || ""}`.trim() ||
+    "Vendor";
+
+  const waUrl = buildWhatsAppQuotationUrl({
+    vendor: {
+      id: selectedVendor?.id || "",
+      name: vendorDisplayName,
+    },
+    vendorPhone,
+    data: preFilledQuotationData,
+    currentUser: user,
+    fileUrl: uploadedImageUrl,
+  });
+
+  if (waUrl) {
+    window.location.href = waUrl;
+  }
+
+  setWhatsAppModalOpen(false);
+  setPreFilledQuotationData(null);
+  setIsFromShopNow(false);
+  setUploadedImageUrl("");
+};
+
+const handleSkipWhatsApp = () => {
+  setWhatsAppModalOpen(false);
+  setPreFilledQuotationData(null);
+  setIsFromShopNow(false);
+  setUploadedImageUrl("");
+};
 
   const categoryLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -203,7 +402,7 @@ const SearchVendors: React.FC = () => {
                 {categories.map((c: any) => (
                   <option
                     key={(c as any).id || c.name}
-                    value={(c as any).id || c.name}
+                    value={c.name}
                   >
                     {c.name}
                   </option>
@@ -265,8 +464,9 @@ const SearchVendors: React.FC = () => {
               </select>
             </div>
 
+            {/* Search bar temporarily removed based on client request. */}
             {/* Search */}
-            <div className="flex flex-col sm:col-span-2 lg:col-span-1">
+            {/* <div className="flex flex-col sm:col-span-2 lg:col-span-1">
               <label className="font-body font-medium text-sm text-[#111102] mb-1">
                 Search
               </label>
@@ -286,13 +486,13 @@ const SearchVendors: React.FC = () => {
                   />
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full min-w-[660px] overflow-x-auto border-collapse ">
+        <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px] ">
+          <table className="w-full min-w-[660px] overflow-x-auto border-collapse sm:table hidden">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white lg:px-[30px] py-2 ">
@@ -301,7 +501,7 @@ const SearchVendors: React.FC = () => {
                 <th className="border border-r-2 border-b-2  border-white lg:px-[60px] py-2">
                   Company Name
                 </th>
-                <th className="border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
+                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
                   Address
                 </th>
                 <th className="border px-4 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
@@ -341,17 +541,40 @@ const SearchVendors: React.FC = () => {
                     <td className="grid grid-cols-2 text-center w-full h-full">
                       <button
                         className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        // onClick={() => setIsModalOpen1(true)}
                         onClick={() => {
-                          setSelectedVendor(vendor);
-                          setGetQuotationModalOpen(true);
+                          if (!authState.isAuthenticated) {
+                            if (isFromShopNow && preFilledQuotationData) {
+                              localStorage.setItem("pendingQuotation", JSON.stringify({
+                                quotationData: preFilledQuotationData,
+                                vendorId: vendor.id,
+                                vendorInfo: {
+                                  firstName: vendor.firstName,
+                                  lastName: vendor.lastName,
+                                  companyName: vendor.companyName,
+                                  whatsApp: vendor.whatsApp,
+                                  phone: vendor.phone,
+                                },
+                                fromShopNow: true,
+                                returnUrl: window.location.pathname + window.location.search,
+                              }));
+                            }
+                            router.push("/user/login");
+                            return;
+                          }
+                          
+                          if (isFromShopNow && preFilledQuotationData) {
+                            setPendingVendor(vendor);
+                            setConfirmationModalOpen(true);
+                          } else {
+                            setSelectedVendor(vendor);
+                            setGetQuotationModalOpen(true);
+                          }
                         }}
                       >
                         Get Quotation
                       </button>
                       <button
                         className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        // onClick={() => setIsModalOpen2(true)}
                         onClick={async () => {
                           setSelectedVendor(vendor);
                           const imgs =
@@ -377,6 +600,114 @@ const SearchVendors: React.FC = () => {
               )}
             </tbody>
           </table>
+
+          <table className="w-full min-w-[660px] overflow-x-auto border-collapse table sm:hidden">
+            <thead>
+              <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
+                <th className="border border-r-2 border-b-2 border-white lg:px-[30px] py-2 ">
+                  No.
+                </th>
+                <th className="border border-r-2 border-b-2  border-white lg:px-[60px] py-2">
+                  Company Name
+                </th>
+                <th className="border px-4 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                  <ClipboardCheck size="19px" />
+                  <span>Action</span>
+                </th>
+                <th className=" border border-r-2 border-b-2 border-white lg:px-[140px] py-2">
+                  Address
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td className="px-4 py-3" colSpan={4}>
+                    Loading...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td className="px-4 py-3" colSpan={4}>
+                    No vendors found.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((vendor, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
+                  >
+                    <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                      {(vendor.firstName || "") + " " + (vendor.lastName || "")}
+                    </td>
+                    <td className="grid grid-cols-2 text-center w-full h-full">
+                      <button
+                        className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                        onClick={() => {
+                          if (!authState.isAuthenticated) {
+                            if (isFromShopNow && preFilledQuotationData) {
+                              localStorage.setItem("pendingQuotation", JSON.stringify({
+                                quotationData: preFilledQuotationData,
+                                vendorId: vendor.id,
+                                vendorInfo: {
+                                  firstName: vendor.firstName,
+                                  lastName: vendor.lastName,
+                                  companyName: vendor.companyName,
+                                  whatsApp: vendor.whatsApp,
+                                  phone: vendor.phone,
+                                },
+                                fromShopNow: true,
+                                returnUrl: window.location.pathname + window.location.search,
+                              }));
+                            }
+                            router.push("/user/login");
+                            return;
+                          }
+                          if (isFromShopNow && preFilledQuotationData) {
+                            setPendingVendor(vendor);
+                            setConfirmationModalOpen(true);
+                          } else {
+                            setSelectedVendor(vendor);
+                            setGetQuotationModalOpen(true);
+                          }
+                        }}
+                      >
+                        Get Quotation
+                      </button>
+                      <button
+                        className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                        onClick={async () => {
+                          setSelectedVendor(vendor);
+                          const imgs =
+                            await FirestoreService.getAll<GalleryImage>(
+                              COLLECTIONS.GALLERY,
+                              [
+                                {
+                                  field: "vendorId",
+                                  operator: "==",
+                                  value: (vendor as any).id,
+                                },
+                              ]
+                            );
+                          setSelectedVendorGallery(imgs);
+                          setViewVendorProfileModalOpen(true);
+                        }}
+                      >
+                        View More
+                      </button>
+                    </td>
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                      {vendor.address || "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Pagination */}
@@ -384,29 +715,35 @@ const SearchVendors: React.FC = () => {
           Showing 1-{entries} Entries
         </div>
 
-        {/* <FilterModal
-        isOpen={isModalOpen1}
-        onClose={() => setIsModalOpen1(false)}
-      />
-
-      <CompanyProfileModal
-        isOpen={isModalOpen2}
-        onClose={() => setIsModalOpen2(false)}
-      /> */}
       </div>
+      <GetQuotationConfirmation
+        isOpen={confirmationModalOpen}
+        onConfirm={async () => {
+          setConfirmationModalOpen(false);
+
+          if (isFromShopNow && preFilledQuotationData) {
+            setSelectedVendor(pendingVendor);
+            await handleAutoSubmitQuotation(pendingVendor);
+          } else {
+            setSelectedVendor(pendingVendor);
+            setGetQuotationModalOpen(true);
+          }
+        }}
+        onClose={() => {
+          setConfirmationModalOpen(false);
+          setPendingVendor(null);
+          setPreFilledQuotationData(null);
+          setIsFromShopNow(false);
+        }}
+        vendorName={
+          pendingVendor?.companyName ||
+          `${pendingVendor?.firstName || ""} ${pendingVendor?.lastName || ""}`.trim()
+        }
+      />
       <GetQuotationModal
         isOpen={getQuotationModalOpen}
         onClose={() => setGetQuotationModalOpen(false)}
-        vendor={
-          selectedVendor
-            ? {
-                id: (selectedVendor as any).id,
-                name: `${selectedVendor.firstName || ""} ${
-                  selectedVendor.lastName || ""
-                }`.trim(),
-              }
-            : null
-        }
+        vendor={selectedVendor}
       />
       <ViewVendorProfileModal
         isOpen={ViewVendorProfileModalOpen}
@@ -417,7 +754,15 @@ const SearchVendors: React.FC = () => {
         brandLabelMap={brandLabelMap}
         modelLabelMap={modelLabelMap}
       />
+      <SendWhatsAppConfirmationModal
+        isOpen={whatsAppModalOpen}
+        onConfirm={handleConfirmWhatsApp}
+        onSkip={handleSkipWhatsApp}
+        onClose={() => setWhatsAppModalOpen(false)}
+        person="vendor"
+      />
     </TabLayout>
   );
 };
-export default withAuth(SearchVendors);
+
+export default SearchVendors;

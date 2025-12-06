@@ -18,6 +18,10 @@ import {
   PurchaseOrder,
   OrderService,
 } from "@/service/firestoreService";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
+import { buildPurchaseOrderStatusWhatsAppUrl } from "@/components/hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "@/components/user/SendWhatsAppConfirmationModal";
 
 // import {
 //   NewPriceChatAlert,
@@ -41,6 +45,21 @@ const NewPurchaseOrders: React.FC = () => {
   const [deliveryCostMap, setDeliveryCostMap] = useState<
     Record<string, number>
   >({});
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+
+  const [pendingWhatsAppStatus, setPendingWhatsAppStatus] = useState<{
+    customerPhone: string;
+    customerName: string;
+    orderNumber: string;
+    status: "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
+    items: any[];
+    totalAmount: number;
+    currency: string;
+    deliveryMethod: string;
+    deliveryCost?: number;
+    deliveryAddress?: any;
+    rejectionReason?: string;
+  } | null>(null);
   const [quotationDetailsMap, setQuotationDetailsMap] = useState<
     Record<
       string,
@@ -358,10 +377,10 @@ const NewPurchaseOrders: React.FC = () => {
                         {vendor.no}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {vendor.rcode}
+                        {useRefactoredIdLast("ON", vendor.rcode)}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                        {vendor.ccode}
+                        {useRefactoredId("CC", vendor.ccode)}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                         {vendor.cname}
@@ -396,7 +415,10 @@ const NewPurchaseOrders: React.FC = () => {
                         </button>
                         <button
                           className="bg-[#D1D1D1] px-1 py-3 border-x-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 "
-                          onClick={() => setIsModalOpen2(true)}
+                          onClick={() => {
+                            setSelected(vendor.raw);
+                            setIsModalOpen2(true);
+                          }}
                         >
                           Chat
                         </button>
@@ -685,6 +707,7 @@ const NewPurchaseOrders: React.FC = () => {
                 "[PurchaseOrders] Accepting purchase order:",
                 selected.id
               );
+
               await OrderService.updatePurchaseOrderStatus(
                 selected.id,
                 "confirmed",
@@ -695,15 +718,11 @@ const NewPurchaseOrders: React.FC = () => {
                       : undefined,
                 }
               );
+
               console.log(
                 "[PurchaseOrders] Purchase order accepted successfully"
               );
-              // TODO: Send order acceptance notification via WhatsApp
-              console.log(
-                "[PurchaseOrders] TODO: Send order acceptance notification via WhatsApp"
-              );
 
-              // Reload orders
               const list = await OrderService.getPurchaseOrdersByVendor(
                 currentUser.id
               );
@@ -718,6 +737,46 @@ const NewPurchaseOrders: React.FC = () => {
               );
               setOrders(sorted);
               setIsModalOpen3(false);
+
+              try {
+                const buyer: any = await FirestoreService.getById(
+                  COLLECTIONS.USERS,
+                  (selected as any).buyerId
+                );
+
+                const customerPhone =
+                  buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+                const customerName =
+                  buyerNameMap[(selected as any).buyerId] ||
+                  `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
+                  buyer?.companyName ||
+                  "Customer";
+
+                if (customerPhone) {
+                  setPendingWhatsAppStatus({
+                    customerPhone,
+                    customerName,
+                    orderNumber: (selected as any).orderNumber,
+                    status: "confirmed",
+                    items: ((selected as any).products || []) as any,
+                    totalAmount: (selected as any).totalAmount || 0,
+                    currency: (selected as any).currency || "LKR",
+                    deliveryMethod: (selected as any).deliveryMethod,
+                    deliveryCost: (selected as any).deliveryCost,
+                    deliveryAddress: (selected as any).deliveryAddress,
+                  });
+                  setWhatsAppModalOpen(true);
+                } else {
+                  console.warn(
+                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
+                  );
+                }
+              } catch (waErr) {
+                console.error(
+                  "[PurchaseOrders] Failed to prepare WhatsApp confirmation:",
+                  waErr
+                );
+              }
             } catch (error: any) {
               console.error(
                 "[PurchaseOrders] Failed to accept purchase order:",
@@ -757,12 +816,7 @@ const NewPurchaseOrders: React.FC = () => {
               console.log(
                 "[PurchaseOrders] Purchase order rejected successfully"
               );
-              // TODO: Send order rejection notification via WhatsApp
-              console.log(
-                "[PurchaseOrders] TODO: Send order rejection notification via WhatsApp"
-              );
 
-              // Reload orders
               const list = await OrderService.getPurchaseOrdersByVendor(
                 currentUser.id
               );
@@ -778,6 +832,47 @@ const NewPurchaseOrders: React.FC = () => {
               setOrders(sorted);
               setIsModalOpen4(false);
               setRejectionReason("");
+
+              try {
+                const buyer: any = await FirestoreService.getById(
+                  COLLECTIONS.USERS,
+                  (selected as any).buyerId
+                );
+
+                const customerPhone =
+                  buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+                const customerName =
+                  buyerNameMap[(selected as any).buyerId] ||
+                  `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
+                  buyer?.companyName ||
+                  "Customer";
+
+                if (customerPhone) {
+                  setPendingWhatsAppStatus({
+                    customerPhone,
+                    customerName,
+                    orderNumber: (selected as any).orderNumber,
+                    status: "cancelled",
+                    items: ((selected as any).products || []) as any,
+                    totalAmount: (selected as any).totalAmount || 0,
+                    currency: (selected as any).currency || "LKR",
+                    deliveryMethod: (selected as any).deliveryMethod,
+                    deliveryCost: (selected as any).deliveryCost,
+                    deliveryAddress: (selected as any).deliveryAddress,
+                    rejectionReason: reason,
+                  });
+                  setWhatsAppModalOpen(true);
+                } else {
+                  console.warn(
+                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
+                  );
+                }
+              } catch (waErr) {
+                console.error(
+                  "[PurchaseOrders] Failed to prepare WhatsApp rejection:",
+                  waErr
+                );
+              }
             } catch (error: any) {
               console.error(
                 "[PurchaseOrders] Failed to reject purchase order:",
@@ -791,9 +886,97 @@ const NewPurchaseOrders: React.FC = () => {
         <OpenChatConfirmationModal
           isOpen={isModalOpen2}
           onClose={() => setIsModalOpen2(false)}
+          person="buyer"
+          onConfirm={async () => {
+            if (!selected) {
+              alert("No order selected for chat.");
+              setIsModalOpen2(false);
+              return;
+            }
+
+            try {
+              const buyer: any = await FirestoreService.getById(
+                COLLECTIONS.USERS,
+                (selected as any).buyerId
+              );
+
+              const customerPhone =
+                buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+              const customerName =
+                buyerNameMap[(selected as any).buyerId] ||
+                `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
+                buyer?.companyName ||
+                "Customer";
+
+              if (!customerPhone) {
+                alert("Customer phone / WhatsApp number is not available.");
+                setIsModalOpen2(false);
+                return;
+              }
+
+              const phone = "+94" + customerPhone.replace(/\D/g, "");
+
+              const vendorName =
+                `${currentUser?.firstName || ""} ${
+                  currentUser?.lastName || ""
+                }`.trim() ||
+                currentUser?.companyName ||
+                "Your vendor";
+
+              const msg = `
+Hi ${customerName},
+
+This is ${vendorName} from AutoOnline.lk.
+
+I'm contacting you regarding your order:
+Order No: ${
+                useRefactoredIdLast("ON", (selected as any).orderNumber) || "-"
+              }        
+
+`.trim();
+
+              const url = `https://wa.me/${phone}?text=${encodeURIComponent(
+                msg
+              )}`;
+
+              window.open(url, "_blank");
+            } catch (err) {
+              console.error(
+                "[PurchaseOrders] Failed to open WhatsApp chat:",
+                err
+              );
+              alert("Failed to open WhatsApp chat. Please try again.");
+            } finally {
+              setIsModalOpen2(false);
+            }
+          }}
+        />
+
+        <SendWhatsAppConfirmationModal
+          person="buyer"
+          isOpen={whatsAppModalOpen}
           onConfirm={() => {
-            alert("in development");
-            setIsModalOpen2(false);
+            if (!pendingWhatsAppStatus) return;
+            try {
+              const waUrl = buildPurchaseOrderStatusWhatsAppUrl(
+                pendingWhatsAppStatus
+              );
+              if (waUrl) {
+                window.location.href = waUrl;
+              }
+            } catch (e) {
+              console.error("[PurchaseOrders] WhatsApp sending error", e);
+            } finally {
+              setWhatsAppModalOpen(false);
+              setPendingWhatsAppStatus(null);
+            }
+          }}
+          onSkip={() => {
+            setWhatsAppModalOpen(false);
+            setPendingWhatsAppStatus(null);
+          }}
+          onClose={() => {
+            setWhatsAppModalOpen(false);
           }}
         />
         {/*

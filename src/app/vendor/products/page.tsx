@@ -21,6 +21,7 @@ import {
   VehicleBrand,
   VehicleModel,
 } from "@/service/firestoreService";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -292,7 +293,7 @@ const VendorProducts: React.FC = () => {
                         {index + 1}
                       </td>
                       <td className="border border-r-2 border-b-2  border-[#F8F8F8] pl-7  py-2 ">
-                        {p.id || "-"}
+                        {useRefactoredId("PC", p.id) || "-"}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7  py-2 ">
                         {p.partName}

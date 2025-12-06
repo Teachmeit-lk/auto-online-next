@@ -8,6 +8,7 @@ export interface PasswordInputProps
   containerClassName?: string;
   inputClassName?: string;
   error?: boolean;
+  border?: boolean;
 }
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
@@ -19,6 +20,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       className,
       readOnly,
       disabled,
+      border,
       ...props
     },
     ref
@@ -33,7 +35,9 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           ref={ref}
           type={isVisible ? "text" : "password"}
           className={
-            `w-full text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 focus:outline-none focus:ring-2 border ` +
+            `w-full text-[10px] md:text-[14px] font-body placeholder:text-[10px] md:placeholder:text-[14px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 focus:outline-none focus:ring-2 ${
+              border == true ? "" : "border"
+            }  ` +
             `${
               error
                 ? "focus:ring-red-500 border-red-300"

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Search, ClipboardCheck } from "lucide-react";
-import { TabLayout } from "@/components";
+import { TabLayout, OpenChatConfirmationModal } from "@/components";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/service/firestoreService";
 
 import { ViewEstimateModal } from "@/components/user/ViewEstimateModal";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 
 const QuotationRequests: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -20,6 +21,8 @@ const QuotationRequests: React.FC = () => {
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState<QuotationRequest[]>([] as any);
   const [selected, setSelected] = useState<QuotationRequest | null>(null);
+  const [openChatOpenConfirmation, setOpenChatOpenConfirmation] =
+    useState(false);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
@@ -143,7 +146,7 @@ const QuotationRequests: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-tl-[10px] rounded-tr-[10px]">
-          <table className="w-full border-collapse min-w-[660px] overflow-x-auto">
+          <table className="w-full border-collapse min-w-[700px] overflow-x-auto">
             <thead>
               <tr className="h-[36px] bg-[#D1D1D1] text-center text-[14px] font-body text-[#111102] font-[500] ">
                 <th className="border border-r-2 border-b-2 border-white px-1  py-2 ">
@@ -164,7 +167,7 @@ const QuotationRequests: React.FC = () => {
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Request Date
                 </th>
-                <th className="border px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
+                <th className="border min-w-[140px] px-1 py-2 border-b-1 border-white flex items-center justify-center space-x-2">
                   <ClipboardCheck size="19px" />
                   <span>Action</span>
                 </th>
@@ -193,10 +196,10 @@ const QuotationRequests: React.FC = () => {
                       {index + 1}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.rcode}
+                      {useRefactoredId("RC", row.rcode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.vcode}
+                      {useRefactoredId("VC", row.vcode)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {row.cname}
@@ -207,16 +210,24 @@ const QuotationRequests: React.FC = () => {
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {row.rdate}
                     </td>
-
-                    <td className="grid grid-cols-1 text-center w-full h-full">
+                    <td className="grid grid-cols-2 text-center w-full h-full font-body">
                       <button
-                        className="bg-[#D1D1D1] px-3 font-body py-3 hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500 text-[#111102] text-[12px] w-full h-full"
+                        className="bg-[#D1D1D1] border-r-2 px-2 py-3 border-[#F8F8F8] text-[#111102] text-[11px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
                         onClick={() => {
                           setSelected(row.raw);
                           setIsModalOpen(true);
                         }}
                       >
                         View
+                      </button>
+                      <button
+                        className="bg-[#D1D1D1] px-2 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[11px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500 focus:hover:bg-yellow-500"
+                        onClick={() => {
+                          setSelected(row.raw);
+                          setOpenChatOpenConfirmation(true);
+                        }}
+                      >
+                        Chat
                       </button>
                     </td>
                   </tr>
@@ -237,6 +248,74 @@ const QuotationRequests: React.FC = () => {
           request={selected}
         />
       </div>
+      <OpenChatConfirmationModal
+        isOpen={openChatOpenConfirmation}
+        person="vendor"
+        onClose={() => setOpenChatOpenConfirmation(false)}
+        onConfirm={async () => {
+          if (!selected) {
+            alert("No request selected for chat.");
+            setOpenChatOpenConfirmation(false);
+            return;
+          }
+
+          try {
+            const vendor: any = await FirestoreService.getById(
+              COLLECTIONS.USERS,
+              (selected as any).vendorId
+            );
+
+            const vendorPhone =
+              vendor?.whatsApp || vendor?.phone || vendor?.mobileNumber || "";
+            const vendorName =
+              vendor?.companyName ||
+              `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
+              "Vendor";
+
+            if (!vendorPhone) {
+              alert("Vendor phone / WhatsApp number is not available.");
+              setOpenChatOpenConfirmation(false);
+              return;
+            }
+
+            const phone = "+94" + vendorPhone.replace(/\D/g, "");
+
+            const buyerName =
+              `${currentUser?.firstName || ""} ${
+                currentUser?.lastName || ""
+              }`.trim() ||
+              currentUser?.companyName ||
+              "Customer";
+
+            const msg = `
+Hi ${vendorName},
+
+This is ${buyerName} from AutoOnline.lk.
+
+I'm contacting you regarding my quotation request:
+Request Code: ${useRefactoredId("RC", (selected as any).id) || "-"}    
+Vehicle: ${(selected as any).vehicleType || "-"} ${
+              (selected as any).brand || ""
+            } ${(selected as any).model || ""}
+
+`.trim();
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(
+              msg
+            )}`;
+
+            window.open(url, "_blank");
+          } catch (err) {
+            console.error(
+              "[QuotationRequests] Failed to open WhatsApp chat:",
+              err
+            );
+            alert("Failed to open WhatsApp chat. Please try again.");
+          } finally {
+            setOpenChatOpenConfirmation(false);
+          }
+        }}
+      />
     </TabLayout>
   );
 };

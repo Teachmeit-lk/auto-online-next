@@ -37,7 +37,7 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-[550px] h-[600px] overflow-y-auto no-scrollbar">
             {/* Image Section */}
             <div className="flex justify-center">
               {firstImage ? (
@@ -69,6 +69,19 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
                 <input
                   type="text"
                   value={request?.country || "-"}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {/* Vehicle Brand */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Vehicle Brand
+                </label>
+                <input
+                  type="text"
+                  value={request?.brand || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />

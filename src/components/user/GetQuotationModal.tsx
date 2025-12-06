@@ -14,24 +14,55 @@ import {
   COLLECTIONS,
   QuotationRequest,
 } from "@/service/firestoreService";
+import { buildWhatsAppQuotationUrl } from "../hooks/openWhatsAppWithQuotation";
+import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
+
+interface Vendor {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  phone?: string;
+  whatsApp?: string;
+  email?: string;
+  mainCategories?: string[];
+}
 
 interface IGetQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  vendor?: { id: string; name: string } | null;
+  vendor?: Vendor | null;
+  mode?: "direct" | "search";
+  onSearchSubmit?: (filters: {
+    country: string;
+    category: string;
+    district: string;
+  }, fullData?: any) => void;
+  preSelectedCategory?: string;
 }
 
 export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   isOpen,
   onClose,
   vendor,
+  mode = "direct",
+  onSearchSubmit,
+  preSelectedCategory,
 }) => {
   const [fileName, setFileName] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>("");
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [lastSubmission, setLastSubmission] = useState<{
+    data: any;
+    fileUrl: string;
+  } | null>(null);
 
   const schema = Yup.object().shape({
     country: Yup.string().required("Country is required"),
+    category: Yup.string().required("Category is required"),
+    brand: Yup.string().required("Brand is required"),
     model: Yup.string().required("Model is required"),
     vehicletype: Yup.string().required("Vehicle type is required"),
     manufactoringyear: Yup.string().required("Manufacturing Year is required"),
@@ -48,19 +79,26 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     image: Yup.mixed().required("Image is required"),
   });
 
-  // Initialize react-hook-form
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
   });
+  const vendorDisplayName =
+    vendor?.companyName ||
+    `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
+    "Vendor";
 
-  // Form submission handler
+  const vendorWhatsApp = vendor?.whatsApp || vendor?.phone || "";
+
   const onSubmit = async (data: {
     country: string;
+    brand: string;
+    category: string;
     model: string;
     district: string;
     vehicletype: string;
@@ -71,17 +109,45 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     description: string;
     image: File;
   }) => {
-    if (!currentUser?.id) return;
-    // Upload image
-    const img = data.image;
+    if (mode === "search" && onSearchSubmit) {
+    let imageData = null;
+    if (data.image) {
+      imageData = await new Promise<{data: string, name: string, type: string}>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve({
+            data: reader.result as string,
+            name: data. image.name,
+            type: data.image.type,
+          });
+        };
+        reader. readAsDataURL(data.image);
+      });
+    }
+
+    const { image, ...dataWithoutImage } = data;
+    
+    onSearchSubmit({
+      country: data.country,
+      category: data.category,
+      district: data.district,
+    }, {
+      ...dataWithoutImage,
+      imageData,
+    });
+    onClose();
+    return;
+  }
+
+    if (! currentUser?.id) return;
+
+    const file = data.image;
     let uploadedUrl = "";
-    if (img) {
-      const compressed = await FirebaseStorageService.compressImage(
-        img,
-        1920,
-        1080,
-        0.7
-      );
+    if (file) {
+      const compressed = file.type. startsWith("image/")
+        ? await FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
+        : file;
+
       const res = await FirebaseStorageService.uploadDocument(
         currentUser.id,
         "quotation",
@@ -89,33 +155,40 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       );
       uploadedUrl = res.url;
     }
+
     const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
       buyerId: currentUser.id,
       buyerName: `${currentUser.firstName || ""} ${
         currentUser.lastName || ""
-      }`.trim(),
+      }`. trim(),
       buyerEmail: currentUser.email || "",
       buyerPhone: currentUser.phone || "",
       vendorId: vendor?.id,
-      vendorName: vendor?.name,
+      vendorName: vendor?. firstName,
       country: data.country,
+      brand: data.brand,
       model: data.model,
+      category: data.category,
       district: data.district,
       vehicleType: data.vehicletype,
       manufacturingYear: data.manufactoringyear,
       fuelType: data.fueltype,
       measurement: data.measurement,
-      //numberOfUnits: Number(data.noofunits) || 0,
       numberOfUnits: data.noofunits,
-      description: data.description,
-      attachedImages: uploadedUrl ? [uploadedUrl] : [],
+      description: data. description,
+      attachedImages: uploadedUrl ?  [uploadedUrl] : [],
       status: "pending",
       quotationsReceived: 0,
     } as any;
+
     await FirestoreService.create<QuotationRequest>(
       COLLECTIONS.QUOTATION_REQUESTS,
       doc
     );
+
+    setLastSubmission({ data, fileUrl: uploadedUrl });
+    setWhatsAppModalOpen(true);
+
     onClose();
   };
 
@@ -123,28 +196,39 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     if (!isOpen) {
       reset();
       setFileName("");
+      setImagePreview("");
     }
   }, [isOpen, reset]);
 
-  // Handle modal close
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const handleModalClose = () => {
     reset();
     setFileName("");
+    setImagePreview("");
     onClose();
   };
 
-  // Dynamic options
   const [countryOptions, setCountryOptions] = useState<string[]>([]);
+  const [brandOptions, setBrandOptions] = useState<string[]>([]);
   const [vehicleTypeOptions, setVehicleTypeOptions] = useState<string[]>([]);
   const [fuelTypeOptions, setFuelTypeOptions] = useState<string[]>([]);
   const [measurementOptions, setMeasurementOptions] = useState<string[]>([]);
   const [modelOptions, setModelOptions] = useState<string[]>([]);
   const [districtOptions, setDistrictOptions] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [vendorCategoryOptions, setVendorCategoryOptions] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [brands, vtypes, fuels, units, models, vendors] = await Promise.all(
-        [
+      const [brands, vtypes, fuels, units, models, vendorsList, categories] =
+        await Promise.all([
           FirestoreService.getAll<any>(
             COLLECTIONS.VEHICLE_BRANDS,
             undefined,
@@ -179,22 +263,63 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
             { field: "role", operator: "==", value: "vendor" },
             { field: "isActive", operator: "==", value: true },
           ]),
-        ]
-      );
+          FirestoreService.getAll<any>(
+            COLLECTIONS.CATEGORIES,
+            undefined,
+            "sortOrder",
+            "asc"
+          ),
+        ]);
+
       const countries = Array.from(
         new Set((brands || []).map((b: any) => b.country).filter(Boolean))
       );
       setCountryOptions(countries);
+
+      const brandNames = Array.from(
+        new Set((brands || []).map((b: any) => b.name).filter(Boolean))
+      );
+      setBrandOptions(brandNames);
+
       setVehicleTypeOptions((vtypes || []).map((t: any) => t.name));
       setFuelTypeOptions((fuels || []).map((t: any) => t.name));
       setMeasurementOptions((units || []).map((t: any) => t.name));
       setModelOptions((models || []).map((m: any) => m.name));
+
       const districts = Array.from(
-        new Set((vendors || []).map((v: any) => v.district).filter(Boolean))
+        new Set((vendorsList || []).map((v: any) => v.district).filter(Boolean))
       );
       setDistrictOptions(districts);
+
+      setAllCategories(categories);
     })();
   }, []);
+
+  useEffect(() => {
+    if (isOpen && mode === "search" && preSelectedCategory) {
+      setValue("category", preSelectedCategory);
+    }
+  }, [isOpen, mode, preSelectedCategory, setValue]);
+
+  useEffect(() => {
+  if (mode === "search") {
+    setVendorCategoryOptions(allCategories);
+    return;
+  }
+
+  if (! vendor || !allCategories.length) {
+    setVendorCategoryOptions([]);
+    return;
+  }
+
+  const vendorCatIds = (vendor. mainCategories || []) as string[];
+
+  const matched = allCategories.filter(
+    (c: any) => vendorCatIds.includes(c.id) || vendorCatIds.includes(c.name)
+  );
+
+  setVendorCategoryOptions(matched);
+}, [vendor, allCategories, mode]);
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => {
@@ -203,13 +328,46 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     return arr;
   }, [currentYear]);
 
+  const handleConfirmWhatsApp = () => {
+    if (!lastSubmission || !currentUser) return;
+
+    const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
+
+    const waUrl = buildWhatsAppQuotationUrl({
+      vendor: {
+        id: vendor?.id || "",
+        name: vendorDisplayName,
+      },
+      vendorPhone,
+      data: lastSubmission.data,
+      currentUser,
+      fileUrl: lastSubmission.fileUrl,
+    });
+
+    if (waUrl) {
+      window.location.href = waUrl;
+    }
+
+    setWhatsAppModalOpen(false);
+    onClose();
+  };
+
+  const handleSkipWhatsApp = () => {
+    setWhatsAppModalOpen(false);
+    onClose();
+  };
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto md:h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
-            {vendor?.name ? `${vendor.name} - Get Quotation` : "Get Quotation"}
+            {mode === "search" 
+              ? "Get Quotation"
+              : vendorDisplayName
+              ? `${vendorDisplayName} - Get Quotation`
+              : "Get Quotation"}
           </Dialog.Title>
 
           <div className="sm:h-full h-[600px] overflow-y-auto no-scrollbar">
@@ -220,7 +378,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               {/* Vehicle Country */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Vehicle Country
+                  Country of Manufacturing
                 </label>
                 <Controller
                   name="country"
@@ -230,7 +388,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="country"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.country
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -254,6 +412,43 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 )}
               </div>
 
+              {/* Vehicle Brand */}
+              <div className="col-span-1">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Vehicle Brand
+                </label>
+                <Controller
+                  name="brand"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      id="brand"
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                        errors.brand
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                    >
+                      <option value="" className="text-gray-500">
+                        Select Brand
+                      </option>
+                      {brandOptions.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.brand && (
+                  <p className="text-red-500 text-[8px]  mt-1">
+                    {errors.brand.message}
+                  </p>
+                )}
+              </div>
+
               {/* Vehicle Model */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -264,24 +459,17 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <select
+                    <input
                       {...field}
+                      type="text"
                       id="model"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
+                      placeholder="Enter vehicle model"
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
                         errors.model
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
-                    >
-                      <option value="" className="text-gray-500">
-                        Select Model
-                      </option>
-                      {modelOptions.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   )}
                 />
                 {errors.model && (
@@ -294,7 +482,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               {/* District */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  District
+                  Customer District
                 </label>
                 <Controller
                   name="district"
@@ -304,7 +492,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="district"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
                      ${
                        errors.district
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -340,7 +528,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
                      ${
                        errors.vehicletype
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -378,7 +566,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="manufactoringyear"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.manufactoringyear
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -414,7 +602,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.fueltype
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -450,7 +638,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.measurement
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -478,13 +666,13 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
 
               {/* No of Units */}
               <div className="col-span-1">
-                <label className="text-[10px] font-body font-[500] text-[#111102]">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
                   No of Units
                 </label>
                 <Controller
                   name="noofunits"
                   control={control}
-                  defaultValue={undefined}
+                  defaultValue=""
                   render={({ field }) => (
                     <input
                       {...field}
@@ -494,21 +682,27 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       min="1"
                       step="1"
                       onKeyDown={(e) => {
-                        // Prevent minus sign, plus sign, and 'e' (scientific notation)
-                        if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                        if (
+                          e.key === "-" ||
+                          e.key === "+" ||
+                          e.key === "e" ||
+                          e.key === "E"
+                        ) {
                           e.preventDefault();
                         }
                       }}
                       onInput={(e) => {
                         const target = e.target as HTMLInputElement;
                         const value = target.value;
-                        // Remove any non-digit characters except for valid numbers
-                        if (value && (Number(value) <= 0 || value.includes('-'))) {
-                          target.value = '';
-                          field.onChange('');
+                        if (
+                          value &&
+                          (Number(value) <= 0 || value.includes("-"))
+                        ) {
+                          target.value = "";
+                          field.onChange(undefined);
                         }
                       }}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                       ${
                         errors.noofunits
                           ? "focus:ring-red-500 focus:border-red-500"
@@ -524,9 +718,45 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 )}
               </div>
 
+              {/* Vendor Category */}
+              <div className="col-span-1">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Category
+                </label>
+                <Controller
+                  name="category"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                        errors.category
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                    >
+                      <option value="" className="text-gray-500">
+                        Select Category
+                      </option>
+                      {vendorCategoryOptions.map((c: any) => (
+                        <option key={c.id} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.category && (
+                  <p className="text-red-500 text-[8px] mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
+              </div>
+
               {/* Description */}
               <div className="col-span-3">
-                <label className="text-[10px] font-body font-[500] text-[#111102]">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Description
                 </label>
                 <Controller
@@ -539,7 +769,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       id="description"
                       rows={3}
                       placeholder="Enter description"
-                      className={`w-full h-[53px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
+                      className={`w-full h-[53px] mt-1 p-3 text-[11px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
                      ${
                        errors.description
                          ? "focus:ring-red-500 focus:border-red-500"
@@ -554,25 +784,24 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   </p>
                 )}
               </div>
-
               {/* Image Upload */}
               <div className="col-span-3">
-                <div
-                  className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-               ${
-                 errors.image
-                   ? "focus:ring-red-500 focus:border-red-500"
-                   : "focus:ring-yellow-500 focus:border-yellow-500"
-               }`}
-                >
-                  <Camera size="16px" color="#5B5B5B" />
+                <Controller
+                  name="image"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <>
+                      <div
+                        className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
+                    ${
+                      errors.image
+                        ? "focus:ring-red-500 focus:border-red-500"
+                        : "focus:ring-yellow-500 focus:border-yellow-500"
+                    }`}
+                      >
+                        <Camera size="16px" color="#5B5B5B" />
 
-                  <Controller
-                    name="image"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <>
                         <input
                           type="file"
                           accept=".jpg, .png"
@@ -581,6 +810,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                             if (file) {
                               field.onChange(file);
                               setFileName(file.name);
+                              // Create preview
+                              const previewUrl = URL.createObjectURL(file);
+                              setImagePreview(previewUrl);
                             }
                           }}
                           className="hidden"
@@ -588,15 +820,43 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         />
                         <label
                           htmlFor="file-upload"
-                          className="cursor-pointer text-[#D1D1D1] font-body text-[9px] pl-1 mt-[2px]"
+                          className="cursor-pointer text-[#D1D1D1] font-body text-[10px] pl-1 mt-[2px]"
                         >
                           {fileName ||
                             "Choose an Image to upload (jpg and png files only)"}
                         </label>
-                      </>
-                    )}
-                  />
-                </div>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-16 h-16 object-cover rounded-[3px] border border-[#D1D1D1]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImagePreview("");
+                              setFileName("");
+                              field.onChange(undefined);
+                              // Reset the file input
+                              const fileInput = document.getElementById(
+                                "file-upload"
+                              ) as HTMLInputElement;
+                              if (fileInput) fileInput.value = "";
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-700 font-body"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                />
+
                 {/* Error Message */}
                 {errors.image && (
                   <p className="text-red-500 text-[8px] mt-1">
@@ -620,7 +880,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               </div>
             </form>
           </div>
-
           {/* Close Button */}
           <Dialog.Close asChild>
             <button
@@ -632,6 +891,14 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <SendWhatsAppConfirmationModal
+        isOpen={whatsAppModalOpen}
+        onConfirm={handleConfirmWhatsApp}
+        onSkip={handleSkipWhatsApp}
+        onClose={() => setWhatsAppModalOpen(false)}
+        person="vendor"
+      />
     </Dialog.Root>
   );
 };
