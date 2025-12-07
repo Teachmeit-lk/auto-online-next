@@ -8,7 +8,11 @@ import { logoutUserAsync } from "@/app/store/slice/authslice";
 import Link from "next/link";
 import { User as UserIcon } from "lucide-react";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AdminDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const authState = useSelector((state: RootState) => state.auth as any);
   const isAuthenticated = authState.isAuthenticated as boolean;
   const role = authState.user?.role as string | undefined;
@@ -17,7 +21,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const pathname = usePathname();
 
   const navItems = [
-    { label: "Dashboard", href: "/admin/dashboard" },
+    // { label: "Dashboard", href: "/admin/dashboard" },
     { label: "Users", href: "/admin/users" },
     { label: "Vehicle Brands", href: "/admin/vehicle-brands" },
     { label: "Vehicle Models", href: "/admin/vehicle-models" },
@@ -25,7 +29,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     { label: "Fuel Types", href: "/admin/fuel-types" },
     { label: "Measurement Units", href: "/admin/measurement-units" },
     { label: "Main Categories", href: "/admin/main-categories" },
-    { label: "Settings", href: "/admin/settings" },
+    { label: "Main Services", href: "/admin/main-services" },
   ];
 
   const isActive = (href: string) => {
@@ -96,5 +100,3 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     </div>
   );
 }
-
-
