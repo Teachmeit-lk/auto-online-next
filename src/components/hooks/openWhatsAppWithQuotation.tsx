@@ -239,9 +239,28 @@ Total: ${it.totalPrice}`
     )
     .join("\n\n");
 
-  const deliveryAddressText = deliveryAddress
-    ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.district}, ${deliveryAddress.zipCode}, ${deliveryAddress.country}`
-    : customer.address;
+  const isDeliveryOrder = deliveryMethod === "arrange_delivery";
+
+  const itemsTotal = items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+
+  const effectiveGrandTotal = isDeliveryOrder ? grandTotal : itemsTotal;
+
+  const deliveryAddressText =
+    isDeliveryOrder && deliveryAddress
+      ? `${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.district}, ${deliveryAddress.zipCode}, ${deliveryAddress.country}`
+      : "";
+
+  const deliveryBlock = isDeliveryOrder
+    ? `
+Delivery:
+Method: Arrange delivery through vendor
+${
+  typeof deliveryCost === "number"
+    ? `Cost: ${deliveryCost.toFixed(2)} ${currency}`
+    : "Cost: N/A"
+}
+${deliveryAddressText ? `Address: ${deliveryAddressText}` : ""}`
+    : "";
 
   const msg = `
 Purchase Order from AutoOnline.lk
@@ -252,19 +271,11 @@ Order No: ${useRefactoredIdLast("ON", orderNumber)}
 Customer Details:
 Name: ${customer.name}
 Phone: ${customer.phone}
-Address: ${customer.address}
 
 Items:
-${itemsText}
+${itemsText}${deliveryBlock}
 
-Delivery:
-Method: ${deliveryMethod}
-Cost: ${
-    typeof deliveryCost === "number" ? `${deliveryCost} ${currency}` : "N/A"
-  }
-Address: ${deliveryAddressText}
-
-Grand Total: ${grandTotal} ${currency}
+Grand Total: ${effectiveGrandTotal.toFixed(2)} ${currency}
 
 Payment Method: ${paymentMethod}
 ${specialNotes ? `\nSpecial Notes:\n${specialNotes}` : ""}
