@@ -17,77 +17,10 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 
-import {
-  Product1,
-  Product2,
-  Product3,
-  Product4,
-  Product5,
-} from "@/assets/Images";
-import Link from "next/link";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { GetQuotationModal } from "@/components/user";
 import { useRouter } from "next/navigation";
-
-const initialProducts = [
-  {
-    name: "Filters",
-    description: "Best filters from $71.50 now",
-    price: "$71.50",
-    image: Product1,
-    rating: 4.5,
-  },
-  {
-    name: "Batteries",
-    description: "Best batteries from $71.50 now",
-    price: "$71.50",
-    image: Product2,
-    rating: 4.8,
-  },
-  {
-    name: "Tyres",
-    description: "Best tyres from $71.50 now",
-    price: "$71.50",
-    image: Product3,
-    rating: 4.7,
-  },
-  {
-    name: "Alloy Wheels",
-    description: "Best filters from $71.50 now",
-    price: "$71.50",
-    image: Product4,
-    rating: 4.6,
-  },
-  {
-    name: "Engine Parts",
-    description: "Best filters from $71.50 now",
-    price: "$71.50",
-    image: Product5,
-    rating: 4.9,
-  },
-  {
-    name: "Tyres",
-    description: "Best tyres from $71.50 now",
-    price: "$71.50",
-    image: Product3,
-    rating: 4.7,
-  },
-  {
-    name: "Alloy Wheels",
-    description: "Best filters from $71.50 now",
-    price: "$71.50",
-    image: Product4,
-    rating: 4.6,
-  },
-  {
-    name: "Engine Parts",
-    description: "Best filters from $71.50 now",
-    price: "$71.50",
-    image: Product5,
-    rating: 4.9,
-  },
-];
 
 export const ProductCategories: React.FC = () => {
   const swiperRef = useRef<SwiperType | null>(null);
@@ -103,8 +36,8 @@ export const ProductCategories: React.FC = () => {
   const [categoryProducts, setCategoryProducts] = useState<
     Array<{
       category: Category;
-      product: Product;
-      lowestPrice: number;
+      product: Product | null;
+      lowestPrice: number | null;
     }>
   >([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +50,7 @@ export const ProductCategories: React.FC = () => {
       try {
         setLoading(true);
 
+        // 1. Load all categories
         const categoriesData = await FirestoreService.getAll<Category>(
           COLLECTIONS.CATEGORIES,
           undefined,
@@ -127,6 +61,7 @@ export const ProductCategories: React.FC = () => {
         if (!isMounted) return;
         setCategories(categoriesData);
 
+        // 2. Load all active products
         const allProducts = await FirestoreService.getAll<Product>(
           COLLECTIONS.PRODUCTS,
           [{ field: "isActive", operator: "==", value: true }]
@@ -134,6 +69,7 @@ export const ProductCategories: React.FC = () => {
 
         if (!isMounted) return;
 
+        // Map categoryId -> { productWithLowestPrice }
         const categoryMap = new Map<
           string,
           { product: Product; lowestPrice: number }
@@ -155,21 +91,17 @@ export const ProductCategories: React.FC = () => {
           }
         });
 
-        const categoryProductList = categoriesData
-          .map((category) => {
-            const categoryId = (category as any).id || category.name;
-            const productData = categoryMap.get(categoryId);
+        // 3. Attach product/price info if available, but keep ALL categories
+        const categoryProductList = categoriesData.map((category) => {
+          const categoryId = (category as any).id || category.name;
+          const productData = categoryMap.get(categoryId);
 
-            if (productData) {
-              return {
-                category,
-                product: productData.product,
-                lowestPrice: productData.lowestPrice,
-              };
-            }
-            return null;
-          })
-          .filter((item): item is NonNullable<typeof item> => item !== null);
+          return {
+            category,
+            product: productData ? productData.product : null,
+            lowestPrice: productData ? productData.lowestPrice : null,
+          };
+        });
 
         if (!isMounted) return;
         setCategoryProducts(categoryProductList);
@@ -193,32 +125,53 @@ export const ProductCategories: React.FC = () => {
   const user = authState.user as any;
 
   const handleShopNowClick = (categoryId: string, categoryName: string) => {
-  if (user?. role === "vendor") {
-    router.push("/vendor/purchase-orders");
-  } else {
-    setSelectedCategoryId(categoryId);
-    setSelectedCategoryName(categoryName);
-    setGetQuotationModalOpen(true);
-  }
-};
+    if (user?.role === "vendor") {
+      router.push("/vendor/purchase-orders");
+    } else {
+      setSelectedCategoryId(categoryId);
+      setSelectedCategoryName(categoryName);
+      setGetQuotationModalOpen(true);
+    }
+  };
 
-  const handleSearchSubmit = (filters: {
-    country: string;
-    category: string;
-    district: string;
-  }, fullData?: any
+  const handleSearchSubmit = (
+    filters: {
+      country: string;
+      category: string;
+      district: string;
+    },
+    fullData?: any
   ) => {
     const params = new URLSearchParams();
-    if (filters.country !== "all") params. set("filterCountry", filters. country);
+    if (filters.country !== "all") params.set("filterCountry", filters.country);
     params.set("category", selectedCategoryName);
-    if (filters.district !== "all") params.set("filterDistrict", filters.district);
-    params. set("fromShopNow", "true");
+    if (filters.district !== "all")
+      params.set("filterDistrict", filters.district);
+    params.set("fromShopNow", "true");
 
     if (fullData) {
-      sessionStorage.setItem("preFilledQuotationData", JSON.stringify(fullData));
+      sessionStorage.setItem(
+        "preFilledQuotationData",
+        JSON.stringify(fullData)
+      );
     }
-    
+
     router.push(`/user/search-vendors?${params.toString()}`);
+  };
+
+  const renderBestText = (categoryName: string, lowestPrice: number | null) => {
+    if (typeof lowestPrice === "number") {
+      if (categoryName.toLowerCase() == "car batteries") {
+        return `Best ${categoryName.toLowerCase()} from $${lowestPrice.toFixed(
+          2
+        )}`;
+      } else {
+        return `Best ${categoryName.toLowerCase()} from $${lowestPrice.toFixed(
+          2
+        )} now`;
+      }
+    }
+    return `Best ${categoryName.toLowerCase()} available now`;
   };
 
   return (
@@ -227,8 +180,10 @@ export const ProductCategories: React.FC = () => {
         Product Categories
       </h1>
 
+      {/* Small / Medium screens */}
       <div className="block 2xl:hidden">
-        <div className="lg:hidden grid lg:grid-cols-4 grid-cols-2  px-1">
+        {/* Mobile grid (<= lg) */}
+        <div className="lg:hidden grid lg:grid-cols-4 grid-cols-2 px-1">
           {loading ? (
             <div className="col-span-2 text-center py-10 text-gray-500 text-[10px]">
               Loading...
@@ -245,9 +200,9 @@ export const ProductCategories: React.FC = () => {
                 return (
                   <div key={index} className="bg-white rounded-lg p-4">
                     <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
-                      {product.images && product.images.length > 0 ? (
+                      {category.imageUrl ? (
                         <Image
-                          src={product.images[0]}
+                          src={category.imageUrl}
                           alt={category.name}
                           width={84}
                           height={66}
@@ -264,8 +219,7 @@ export const ProductCategories: React.FC = () => {
                       {category.name}
                     </h3>
                     <p className="text-[8px] text-gray-600 pl-1">
-                      Best {category.name.toLowerCase()} from $
-                      {lowestPrice.toFixed(2)} now
+                      {renderBestText(category.name, lowestPrice)}
                     </p>
                     <div className="flex mt-1 pl-1">
                       {Array.from({ length: 5 }, (_, i) => (
@@ -279,7 +233,9 @@ export const ProductCategories: React.FC = () => {
                       ))}
                     </div>
                     <button
-                      onClick={() => handleShopNowClick(categoryId, category.name)}
+                      onClick={() =>
+                        handleShopNowClick(categoryId, category.name)
+                      }
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
@@ -291,7 +247,8 @@ export const ProductCategories: React.FC = () => {
           )}
         </div>
 
-        <div className="lg:grid hidden lg:grid-cols-4   px-1">
+        {/* Tablet grid (lg only) */}
+        <div className="lg:grid hidden lg:grid-cols-4 px-1">
           {loading ? (
             <div className="col-span-4 text-center py-10 text-gray-500 text-[10px]">
               Loading...
@@ -308,9 +265,9 @@ export const ProductCategories: React.FC = () => {
                 return (
                   <div key={index} className="bg-white rounded-lg p-4">
                     <div className="w-full h-[117px] bg-[#F8F8F8] rounded-lg flex justify-center items-center">
-                      {product.images && product.images.length > 0 ? (
+                      {category.imageUrl ? (
                         <Image
-                          src={product.images[0]}
+                          src={category.imageUrl}
                           alt={category.name}
                           width={84}
                           height={66}
@@ -327,8 +284,7 @@ export const ProductCategories: React.FC = () => {
                       {category.name}
                     </h3>
                     <p className="text-[8px] text-gray-600 pl-1">
-                      Best {category.name.toLowerCase()} from $
-                      {lowestPrice.toFixed(2)} now
+                      {renderBestText(category.name, lowestPrice)}
                     </p>
                     <div className="flex mt-1 pl-1">
                       {Array.from({ length: 5 }, (_, i) => (
@@ -342,7 +298,9 @@ export const ProductCategories: React.FC = () => {
                       ))}
                     </div>
                     <button
-                      onClick={() => handleShopNowClick(categoryId, category.name)}
+                      onClick={() =>
+                        handleShopNowClick(categoryId, category.name)
+                      }
                       className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
                     >
                       Shop Now
@@ -365,7 +323,7 @@ export const ProductCategories: React.FC = () => {
               strokeWidth="2px"
               size="15px"
               color="#111102"
-              className="ml-1 mt-[2px] "
+              className="ml-1 mt-[2px]"
             />
           </button>
         )}
@@ -379,13 +337,13 @@ export const ProductCategories: React.FC = () => {
               strokeWidth="2px"
               size="15px"
               color="#111102"
-              className="ml-1 mt-[2px] "
+              className="ml-1 mt-[2px]"
             />
           </button>
         )}
       </div>
 
-      {/* Large Screen Grid */}
+      {/* Large Screen Grid (2xl and up) */}
       <div className="hidden 2xl:block px-20">
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading...</div>
@@ -403,9 +361,9 @@ export const ProductCategories: React.FC = () => {
                   return (
                     <div key={index} className="bg-white rounded-lg p-4">
                       <div className="w-full h-[232px] bg-[#F8F8F8] rounded-lg flex justify-center items-center mb-3">
-                        {product.images && product.images.length > 0 ? (
+                        {category.imageUrl ? (
                           <Image
-                            src={product.images[0]}
+                            src={category.imageUrl}
                             alt={category.name}
                             width={159}
                             height={123}
@@ -423,8 +381,7 @@ export const ProductCategories: React.FC = () => {
                         {category.name}
                       </h3>
                       <p className="text-[#000000] text-[12px] font-body">
-                        Best {category.name.toLowerCase()} from $
-                        {lowestPrice.toFixed(2)} now
+                        {renderBestText(category.name, lowestPrice)}
                       </p>
 
                       <div className="flex mt-1">
@@ -439,8 +396,10 @@ export const ProductCategories: React.FC = () => {
                         ))}
                       </div>
                       <button
-                        onClick={() => handleShopNowClick(categoryId, category.name)}
-                        className="bg-yellow-400 ml-1 w-[68px] h-[24px] text-black text-[8px] font-bold rounded mt-2 py-1 px-2 hover:bg-yellow-500 flex items-center justify-center"
+                        onClick={() =>
+                          handleShopNowClick(categoryId, category.name)
+                        }
+                        className="bg-yellow-400 text-[#111102] text-[8px] font-bold rounded-[5px] font-body mt-2 hover:bg-yellow-500 w-[50px] h-[18px] flex items-center justify-center"
                       >
                         Shop Now
                       </button>
@@ -450,7 +409,6 @@ export const ProductCategories: React.FC = () => {
               )}
             </div>
 
-            {/* View More/Less Buttons for Large Screen */}
             {!showAll && categoryProducts.length > 5 && (
               <button
                 onClick={() => setShowAll(true)}
@@ -482,6 +440,7 @@ export const ProductCategories: React.FC = () => {
           </>
         )}
       </div>
+
       <GetQuotationModal
         isOpen={getQuotationModalOpen}
         onClose={() => {

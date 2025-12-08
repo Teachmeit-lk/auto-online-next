@@ -32,6 +32,7 @@ export const COLLECTIONS = {
   PURCHASE_ORDERS: "purchaseOrders",
   ORDERS: "orders",
   CATEGORIES: "categories",
+  SERVICES: "services",
   VEHICLE_BRANDS: "vehicleBrands",
   VEHICLE_MODELS: "vehicleModels",
   VEHICLE_TYPES: "vehicleTypes",
@@ -198,6 +199,16 @@ export interface Category extends BaseDocument {
   parentCategoryId?: string;
   icon?: string;
   sortOrder: number;
+  imageUrl?: string;
+}
+
+export interface Service extends BaseDocument {
+  name: string;
+  description?: string;
+  parentCategoryId?: string;
+  icon?: string;
+  sortOrder: number;
+  imageUrl?: string;
 }
 
 // Vehicle Brand interfaces

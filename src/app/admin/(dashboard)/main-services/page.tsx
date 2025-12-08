@@ -7,12 +7,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import {
   FirestoreService,
   COLLECTIONS,
-  Category,
+  Service,
 } from "@/service/firestoreService";
 import { storage } from "@/config/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-type CreateCategoryForm = {
+type CreateServiceForm = {
   name: string;
   description?: string | null;
   sortOrder: number;
@@ -33,21 +33,20 @@ const schema = Yup.object().shape({
   }),
 });
 
-const AdminMainCategoriesPage: React.FC = () => {
+const AdminMainServicesPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [selected, setSelected] = useState<Category | null>(null);
+  const [selected, setSelected] = useState<Service | null>(null);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
 
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
-
   const [createPreview, setCreatePreview] = useState<string | null>(null);
   const [editPreview, setEditPreview] = useState<string | null>(null);
 
@@ -56,33 +55,33 @@ const AdminMainCategoriesPage: React.FC = () => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<CreateCategoryForm>({
+  } = useForm<CreateServiceForm>({
     resolver: yupResolver(schema),
     defaultValues: { name: "", description: "", sortOrder: 0, imageFile: null },
   });
 
-  const loadCategories = async () => {
+  const loadServices = async () => {
     setLoading(true);
     try {
-      const list = await FirestoreService.getAll<Category>(
-        COLLECTIONS.CATEGORIES,
+      const list = await FirestoreService.getAll<Service>(
+        COLLECTIONS.SERVICES,
         undefined,
         "createdAt",
         "desc"
       );
-      setCategories(list);
+      setServices(list);
     } catch (e: any) {
-      setError(e?.message || "Failed to load categories");
+      setError(e?.message || "Failed to load services");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCategories();
+    loadServices();
   }, []);
 
-  const onSubmit = async (data: CreateCategoryForm) => {
+  const onSubmit = async (data: CreateServiceForm) => {
     setSubmitting(true);
     setMessage(null);
     setError(null);
@@ -97,11 +96,11 @@ const AdminMainCategoriesPage: React.FC = () => {
       }
 
       const file = data.imageFile[0];
-      const storageRef = ref(storage, `categories/${Date.now()}_${file.name}`);
+      const storageRef = ref(storage, `services/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
       imageUrl = await getDownloadURL(storageRef);
 
-      await FirestoreService.create<Category>(COLLECTIONS.CATEGORIES, {
+      await FirestoreService.create<Service>(COLLECTIONS.SERVICES, {
         name: data.name,
         description: data.description || "",
         sortOrder: Number(data.sortOrder) || 0,
@@ -109,13 +108,13 @@ const AdminMainCategoriesPage: React.FC = () => {
         imageUrl: imageUrl || "",
       } as any);
 
-      setMessage("Category created successfully.");
+      setMessage("Service created successfully.");
       reset({ name: "", description: "", sortOrder: 0, imageFile: null });
       setCreatePreview(null);
       setOpen(false);
-      await loadCategories();
+      await loadServices();
     } catch (e: any) {
-      setError(e?.message || "Failed to create category.");
+      setError(e?.message || "Failed to create service.");
     } finally {
       setSubmitting(false);
     }
@@ -135,14 +134,14 @@ const AdminMainCategoriesPage: React.FC = () => {
       if (editImageFile) {
         const storageRef = ref(
           storage,
-          `categories/${Date.now()}_${editImageFile.name}`
+          `services/${Date.now()}_${editImageFile.name}`
         );
         await uploadBytes(storageRef, editImageFile);
         imageUrl = await getDownloadURL(storageRef);
       }
 
-      await FirestoreService.update<Category>(
-        COLLECTIONS.CATEGORIES,
+      await FirestoreService.update<Service>(
+        COLLECTIONS.SERVICES,
         selected.id,
         {
           name: selected.name,
@@ -152,46 +151,44 @@ const AdminMainCategoriesPage: React.FC = () => {
         } as any
       );
 
-      setMessage("Category updated successfully.");
+      setMessage("Service updated successfully.");
       setEditOpen(false);
       setEditImageFile(null);
       setEditPreview(null);
-      await loadCategories();
+      await loadServices();
     } catch (e: any) {
-      setError(e?.message || "Failed to update category.");
+      setError(e?.message || "Failed to update service.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const toggleActive = async (category: Category) => {
-    if (!category?.id) return;
+  const toggleActive = async (service: Service) => {
+    if (!service?.id) return;
     setSubmitting(true);
     setError(null);
     try {
-      await FirestoreService.update<Category>(
-        COLLECTIONS.CATEGORIES,
-        category.id,
-        { isActive: !category.isActive } as any
-      );
-      await loadCategories();
+      await FirestoreService.update<Service>(COLLECTIONS.SERVICES, service.id, {
+        isActive: !service.isActive,
+      } as any);
+      await loadServices();
     } catch (e: any) {
-      setError(e?.message || "Failed to update category status.");
+      setError(e?.message || "Failed to update service status.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const visible = categories.filter((c) => {
+  const visible = services.filter((s) => {
     if (statusFilter === "all") return true;
-    if (statusFilter === "active") return !!c.isActive;
-    return !c.isActive;
+    if (statusFilter === "active") return !!s.isActive;
+    return !s.isActive;
   });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold">Main Categories</h1>
+        <h1 className="text-2xl font-bold">Main Services</h1>
         <div className="flex items-center gap-3 ml-auto">
           <label className="text-sm text-gray-600">Status</label>
           <select
@@ -246,21 +243,21 @@ const AdminMainCategoriesPage: React.FC = () => {
               ) : visible.length === 0 ? (
                 <tr>
                   <td className="px-4 py-3" colSpan={6}>
-                    No categories found.
+                    No services found.
                   </td>
                 </tr>
               ) : (
-                visible.map((c) => (
-                  <tr key={c.id} className="border-t">
-                    <td className="px-4 py-2">{c.name}</td>
-                    <td className="px-4 py-2">{c.description || "-"}</td>
-                    <td className="px-4 py-2">{c.sortOrder ?? 0}</td>
-                    <td className="px-4 py-2">{c.isActive ? "Yes" : "No"}</td>
+                visible.map((s) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="px-4 py-2">{s.name}</td>
+                    <td className="px-4 py-2">{s.description || "-"}</td>
+                    <td className="px-4 py-2">{s.sortOrder ?? 0}</td>
+                    <td className="px-4 py-2">{s.isActive ? "Yes" : "No"}</td>
                     <td className="px-4 py-2">
-                      {c.imageUrl ? (
+                      {s.imageUrl ? (
                         <img
-                          src={c.imageUrl}
-                          alt={c.name}
+                          src={s.imageUrl}
+                          alt={s.name}
                           className="h-10 w-10 object-cover rounded"
                         />
                       ) : (
@@ -272,9 +269,9 @@ const AdminMainCategoriesPage: React.FC = () => {
                         <button
                           className="px-3 py-1 rounded border text-xs hover:bg-gray-50"
                           onClick={() => {
-                            setSelected({ ...c });
+                            setSelected({ ...s });
                             setEditImageFile(null);
-                            setEditPreview(c.imageUrl || null);
+                            setEditPreview(s.imageUrl || null);
                             setEditOpen(true);
                           }}
                         >
@@ -282,14 +279,14 @@ const AdminMainCategoriesPage: React.FC = () => {
                         </button>
                         <button
                           className={`px-3 py-1 rounded text-xs ${
-                            c.isActive
+                            s.isActive
                               ? "bg-red-500 text-white hover:bg-red-600"
                               : "bg-green-500 text-white hover:bg-green-600"
                           }`}
-                          onClick={() => toggleActive(c)}
+                          onClick={() => toggleActive(s)}
                           disabled={submitting}
                         >
-                          {c.isActive ? "Revoke" : "Activate"}
+                          {s.isActive ? "Revoke" : "Activate"}
                         </button>
                       </div>
                     </td>
@@ -306,9 +303,12 @@ const AdminMainCategoriesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded shadow-lg p-5 w-full max-w-lg">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Create New Category</h2>
+              <h2 className="text-lg font-semibold">Create New Service</h2>
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setCreatePreview(null);
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 ✕
@@ -397,7 +397,6 @@ const AdminMainCategoriesPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Image (required) with preview */}
               <div>
                 <label className="block text-sm font-medium mb-1">Image</label>
                 <Controller
@@ -477,7 +476,7 @@ const AdminMainCategoriesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded shadow-lg p-5 w-full max-w-lg">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Edit Category</h2>
+              <h2 className="text-lg font-semibold">Edit Service</h2>
               <button
                 onClick={() => {
                   setEditOpen(false);
@@ -501,7 +500,7 @@ const AdminMainCategoriesPage: React.FC = () => {
                   value={selected.name || ""}
                   onChange={(e) =>
                     setSelected({
-                      ...(selected as Category),
+                      ...(selected as Service),
                       name: e.target.value,
                     })
                   }
@@ -516,7 +515,7 @@ const AdminMainCategoriesPage: React.FC = () => {
                   value={selected.description || ""}
                   onChange={(e) =>
                     setSelected({
-                      ...(selected as Category),
+                      ...(selected as Service),
                       description: e.target.value,
                     })
                   }
@@ -532,7 +531,7 @@ const AdminMainCategoriesPage: React.FC = () => {
                   value={selected.sortOrder ?? 0}
                   onChange={(e) =>
                     setSelected({
-                      ...(selected as Category),
+                      ...(selected as Service),
                       sortOrder: Number(e.target.value) || 0,
                     })
                   }
@@ -541,7 +540,6 @@ const AdminMainCategoriesPage: React.FC = () => {
                 />
               </div>
 
-              {/* Edit Image with live preview */}
               <div>
                 <label className="block text-sm font-medium mb-1">Image</label>
 
@@ -558,7 +556,6 @@ const AdminMainCategoriesPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* If no new preview yet but we have old image, show it */}
                 {!editPreview && selected.imageUrl && (
                   <div className="mb-2">
                     <span className="text-xs text-gray-500 block">
@@ -582,7 +579,6 @@ const AdminMainCategoriesPage: React.FC = () => {
                       const url = URL.createObjectURL(file);
                       setEditPreview(url);
                     } else {
-                      // If cleared, fall back to original image
                       setEditPreview(selected.imageUrl || null);
                     }
                   }}
@@ -623,4 +619,4 @@ const AdminMainCategoriesPage: React.FC = () => {
   );
 };
 
-export default AdminMainCategoriesPage;
+export default AdminMainServicesPage;
