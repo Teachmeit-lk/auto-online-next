@@ -54,7 +54,8 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     ...data,
-    ...(!isAuthenticated || (isAuthenticated && user?.role !== "vendor")
+    ...(!isAuthenticated ||
+    (isAuthenticated && user?.role !== "vendor" && user?.role !== "admin")
       ? [
           {
             name: "my requests",
@@ -73,7 +74,7 @@ export const Header: React.FC = () => {
         ]
       : []),
     ...(isAuthenticated && user?.role === "admin"
-      ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
+      ? [{ name: "admin", path: "/admin/users", icon: LayoutGrid }]
       : []),
   ];
 

@@ -5,7 +5,11 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { useRouter } from "next/navigation";
 
-export default function AdminAuthLayout({ children }: { children: React.ReactNode }) {
+export default function AdminAuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const authState = useSelector((state: RootState) => state.auth as any);
   const isAuthenticated = authState.isAuthenticated as boolean;
   const role = authState.user?.role as string | undefined;
@@ -13,11 +17,9 @@ export default function AdminAuthLayout({ children }: { children: React.ReactNod
 
   React.useEffect(() => {
     if (isAuthenticated && role === "admin") {
-      router.replace("/admin/dashboard");
+      router.replace("/admin/users");
     }
   }, [isAuthenticated, role, router]);
 
   return <>{children}</>;
 }
-
-
