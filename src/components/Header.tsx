@@ -207,7 +207,11 @@ export const Header: React.FC = () => {
           </form>
         </div> */}
 
-        <div className="hidden lg:flex items-center text-[38px]  text-black  font-title ml-[120px]">
+        <div
+          className={`hidden lg:flex items-center text-[38px]  text-black  font-title ${
+            isAuthenticated ? "ml-[-20px]" : "ml-[120px]"
+          } `}
+        >
           AutoOnline.LK
         </div>
 
