@@ -54,7 +54,8 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     ...data,
-    ...(!isAuthenticated || (isAuthenticated && user?.role !== "vendor")
+    ...(!isAuthenticated ||
+    (isAuthenticated && user?.role !== "vendor" && user?.role !== "admin")
       ? [
           {
             name: "my requests",
@@ -73,7 +74,7 @@ export const Header: React.FC = () => {
         ]
       : []),
     ...(isAuthenticated && user?.role === "admin"
-      ? [{ name: "admin", path: "/admin", icon: LayoutGrid }]
+      ? [{ name: "admin", path: "/admin/users", icon: LayoutGrid }]
       : []),
   ];
 
@@ -176,16 +177,16 @@ export const Header: React.FC = () => {
                   pathname === "/vendor/register"
                     ? "bg-[#F9C301] text-black"
                     : "bg-white border border-[#F9C301] text-black hover:bg-[#F9C301]"
-                } w-[70px] h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center whitespace-nowrap`}
+                } w-auto px-3 h-[24px] rounded-[3px] text-[12px] font-semibold flex items-center justify-center whitespace-nowrap`}
               >
-                SIGN UP
+                New Customer
               </Link>
             </div>
           )}
         </div>
 
         {/* Search Bar - Hidden on Small Screens */}
-        <div className="hidden lg:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
+        {/* <div className="hidden lg:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden">
           <form
             onSubmit={handleSearchSubmit}
             className="hidden md:flex items-center w-[523px] h-[42px] border border-gray-300 rounded-[50px] overflow-hidden"
@@ -204,6 +205,14 @@ export const Header: React.FC = () => {
               <Search color="#111102" />
             </button>
           </form>
+        </div> */}
+
+        <div
+          className={`hidden lg:flex items-center text-[38px]  text-black  font-title ${
+            isAuthenticated ? "ml-[-20px]" : "ml-[120px]"
+          } `}
+        >
+          AutoOnline.LK
         </div>
 
         {/* Conditional Rendering for Larger Screens */}
@@ -235,9 +244,9 @@ export const Header: React.FC = () => {
                 pathname === "/user/register" || pathname === "/vendor/register"
                   ? "bg-[#F9C301] text-black"
                   : "bg-white border-2 border-[#F9C301] text-black hover:bg-[#F9C301]"
-              } rounded-md font-body font-[700] w-[120px] h-[42px] text-[14px] flex items-center justify-center whitespace-nowrap`}
+              } rounded-md font-body font-[700] w-auto px-4 h-[42px] text-[14px] flex items-center justify-center whitespace-nowrap`}
             >
-              SIGN UP
+              New Customer
             </Link>
           </div>
         )}
@@ -280,7 +289,7 @@ export const Header: React.FC = () => {
       </header>
 
       {/* Search Bar for Small Screens */}
-      <div className="md:hidden p-4 bg-white flex justify-center">
+      {/* <div className="md:hidden p-4 bg-white flex justify-center">
         <div className="flex items-center w-[328px] h-[28px] border border-gray-300 rounded-[25px] overflow-hidden">
           <form
             onSubmit={handleSearchSubmit}
@@ -301,7 +310,7 @@ export const Header: React.FC = () => {
             </button>
           </form>
         </div>
-      </div>
+      </div> */}
 
       {/* Black Bar Section with Links */}
       <div className="hidden md:flex w-full bg-black justify-center items-center">

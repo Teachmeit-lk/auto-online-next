@@ -24,7 +24,7 @@ export default function AdminDashboardLayout({
     // { label: "Dashboard", href: "/admin/dashboard" },
     { label: "Users", href: "/admin/users" },
     { label: "Vehicle Brands", href: "/admin/vehicle-brands" },
-    { label: "Vehicle Models", href: "/admin/vehicle-models" },
+    // { label: "Vehicle Models", href: "/admin/vehicle-models" },
     { label: "Vehicle Types", href: "/admin/vehicle-types" },
     { label: "Fuel Types", href: "/admin/fuel-types" },
     { label: "Measurement Units", href: "/admin/measurement-units" },

@@ -98,7 +98,7 @@ export const ServiceCategories: React.FC = () => {
                       <Image
                         src={service.imageUrl}
                         alt={service.name}
-                        className="object-contain w-[84px] h-[66px]"
+                        className="object-contain w-[84px] h-[66px] rounded-[10px]"
                         width={84}
                         height={66}
                         unoptimized
@@ -157,7 +157,7 @@ export const ServiceCategories: React.FC = () => {
                       <Image
                         src={service.imageUrl}
                         alt={service.name}
-                        className="object-contain w-[84px] h-[66px]"
+                        className="object-contain w-[84px] h-[66px] rounded-[10px]"
                         width={84}
                         height={66}
                         unoptimized
@@ -247,7 +247,7 @@ export const ServiceCategories: React.FC = () => {
                         <Image
                           src={service.imageUrl}
                           alt={service.name}
-                          className="object-contain w-[159px] h-[123px]"
+                          className="object-contain w-[159px] h-[123px] rounded-[10px]"
                           width={159}
                           height={123}
                           unoptimized
