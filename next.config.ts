@@ -1,14 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Allow production builds to succeed even if there are ESLint errors
-    ignoreDuringBuilds: true,
-  },
   typescript: {
-    // Allow production builds to succeed even if there are TypeScript errors
     ignoreBuildErrors: true,
   },
+
   images: {
     remotePatterns: [
       {
@@ -21,6 +17,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
@@ -28,28 +25,16 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
-  experimental: {
-    turbo: {
-      rules: {
-        "*.svg": {
-          loaders: ["@svgr/webpack"],
-          as: "*.ts",
-        },
+
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+
+        as: "*.js",
       },
     },
   },
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: `${
-  //         process.env.NODE_ENV === 'development' 
-  //           ? process.env.API_BASE_URL 
-  //           : 'http://api.autoonline.lk'
-  //       }/:path*`,
-  //     },
-  //   ];
-  // },
 };
 
 export default nextConfig;
