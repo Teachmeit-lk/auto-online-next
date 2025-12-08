@@ -113,9 +113,7 @@ const VendorProfile = () => {
     vehicleBrand: Yup.array()
       .default([])
       .min(1, "At least one vehicle brand is required."),
-    vehicleModel: Yup.array()
-      .default([])
-      .min(1, "At least one vehicle model is required."),
+    vehicleModel: Yup.array().default([]).optional(),
   });
 
   const {
@@ -128,8 +126,6 @@ const VendorProfile = () => {
     resolver: yupResolver(schema as any),
     defaultValues: {},
   });
-
-  console.log(currentUser);
 
   // Set default values from Firebase profile
   useEffect(() => {
@@ -875,7 +871,7 @@ const VendorProfile = () => {
           </div>
 
           {/* Vehicle Model */}
-          <div className="">
+          {/* <div className="">
             <label className="block text-[14px] font-medium font-body text-[#111102]">
               Vehicle Model
             </label>
@@ -965,7 +961,7 @@ const VendorProfile = () => {
                 {errors.vehicleModel.message}
               </p>
             )}
-          </div>
+          </div> */}
 
           {/* Edit / Save Button */}
           <div className="col-span-1 md:col-span-2 mt-2 flex justify-end gap-3">

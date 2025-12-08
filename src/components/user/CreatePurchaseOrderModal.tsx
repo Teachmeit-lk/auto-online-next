@@ -147,10 +147,13 @@ export const CreatePurchaseOrderModal: React.FC<
         country: "",
       },
     },
+    shouldUnregister: false,
   });
 
   const deliveryMethod = watch("deliveryMethod");
   const paymentMethod = watch("paymentMethod");
+
+  const watchedDeliveryAddress = watch("deliveryAddress");
 
   const handleQtyChange = (index: number, value: string) => {
     const numeric = Math.max(1, Number(value) || 1);
@@ -217,25 +220,31 @@ export const CreatePurchaseOrderModal: React.FC<
   }, [deliveryMethod, paymentMethod, setValue]);
 
   const handleModalClose = () => {
-    reset({
-      deliveryMethod: "collect_from_shop",
-      paymentMethod: "cash_at_shop",
-      specialNotes: "",
-      deliveryAddress: {
-        street: "",
-        city: "",
-        district: "",
-        zipCode: "",
-        country: "",
-      },
-    });
+    onClose();
     setSubmitError(null);
     setItems([]);
     setHasOutOfStock(false);
     setShowOutOfStockAlert(false);
     setDeliveryCost(0);
-    onClose();
   };
+
+  useEffect(() => {
+    if (isOpen == true) {
+      console.log("trigger");
+      reset({
+        deliveryMethod: "collect_from_shop",
+        paymentMethod: "cash_at_shop",
+        specialNotes: "",
+        deliveryAddress: {
+          street: "",
+          city: "",
+          district: "",
+          zipCode: "",
+          country: "",
+        },
+      });
+    }
+  }, [isOpen]);
 
   const onSubmit = async (data: PurchaseOrderFormData) => {
     if (hasOutOfStock) {
@@ -262,6 +271,17 @@ export const CreatePurchaseOrderModal: React.FC<
       const orderNumber = `PO-${Date.now()}-${
         quotation.quotationRequestId?.slice(0, 8) || "00000000"
       }`;
+
+      const normalizedDeliveryAddress =
+        data.deliveryMethod === "arrange_delivery" && watchedDeliveryAddress
+          ? watchedDeliveryAddress
+          : {
+              street: "",
+              city: "",
+              district: "",
+              zipCode: "",
+              country: "",
+            };
 
       const purchaseOrderData = {
         quotationId: quotation.id!,
@@ -327,10 +347,12 @@ export const CreatePurchaseOrderModal: React.FC<
             requestImageUrl,
             deliveryCost,
             deliveryAddress:
-              data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
-                ? data.deliveryAddress
+              data.deliveryMethod === "arrange_delivery"
+                ? normalizedDeliveryAddress
                 : null,
           });
+
+          console.log("pendingWhatsAppData boo", pendingWhatsAppData);
           setWhatsAppModalOpen(true);
         } else {
           handleModalClose();
