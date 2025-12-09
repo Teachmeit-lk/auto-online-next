@@ -12,7 +12,6 @@ import {
 } from "@/service/firestoreService";
 import { buildWhatsAppQuotationUrl } from "@/components/hooks/openWhatsAppWithQuotation";
 
-import withAuth from "@/components/authGuard/withAuth";
 import {
   FirestoreService,
   COLLECTIONS,
@@ -255,39 +254,50 @@ const handleAutoSubmitQuotation = async (vendor: any) => {
   if (!preFilledQuotationData || !user?. id) return;
 
   const data = preFilledQuotationData;
+  console.log("Data:", preFilledQuotationData);
 
-  let uploadedUrl = "";
-  if (data.imageData) {
+  let uploadedUrls:  string[] = [];
+
+  if (data. imageDataArray && data.imageDataArray.length > 0) {
     try {
-      const response = await fetch(data.imageData. data);
-      const blob = await response.blob();
-      const file = new File([blob], data.imageData. name, { 
-        type: data.imageData.type 
+      const uploadPromises = data.imageDataArray.map(async (imageData:  any) => {
+        const response = await fetch(imageData.data);
+        const blob = await response.blob();
+        const file = new File([blob], imageData.name, { 
+          type: imageData.type 
+        });
+
+        const compressed = file.type.startsWith("image/")
+          ? await FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
+          : file;
+
+        const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        
+        const res = await FirebaseStorageService.uploadDocument(
+          user.id,
+          `quotation/${requestId}`,
+          compressed
+        );
+        
+        return res. url;
       });
 
-      const compressed = file. type. startsWith("image/")
-        ? await FirebaseStorageService. compressImage(file, 1920, 1080, 0.7)
-        : file;
-
-      const res = await FirebaseStorageService.uploadDocument(
-        user.id,
-        "quotation",
-        compressed
-      );
-      uploadedUrl = res.url;
-      setUploadedImageUrl(uploadedUrl);
+      uploadedUrls = await Promise.all(uploadPromises);
+      setUploadedImageUrl(uploadedUrls[0] || "");
+      
+      console.log("Images uploaded:", uploadedUrls);
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("Error uploading images:", error);
     }
   }
 
-  const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
+  const doc:  Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
     buyerId: user.id,
-    buyerName: `${user.firstName || ""} ${user.lastName || ""}`. trim(),
+    buyerName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
     buyerEmail: user.email || "",
     buyerPhone: user.phone || "",
-    vendorId: vendor?. id,
-    vendorName: vendor?. firstName,
+    vendorId: vendor?. id || null,
+    vendorName: vendor?.firstName || null,
     country: data.country,
     brand: data.brand,
     model: data.model,
@@ -298,10 +308,11 @@ const handleAutoSubmitQuotation = async (vendor: any) => {
     fuelType: data.fueltype,
     measurement: data.measurement,
     numberOfUnits: data.noofunits,
-    description: data. description,
-    attachedImages: uploadedUrl ?  [uploadedUrl] : [],
+    description: data.description,
+    attachedImages: uploadedUrls. length > 0 ? uploadedUrls : [],
     status: "pending",
     quotationsReceived: 0,
+    isActive: true,
   } as any;
 
   await FirestoreService.create<QuotationRequest>(
