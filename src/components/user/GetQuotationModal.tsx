@@ -5,7 +5,7 @@ import { CirclePlus, Camera } from "lucide-react";
 import { use, useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
@@ -16,6 +16,7 @@ import {
 } from "@/service/firestoreService";
 import { buildWhatsAppQuotationUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
+import { log } from "console";
 
 interface Vendor {
   id: string;
@@ -49,8 +50,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   onSearchSubmit,
   preSelectedCategory,
 }) => {
-  const [fileName, setFileName] = useState<string>("");
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
@@ -76,7 +77,11 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       .required("No of units are required"),
     description: Yup.string().required("Description is required"),
     district: Yup.string().required("District is required"),
-    image: Yup.mixed().required("Image is required"),
+    images: Yup.array()
+      .of(Yup. mixed())
+      .min(1, "At least one image is required")
+      .max(5, "Maximum 5 images allowed")
+      .required("Images are required"),
   });
 
   const {
@@ -88,6 +93,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const watchCountry = useWatch({ control, name: "country" });
+  const watchBrand = useWatch({ control, name: "brand" });
+
   const vendorDisplayName =
     vendor?.companyName ||
     `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
@@ -96,64 +105,84 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   const vendorWhatsApp = vendor?.whatsApp || vendor?.phone || "";
 
   const onSubmit = async (data: {
-    country: string;
-    brand: string;
-    category: string;
-    model: string;
-    district: string;
-    vehicletype: string;
-    manufactoringyear: string;
-    fueltype: string;
-    measurement: string;
-    noofunits: number;
-    description: string;
-    image: File;
-  }) => {
+      country: string;
+      brand: string;
+      category: string;
+      model: string;
+      district: string;
+      vehicletype: string;
+      manufactoringyear: string;
+      fueltype: string;
+      measurement: string;
+      noofunits: number;
+      description: string;
+      images: File[];
+    }) => {
     if (mode === "search" && onSearchSubmit) {
-    let imageData = null;
-    if (data.image) {
-      imageData = await new Promise<{data: string, name: string, type: string}>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve({
-            data: reader.result as string,
-            name: data. image.name,
-            type: data.image.type,
-          });
-        };
-        reader. readAsDataURL(data.image);
-      });
+    let imageDataArray: Array<{data: string, name: string, type: string}> = [];
+    const filesToProcess = selectedFiles.length > 0 ? selectedFiles :  (data.images || []);
+
+    if (filesToProcess && filesToProcess.length > 0) {
+      imageDataArray = await Promise.all(
+        filesToProcess.map((file) => 
+          new Promise<{data:  string, name: string, type:  string}>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              resolve({
+                data: reader.result as string,
+                name: file.name,
+                type: file.type,
+              });
+            };
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          })
+        )
+      );
     }
 
-    const { image, ...dataWithoutImage } = data;
+    const { images, ...dataWithoutImage } = data;
+
+    console.log("Images", imageDataArray)
     
     onSearchSubmit({
-      country: data.country,
+      country:  data.country,
       category: data.category,
       district: data.district,
     }, {
-      ...dataWithoutImage,
-      imageData,
+      ... dataWithoutImage,
+      imageDataArray,
     });
+    
     onClose();
     return;
   }
 
     if (! currentUser?.id) return;
 
-    const file = data.image;
-    let uploadedUrl = "";
-    if (file) {
-      const compressed = file.type. startsWith("image/")
-        ? await FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
-        : file;
+    const files = data.images;
+    let uploadedUrls: string[] = [];
 
-      const res = await FirebaseStorageService.uploadDocument(
-        currentUser.id,
-        "quotation",
-        compressed
+    if (files && files.length > 0) {
+      console.log("Uploading images:", files.length);
+      const compressedFiles = await Promise.all(
+        files.map(file => 
+          file.type.startsWith("image/")
+            ? FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
+            : Promise.resolve(file)
+        )
       );
-      uploadedUrl = res.url;
+
+      const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      const uploadResults = await FirebaseStorageService.uploadQuotationImages(
+        currentUser. id,
+        requestId,
+        compressedFiles
+      );
+
+      uploadedUrls = uploadResults.map(result => result.url);
+      console.log("Images uploaded:", uploadedUrls);
     }
 
     const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
@@ -163,8 +192,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       }`. trim(),
       buyerEmail: currentUser.email || "",
       buyerPhone: currentUser.phone || "",
-      vendorId: vendor?.id,
-      vendorName: vendor?. firstName,
+      vendorId: vendor?.id || null,
+      vendorName: vendor?.firstName || null,
       country: data.country,
       brand: data.brand,
       model: data.model,
@@ -176,17 +205,20 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       measurement: data.measurement,
       numberOfUnits: data.noofunits,
       description: data. description,
-      attachedImages: uploadedUrl ?  [uploadedUrl] : [],
+      attachedImages: uploadedUrls. length > 0 ? uploadedUrls : [],
       status: "pending",
       quotationsReceived: 0,
+      isActive: true,
     } as any;
+
+    console.log("logs: ", doc);
 
     await FirestoreService.create<QuotationRequest>(
       COLLECTIONS.QUOTATION_REQUESTS,
       doc
     );
 
-    setLastSubmission({ data, fileUrl: uploadedUrl });
+    setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
     setWhatsAppModalOpen(true);
 
     onClose();
@@ -195,23 +227,23 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       reset();
-      setFileName("");
-      setImagePreview("");
+      setSelectedFiles([]);
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      setImagePreviews([]);
     }
   }, [isOpen, reset]);
 
   useEffect(() => {
     return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
     };
-  }, [imagePreview]);
+  }, [imagePreviews]);
 
   const handleModalClose = () => {
     reset();
-    setFileName("");
-    setImagePreview("");
+    setSelectedFiles([]);
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    setImagePreviews([]);
     onClose();
   };
 
@@ -224,6 +256,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   const [districtOptions, setDistrictOptions] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [vendorCategoryOptions, setVendorCategoryOptions] = useState<any[]>([]);
+  const [filteredBrandOptions, setFilteredBrandOptions] = useState<string[]>([]);
+  const [filteredCountryOptions, setFilteredCountryOptions] = useState<string[]>([]);
+  const [brandData, setBrandData] = useState<any[]>([]); 
 
   useEffect(() => {
     (async () => {
@@ -236,7 +271,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
             "asc"
           ),
           FirestoreService.getAll<any>(
-            COLLECTIONS.VEHICLE_TYPES,
+            COLLECTIONS. VEHICLE_TYPES,
             undefined,
             "name",
             "asc"
@@ -271,15 +306,20 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
           ),
         ]);
 
+      // Store full brand data
+      setBrandData(brands || []);
+
       const countries = Array.from(
-        new Set((brands || []).map((b: any) => b.country).filter(Boolean))
+        new Set((brands || []).map((b: any) => b.country). filter(Boolean))
       );
       setCountryOptions(countries);
+      setFilteredCountryOptions(countries);
 
       const brandNames = Array.from(
         new Set((brands || []).map((b: any) => b.name).filter(Boolean))
       );
       setBrandOptions(brandNames);
+      setFilteredBrandOptions(brandNames);
 
       setVehicleTypeOptions((vtypes || []).map((t: any) => t.name));
       setFuelTypeOptions((fuels || []).map((t: any) => t.name));
@@ -287,13 +327,66 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       setModelOptions((models || []).map((m: any) => m.name));
 
       const districts = Array.from(
-        new Set((vendorsList || []).map((v: any) => v.district).filter(Boolean))
+        new Set((vendorsList || []).map((v: any) => v.district). filter(Boolean))
       );
       setDistrictOptions(districts);
 
       setAllCategories(categories);
     })();
   }, []);
+
+  // Filter brands when country changes
+  useEffect(() => {
+    if (! brandData. length) {
+      setFilteredBrandOptions(brandOptions);
+      return;
+    }
+
+    if (! watchCountry) {
+      setFilteredBrandOptions(brandOptions);
+      return;
+    }
+
+    const filtered = brandData
+      .filter((b: any) => b.country === watchCountry)
+      .map((b: any) => b.name);
+    
+    setFilteredBrandOptions(filtered);
+
+    if (watchBrand && !filtered.includes(watchBrand)) {
+      setValue("brand", "");
+    }
+  }, [watchCountry, watchBrand, brandData, brandOptions, setValue]);
+
+  useEffect(() => {
+    if (!brandData.length) {
+      setFilteredCountryOptions(countryOptions);
+      return;
+    }
+
+    if (!watchBrand) {
+      setFilteredCountryOptions(countryOptions);
+      return;
+    }
+
+    const brandObj = brandData.find((b: any) => b.name === watchBrand);
+    
+    if (brandObj && brandObj.country) {
+      if (watchCountry !== brandObj.country) {
+        setValue("country", brandObj.country);
+      }
+
+      const countriesWithBrand = Array.from(
+        new Set(
+          brandData
+            .filter((b: any) => b.name === watchBrand)
+            .map((b: any) => b.country)
+            .filter(Boolean)
+        )
+      );
+      setFilteredCountryOptions(countriesWithBrand);
+    }
+  }, [watchBrand, watchCountry, brandData, countryOptions, setValue]);
 
   useEffect(() => {
     if (isOpen && mode === "search" && preSelectedCategory) {
@@ -361,7 +454,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto md:h-[89vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto md:h-[95vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body">
             {mode === "search" 
               ? "Get Quotation"
@@ -375,6 +468,42 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               className="sm:grid sm:grid-cols-3 sm:space-y-0 space-y-2  gap-y-4 gap-x-8 bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 mb-11"
               onSubmit={handleSubmit(onSubmit)}
             >
+              {/* Vendor Category */}
+              <div className="col-span-1">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Category
+                </label>
+                <Controller
+                  name="category"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
+                        errors.category
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                    >
+                      <option value="" className="text-gray-500">
+                        Select Category
+                      </option>
+                      {vendorCategoryOptions.map((c: any) => (
+                        <option key={c.id} value={c.name}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {errors.category && (
+                  <p className="text-red-500 text-[8px] mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
+              </div>
+
               {/* Vehicle Country */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -390,14 +519,14 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       id="country"
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
                         errors.country
-                          ? "focus:ring-red-500 focus:border-red-500"
+                          ?  "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
                       }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Country
                       </option>
-                      {countryOptions.map((c) => (
+                      {filteredCountryOptions.map((c) => (
                         <option key={c} value={c}>
                           {c}
                         </option>
@@ -434,7 +563,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       <option value="" className="text-gray-500">
                         Select Brand
                       </option>
-                      {brandOptions.map((b) => (
+                      {filteredBrandOptions.map((b) => (
                         <option key={b} value={b}>
                           {b}
                         </option>
@@ -718,42 +847,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                 )}
               </div>
 
-              {/* Vendor Category */}
-              <div className="col-span-1">
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Category
-                </label>
-                <Controller
-                  name="category"
-                  control={control}
-                  defaultValue=""
-                  render={({ field }) => (
-                    <select
-                      {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.category
-                          ? "focus:ring-red-500 focus:border-red-500"
-                          : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
-                    >
-                      <option value="" className="text-gray-500">
-                        Select Category
-                      </option>
-                      {vendorCategoryOptions.map((c: any) => (
-                        <option key={c.id} value={c.name}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                />
-                {errors.category && (
-                  <p className="text-red-500 text-[8px] mt-1">
-                    {errors.category.message}
-                  </p>
-                )}
-              </div>
-
               {/* Description */}
               <div className="col-span-3">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -784,83 +877,128 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   </p>
                 )}
               </div>
+              
               {/* Image Upload */}
               <div className="col-span-3">
+                <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
+                  Upload Images (Max 5)
+                </label>
                 <Controller
-                  name="image"
+                  name="images"
                   control={control}
-                  defaultValue=""
+                  defaultValue={[]}
                   render={({ field }) => (
                     <>
                       <div
-                        className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-                    ${
-                      errors.image
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
+                        className={`flex items-center justify-center w-full h-[40px] p-2 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
+                          ${
+                            errors.images
+                              ? "border-red-500"
+                              : "hover:border-[#F9C301]"
+                          }`}
                       >
                         <Camera size="16px" color="#5B5B5B" />
 
                         <input
                           type="file"
-                          accept=".jpg, .png"
+                          accept=".jpg, .png, .jpeg"
+                          multiple
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              field.onChange(file);
-                              setFileName(file.name);
-                              // Create preview
-                              const previewUrl = URL.createObjectURL(file);
-                              setImagePreview(previewUrl);
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              // Limit to 5 images
+                              const limitedFiles = files.slice(0, 5 - selectedFiles.length);
+                              const newFiles = [...selectedFiles, ...limitedFiles]. slice(0, 5);
+                              
+                              field.onChange(newFiles);
+                              setSelectedFiles(newFiles);
+                              
+                              // Create previews for new files
+                              const newPreviews = limitedFiles.map(file => URL.createObjectURL(file));
+                              setImagePreviews(prev => [...prev, ...newPreviews]. slice(0, 5));
                             }
                           }}
                           className="hidden"
-                          id="file-upload"
+                          id="file-upload-multiple"
                         />
                         <label
-                          htmlFor="file-upload"
-                          className="cursor-pointer text-[#D1D1D1] font-body text-[10px] pl-1 mt-[2px]"
+                          htmlFor="file-upload-multiple"
+                          className="cursor-pointer text-[#5B5B5B] font-body text-[10px] pl-1 mt-[2px]"
                         >
-                          {fileName ||
-                            "Choose an Image to upload (jpg and png files only)"}
+                          {selectedFiles.length > 0
+                            ? `${selectedFiles.length} image(s) selected`
+                            : "Choose images to upload (jpg and png files only, max 5)"}
                         </label>
                       </div>
 
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="mt-2 flex items-center gap-2">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-16 h-16 object-cover rounded-[3px] border border-[#D1D1D1]"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setImagePreview("");
-                              setFileName("");
-                              field.onChange(undefined);
-                              // Reset the file input
-                              const fileInput = document.getElementById(
-                                "file-upload"
-                              ) as HTMLInputElement;
-                              if (fileInput) fileInput.value = "";
-                            }}
-                            className="text-[10px] text-red-500 hover:text-red-700 font-body"
-                          >
-                            Remove
-                          </button>
+                      {/* Image Previews */}
+                      {imagePreviews.length > 0 && (
+                        <div className="mt-3 grid grid-cols-5 gap-2">
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-[3px] border border-[#D1D1D1]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Remove specific image
+                                  const newFiles = selectedFiles.filter((_, i) => i !== index);
+                                  const newPreviews = imagePreviews.filter((_, i) => i !== index);
+                                  
+                                  // Revoke the removed preview URL
+                                  URL.revokeObjectURL(imagePreviews[index]);
+                                  
+                                  setSelectedFiles(newFiles);
+                                  setImagePreviews(newPreviews);
+                                  field.onChange(newFiles);
+                                  
+                                  // Reset file input if no files left
+                                  if (newFiles.length === 0) {
+                                    const fileInput = document. getElementById(
+                                      "file-upload-multiple"
+                                    ) as HTMLInputElement;
+                                    if (fileInput) fileInput. value = "";
+                                  }
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
                         </div>
+                      )}
+                      
+                      {/* Clear All Button */}
+                      {selectedFiles.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+                            setImagePreviews([]);
+                            setSelectedFiles([]);
+                            field. onChange([]);
+                            const fileInput = document.getElementById(
+                              "file-upload-multiple"
+                            ) as HTMLInputElement;
+                            if (fileInput) fileInput.value = "";
+                          }}
+                          className="mt-2 text-[10px] text-red-500 hover:text-red-700 font-body"
+                        >
+                          Clear All Images
+                        </button>
                       )}
                     </>
                   )}
                 />
 
                 {/* Error Message */}
-                {errors.image && (
+                {errors.images && (
                   <p className="text-red-500 text-[8px] mt-1">
-                    {errors.image.message}
+                    {errors.images.message}
                   </p>
                 )}
               </div>

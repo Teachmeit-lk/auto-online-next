@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Search, ClipboardCheck } from "lucide-react";
+import { Search, ClipboardCheck, CirclePlus } from "lucide-react";
 import Image from "next/image";
 
 import { CarImage1 } from "@/assets/Images";
@@ -21,6 +21,7 @@ import {
   QuotationRequest,
   Quotation,
 } from "@/service/firestoreService";
+import * as Dialog from "@radix-ui/react-dialog";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -35,7 +36,6 @@ const NewPriceRequests: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [quotationToDelete, setQuotationToDelete] = useState<string | null>(null);
 
-  const [popupImage, setPopupImage] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("New Quotations Requested");
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,6 +46,8 @@ const NewPriceRequests: React.FC = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
     null
   );
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [currentRequestImages, setCurrentRequestImages] = useState<string[]>([]);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -169,13 +171,19 @@ const NewPriceRequests: React.FC = () => {
     [requestRows]
   );
 
-  const handleImageClick = (imageSrc: string) => {
-    setPopupImage(imageSrc);
+  // const handleImageClick = (imageSrc: string) => {
+  //   setPopupImage(imageSrc);
+  // };
+  const handleImageClick = (request: QuotationRequest) => {
+  if (request.attachedImages && request.attachedImages.length > 0) {
+      setCurrentRequestImages(request.attachedImages);
+      setSelectedImageIndex(0);
+    }
   };
 
-  const closePopup = () => {
-    setPopupImage(null);
-  };
+  // const closePopup = () => {
+  //   setPopupImage(null);
+  // };
 
   // const handleConfirmChat = () => {
   //   console.log("Chat confirmed!");
@@ -337,7 +345,7 @@ const NewPriceRequests: React.FC = () => {
                     </td>
                     <td
                       className="border border-r-2 border-b-2 border-[#F8F8F8] text-center py-2 text-[8px] cursor-pointer"
-                      onClick={() => handleImageClick(vendor.image)}
+                      onClick={() => handleImageClick(vendor.raw)}
                     >
                       <div className="flex justify-center">
                         <Image
@@ -421,22 +429,6 @@ const NewPriceRequests: React.FC = () => {
             </tbody>
           </table>
         </div>
-
-        {popupImage && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            onClick={closePopup}
-          >
-            <div className="relative h-[400px] w-[500px]">
-              <Image
-                src={popupImage}
-                alt="Popup Image"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Pagination */}
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
@@ -534,6 +526,99 @@ const NewPriceRequests: React.FC = () => {
         onConfirm={handleDeleteQuotation}
       /> */}
       </div>
+
+      {/* Image Lightbox Modal */}
+      {selectedImageIndex !== null && currentRequestImages.length > 0 && (
+        <Dialog.Root open={true} onOpenChange={() => setSelectedImageIndex(null)}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] md:w-auto md:max-w-[90vw] max-h-[90vh] focus:outline-none z-50 px-4 md:px-0">
+              <Dialog.Title></Dialog.Title>
+              <div className="relative flex flex-col items-center">
+                {/* Main Image */}
+                <Image
+                  src={currentRequestImages[selectedImageIndex]}
+                  alt={`Full size image ${selectedImageIndex + 1}`}
+                  width={1200}
+                  height={800}
+                  className="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-lg object-contain"
+                />
+                
+                {/* Image Counter */}
+                <div className="absolute top-2 md:-top-12 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 md:px-4 py-1 md:py-2 rounded-full text-[10px] md:text-[12px] font-body z-10">
+                  {selectedImageIndex + 1} / {currentRequestImages.length}
+                </div>
+
+                {/* Navigation Buttons */}
+                {currentRequestImages.length > 1 && (
+                  <>
+                    {/* Previous Button */}
+                    {selectedImageIndex > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedImageIndex(selectedImageIndex - 1);
+                        }}
+                        className="absolute left-2 md:-left-14 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-[#F9C301] text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 text-lg md:text-xl"
+                      >
+                        ‹
+                      </button>
+                    )}
+                    
+                    {/* Next Button */}
+                    {selectedImageIndex < currentRequestImages.length - 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedImageIndex(selectedImageIndex + 1);
+                        }}
+                        className="absolute right-2 md:-right-14 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-[#F9C301] text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 text-lg md:text-xl"
+                      >
+                        ›
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {/* Close Button */}
+                <Dialog.Close asChild>
+                  <button
+                    onClick={() => setSelectedImageIndex(null)}
+                    className="absolute top-2 right-2 md:-top-12 md:-right-12 bg-black/70 hover:bg-red-500 text-white w-8 h-8 md: w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10"
+                  >
+                    <CirclePlus className="w-4 h-4 md:w-5 md:h-5 rotate-45" />
+                  </button>
+                </Dialog.Close>
+
+                {/* Thumbnail Strip */}
+                {currentRequestImages.length > 1 && (
+                  <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 flex gap-1 md:gap-2 bg-black/70 p-1. 5 md:p-2 max-w-[90vw] overflow-x-auto no-scrollbar">
+                    {currentRequestImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImageIndex(idx)}
+                        className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${
+                          idx === selectedImageIndex
+                            ? 'border-[#F9C301] scale-110'
+                            : 'border-white/30 hover:border-white/60'
+                        }`}
+                      >
+                        <Image
+                          src={img}
+                          alt={`Thumbnail ${idx + 1}`}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Dialog. Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
     </TabLayout>
   );
 };
