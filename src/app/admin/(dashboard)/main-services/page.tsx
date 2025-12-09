@@ -108,7 +108,7 @@ const AdminMainServicesPage: React.FC = () => {
         imageUrl: imageUrl || "",
       } as any);
 
-      setMessage("Service created successfully.");
+      // setMessage("Service created successfully.");
       reset({ name: "", description: "", sortOrder: 0, imageFile: null });
       setCreatePreview(null);
       setOpen(false);
@@ -151,7 +151,7 @@ const AdminMainServicesPage: React.FC = () => {
         } as any
       );
 
-      setMessage("Service updated successfully.");
+      // setMessage("Service updated successfully.");
       setEditOpen(false);
       setEditImageFile(null);
       setEditPreview(null);
