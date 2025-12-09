@@ -252,6 +252,7 @@ Total: ${it.totalPrice}`
 
   const deliveryBlock = isDeliveryOrder
     ? `
+    
 Delivery:
 Method: Arrange delivery through vendor
 ${

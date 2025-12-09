@@ -29,40 +29,56 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
   const authState = useSelector((state: RootState) => state.auth as any);
   const loading = !!authState?.loading;
 
-  // Updated Yup schema with all required fields
-  const schema = Yup.object().shape({
-    firstname: Yup.string().required("First name is required."),
-    lastname: Yup.string().required("Last name is required."),
-    email: Yup.string()
-      .email("Invalid email format")
-      .required("Email is required."),
-    address: Yup.string().required("Address is required."),
-    city: Yup.string().required("City is required."),
-    district: Yup.string().required("District is required."),
-    zipCode: Yup.string().required("Zip code is required."),
-    NIC: Yup.string().required("NIC is required."),
-    mobileNumber: Yup.string()
-      .required("Mobile number is required.")
-      .matches(
-        /^0\d{9}$/,
-        "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
-      ),
-    whatsappNumber: Yup.string()
-      .required("WhatsApp number is required.")
-      .matches(
-        /^0\d{9}$/,
-        "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
-      ),
-    password: Yup.string()
-      .required("Password is required.")
-      .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
-        "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character."
-      ),
-    confirmPassword: Yup.string()
-      .required("Confirm password is required.")
-      .oneOf([Yup.ref("password")], "Passwords must match."),
-  });
+  const isVendor = type === "vendor";
+
+  const schema = React.useMemo(
+    () =>
+      Yup.object().shape({
+        firstname: Yup.string().required("First name is required."),
+        lastname: Yup.string().required("Last name is required."),
+        email: Yup.string()
+          .email("Invalid email format")
+          .required("Email is required."),
+
+        address: isVendor
+          ? Yup.string().required("Address is required.")
+          : Yup.string().nullable(),
+        city: isVendor
+          ? Yup.string().required("City is required.")
+          : Yup.string().nullable(),
+        zipCode: isVendor
+          ? Yup.string().required("Zip code is required.")
+          : Yup.string().nullable(),
+        NIC: isVendor
+          ? Yup.string().required("NIC is required.")
+          : Yup.string().nullable(),
+
+        district: Yup.string().required("District is required."),
+
+        mobileNumber: Yup.string()
+          .required("Mobile number is required.")
+          .matches(
+            /^0\d{9}$/,
+            "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
+          ),
+        whatsappNumber: Yup.string()
+          .required("WhatsApp number is required.")
+          .matches(
+            /^0\d{9}$/,
+            "Enter a valid 10-digit Sri Lankan mobile number (starts with 0)."
+          ),
+        password: Yup.string()
+          .required("Password is required.")
+          .matches(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
+            "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character."
+          ),
+        confirmPassword: Yup.string()
+          .required("Confirm password is required.")
+          .oneOf([Yup.ref("password")], "Passwords must match."),
+      }),
+    [isVendor]
+  );
 
   const {
     control,
@@ -96,11 +112,11 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
         email: data.email,
         password: data.password,
         whatsApp: data.whatsappNumber,
-        address: data.address,
-        city: data.city,
+        address: data.address || "",
+        city: data.city || "",
         district: data.district,
-        zipCode: data.zipCode,
-        NIC: data.NIC,
+        zipCode: data.zipCode || "",
+        NIC: data.NIC || "",
       };
       const result = await dispatch(
         registerUserAsync({ userData: signupData, userType: type }) as any
@@ -131,7 +147,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
 
   return (
     <div
-      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10 w-full mx-auto max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"
+      className="bg-white min-h-screen relative flex justify-center items-center overflow-hidden px-4 py-6 md:px-6 md:py-10 w-full  mx-auto max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl"
       id="register"
     >
       <div className="w-full max-w-[420px] md:max-w-[520px] lg:max-w-[560px] flex flex-col items-center">
@@ -189,7 +205,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               {errorMessage}
             </p>
           )}
-          <form className="space-y-4 w-full" onSubmit={handleSubmit(onSubmit)}>
+          <form className="space-y-4 w-full " onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
             <div className="flex flex-row space-x-4">
               <div className="w-1/2">
@@ -290,70 +306,74 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
             </div>
 
             {/* Address */}
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
-              >
-                Address
-              </label>
-              <Controller
-                name="address"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="address"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.address
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
-                    placeholder="Address"
-                  />
+            {isVendor && (
+              <div>
+                <label
+                  htmlFor="address"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
+                >
+                  Address
+                </label>
+                <Controller
+                  name="address"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="address"
+                      className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.address
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="Address"
+                    />
+                  )}
+                />
+                {errors.address && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.address.message}
+                  </p>
                 )}
-              />
-              {errors.address && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.address.message}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* City */}
-            <div>
-              <label
-                htmlFor="city"
-                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
-              >
-                City
-              </label>
-              <Controller
-                name="city"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="city"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.city
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
-                    placeholder="City"
-                  />
+            {isVendor && (
+              <div>
+                <label
+                  htmlFor="city"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
+                >
+                  City
+                </label>
+                <Controller
+                  name="city"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="city"
+                      className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.city
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="City"
+                    />
+                  )}
+                />
+                {errors.city && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.city.message}
+                  </p>
                 )}
-              />
-              {errors.city && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.city.message}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* District */}
             <div>
@@ -416,70 +436,74 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
             </div>
 
             {/* Zip Code */}
-            <div>
-              <label
-                htmlFor="zipCode"
-                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
-              >
-                Zip Code
-              </label>
-              <Controller
-                name="zipCode"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="zipCode"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.zipCode
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
-                    placeholder="Zip Code"
-                  />
+            {isVendor && (
+              <div>
+                <label
+                  htmlFor="zipCode"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
+                >
+                  Zip Code
+                </label>
+                <Controller
+                  name="zipCode"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="zipCode"
+                      className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.zipCode
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="Zip Code"
+                    />
+                  )}
+                />
+                {errors.zipCode && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.zipCode.message}
+                  </p>
                 )}
-              />
-              {errors.zipCode && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.zipCode.message}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* NIC */}
-            <div>
-              <label
-                htmlFor="NIC"
-                className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
-              >
-                NIC
-              </label>
-              <Controller
-                name="NIC"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="NIC"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
-                      errors.NIC
-                        ? "focus:ring-red-500 focus:border-red-500"
-                        : "focus:ring-yellow-500 focus:border-yellow-500"
-                    }`}
-                    placeholder="NIC"
-                  />
+            {isVendor && (
+              <div>
+                <label
+                  htmlFor="NIC"
+                  className="block text-[12px] md:text-[16px] font-medium font-body text-[#111102] mb-2"
+                >
+                  NIC
+                </label>
+                <Controller
+                  name="NIC"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="NIC"
+                      className={`w-full text-[10px] md:text-[14px] h-[28px] placeholder:text-[10px] md:placeholder:text-[14px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] px-3 py-2 focus:ring-2 focus:outline-none ${
+                        errors.NIC
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                      placeholder="NIC"
+                    />
+                  )}
+                />
+                {errors.NIC && (
+                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                    {errors.NIC.message}
+                  </p>
                 )}
-              />
-              {errors.NIC && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.NIC.message}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Mobile Number */}
             <div>
