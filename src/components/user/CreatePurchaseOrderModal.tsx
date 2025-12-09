@@ -475,7 +475,7 @@ export const CreatePurchaseOrderModal: React.FC<
                     className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
                   />
                 </div>
-                <div>
+                {/* <div>
                   <label className="text-[12px] font-[500]">Address</label>
                   <input
                     readOnly
@@ -483,7 +483,7 @@ export const CreatePurchaseOrderModal: React.FC<
                     placeholder="Customer address"
                     className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
                   />
-                </div>
+                </div> */}
                 <div>
                   <label className="text-[12px] font-[500]">
                     Quotation reference no

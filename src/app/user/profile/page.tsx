@@ -38,7 +38,7 @@ const UserProfile = () => {
     firstName: Yup.string().required("First name is required."),
     lastName: Yup.string().required("Last name is required."),
     nic: Yup.string()
-      .required("NIC is required.")
+      .optional()
       .matches(
         /^(([5-9][0-9][0-3,5-8][0-9]{6}[vVxX])|([1-2][0,9][0-9]{2}[0-3,5-8][0-9]{7})|([0-9]{9}[vV]))$/,
         "NIC must be valid. It should be either a 12-digit NIC or 9 digits followed by 'v' or 'V'."
@@ -243,7 +243,7 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* NIC */}
+          {/* NIC
           <div>
             <label className="block text-[16px] font-medium font-body text-[#111102]">
               NIC
@@ -270,7 +270,7 @@ const UserProfile = () => {
             {errors.nic && (
               <p className="text-red-500 text-sm mt-1">{errors.nic.message}</p>
             )}
-          </div>
+          </div> */}
 
           {/* Email */}
           <div>
@@ -365,55 +365,6 @@ const UserProfile = () => {
             )}
           </div>
 
-          {/* Current Password */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              Current Password
-            </label>
-            <Controller
-              name="currentPassword"
-              control={control}
-              render={({ field }) => (
-                <PasswordInput
-                  {...field}
-                  readOnly={!isEditable}
-                  inputClassName="px-3 py-2"
-                  error={!!errors.currentPassword}
-                />
-              )}
-            />
-            {errors.currentPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.currentPassword.message}
-              </p>
-            )}
-          </div>
-
-          {/* New Password */}
-          <div>
-            <label className="block text-[16px] font-medium font-body text-[#111102]">
-              New Password
-            </label>
-            <Controller
-              name="newPassword"
-              control={control}
-              render={({ field }) => (
-                <PasswordInput
-                  {...field}
-                  value={field.value || ""}
-                  readOnly={!isEditable}
-                  inputClassName="px-3 py-2"
-                  error={!!errors.newPassword}
-                />
-              )}
-            />
-            {errors.newPassword && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.newPassword.message}
-              </p>
-            )}
-          </div>
-
           {/* District */}
           <div>
             <label className="block text-[16px] font-medium font-body text-[#111102]">
@@ -469,6 +420,56 @@ const UserProfile = () => {
               </p>
             )}
           </div>
+
+          {/* Current Password */}
+          <div>
+            <label className="block text-[16px] font-medium font-body text-[#111102]">
+              Current Password
+            </label>
+            <Controller
+              name="currentPassword"
+              control={control}
+              render={({ field }) => (
+                <PasswordInput
+                  {...field}
+                  readOnly={!isEditable}
+                  inputClassName="px-3 py-2"
+                  error={!!errors.currentPassword}
+                />
+              )}
+            />
+            {errors.currentPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.currentPassword.message}
+              </p>
+            )}
+          </div>
+
+          {/* New Password */}
+          <div>
+            <label className="block text-[16px] font-medium font-body text-[#111102]">
+              New Password
+            </label>
+            <Controller
+              name="newPassword"
+              control={control}
+              render={({ field }) => (
+                <PasswordInput
+                  {...field}
+                  value={field.value || ""}
+                  readOnly={!isEditable}
+                  inputClassName="px-3 py-2"
+                  error={!!errors.newPassword}
+                />
+              )}
+            />
+            {errors.newPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.newPassword.message}
+              </p>
+            )}
+          </div>
+          <div></div>
 
           {/* Edit / Save Button */}
           <div className="col-span-1 mt-5">
