@@ -10,6 +10,7 @@ export interface SignupRequest {
   district: string;
   zipCode?: string;
   NIC?: string;
+  companyLogo?: string;
 }
 
 export type LoginRequest =
