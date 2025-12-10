@@ -15,6 +15,7 @@ import {
   changePassword,
 } from "@/service/firebaseAuthService";
 import { refreshUserProfile } from "@/app/store/slice/authslice";
+import CreatableSelect from "react-select/creatable";
 import {
   FirestoreService,
   COLLECTIONS,
@@ -250,18 +251,21 @@ const VendorProfile = () => {
 
   useEffect(() => {
     if (!currentUser) return;
-    if (modelOptionsDynamic.length) {
-      const selected = (currentUser.vehicleModel || [])
-        .map((id: string) => modelOptionsDynamic.find((o) => o.value === id))
-        .filter(Boolean) as { value: string; label: string }[];
-      setValue("vehicleModel", selected, {
-        shouldValidate: false,
-        shouldDirty: false,
-      });
-    }
-  }, [modelOptionsDynamic, currentUser, setValue]);
 
-  // Load vehicle brands from Firestore
+    const rawValues: string[] = currentUser.vehicleModel || [];
+
+    const selected = rawValues.map((val) => {
+      const found = modelOptionsDynamic.find((o) => o.value === val);
+
+      return found || { value: val, label: val };
+    });
+
+    setValue("vehicleModel", selected as any, {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+  }, [currentUser, modelOptionsDynamic, setValue]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -1018,19 +1022,26 @@ const VendorProfile = () => {
           </div>
 
           {/* Vehicle Model */}
-          {/* <div className="">
+          <div>
             <label className="block text-[14px] font-medium font-body text-[#111102]">
               Vehicle Model
             </label>
+
             <Controller
               name="vehicleModel"
               control={control}
               render={({ field }) => (
-                <Select
+                <CreatableSelect
                   {...field}
-                  options={modelOptionsDynamic}
                   isMulti
                   isDisabled={!isEditable}
+                  options={modelOptionsDynamic}
+                  onChange={(val) => field.onChange(val)}
+                  onCreateOption={(inputValue) => {
+                    const newOption = { value: inputValue, label: inputValue };
+
+                    field.onChange([...(field.value || []), newOption]);
+                  }}
                   styles={{
                     control: (provided, state) => ({
                       ...provided,
@@ -1039,13 +1050,11 @@ const VendorProfile = () => {
                         : state.isFocused
                         ? "#eab308"
                         : "transparent",
-
                       boxShadow: errors.vehicleModel
                         ? "0 0 0 1px #ef4444"
                         : state.isFocused
                         ? "0 0 0 1px #eab308"
                         : "none",
-
                       backgroundColor: "#ffffff",
                       width: "100%",
                       borderRadius: "8px",
@@ -1055,31 +1064,20 @@ const VendorProfile = () => {
                           : state.isFocused
                           ? "#eab308"
                           : "transparent",
-
-                        boxShadow: errors.vehicleModel
-                          ? "0 0 0 1px #ef4444"
-                          : state.isFocused
-                          ? "0 0 0 1px #eab308"
-                          : "none",
                       },
-                    }),
-
-                    menu: (provided) => ({
-                      ...provided,
-                      borderRadius: "8px",
-                      backgroundColor: "#ffffff",
-                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                     }),
 
                     multiValue: (provided) => ({
                       ...provided,
-                      backgroundColor: "#F8F8F8",
+                      backgroundColor: "#F8F8F8", // SAME AS OTHER SELECTS
                       color: "#111102",
+                      borderRadius: "6px",
                     }),
 
                     multiValueLabel: (provided) => ({
                       ...provided,
                       color: "#111102",
+                      fontSize: "13px",
                     }),
 
                     multiValueRemove: (provided) => ({
@@ -1090,8 +1088,15 @@ const VendorProfile = () => {
                         backgroundColor: "#e5e7eb",
                       },
                     }),
+
+                    menu: (provided) => ({
+                      ...provided,
+                      borderRadius: "8px",
+                      backgroundColor: "#ffffff",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    }),
                   }}
-                  className={`mt-1 block w-full rounded-md shadow-sm  font-body text-sm focus:outline-none focus:ring-2 ${
+                  className={`mt-1 block w-full rounded-md shadow-sm font-body text-sm focus:outline-none ${
                     errors.vehicleModel
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -1103,12 +1108,13 @@ const VendorProfile = () => {
                 />
               )}
             />
+
             {errors.vehicleModel && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.vehicleModel.message}
               </p>
             )}
-          </div> */}
+          </div>
 
           {/* Edit / Save Button */}
           <div className="col-span-1 md:col-span-2 mt-2 flex justify-end gap-3">
