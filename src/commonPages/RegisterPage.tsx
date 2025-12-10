@@ -71,7 +71,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
           .required("Password is required.")
           .matches(
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
-            "Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character."
+            "Minimum 8 characters with uppercase, lowercase, and a special character."
           ),
         confirmPassword: Yup.string()
           .required("Confirm password is required.")
@@ -79,6 +79,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
       }),
     [isVendor]
   );
+
 
   const {
     control,
@@ -205,7 +206,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               {errorMessage}
             </p>
           )}
-          <form className="space-y-4 w-full " onSubmit={handleSubmit(onSubmit)}>
+
+          <form className="space-y-4 w-full max-w-full" onSubmit={handleSubmit(onSubmit)}>
             {/* First Name and Last Name */}
             <div className="flex flex-row space-x-4">
               <div className="w-1/2">
@@ -234,7 +236,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   )}
                 />
                 {errors.firstname && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                     {errors.firstname.message}
                   </p>
                 )}
@@ -265,7 +267,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   )}
                 />
                 {errors.lastname && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                     {errors.lastname.message}
                   </p>
                 )}
@@ -299,7 +301,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 )}
               />
               {errors.email && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.email.message}
                 </p>
               )}
@@ -332,13 +334,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     />
                   )}
                 />
-                {errors.address && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.address.message}
-                  </p>
-                )}
-              </div>
-            )}
+              {errors.address && (
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
+                  {errors.address.message}
+                </p>
+              )}
+            </div>)}
 
             {/* City */}
             {isVendor && (
@@ -367,13 +368,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     />
                   )}
                 />
-                {errors.city && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.city.message}
-                  </p>
-                )}
-              </div>
-            )}
+              {errors.city && (
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
+                  {errors.city.message}
+                </p>
+              )}
+            </div>)}
 
             {/* District */}
             <div>
@@ -392,7 +392,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                   <select
                     {...field}
                     id="district"
-                    className={`w-full text-[10px] md:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] appearance-none px-3 py-2 md:pt-0 md:pb-0 focus:ring-2 focus:outline-none ${
+                    className={`w-full text-[10px] md:text-[14px] placeholder: text-[10px] md:placeholder:text-[14px] h-[28px] md:h-[40px] text-[#111102] bg-[#FEFEFE] rounded-[5px] appearance-none px-3 focus:ring-2 focus:outline-none ${
                       errors.district
                         ? "focus:ring-red-500 focus:border-red-500"
                         : "focus:ring-yellow-500 focus:border-yellow-500"
@@ -429,7 +429,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
               />
 
               {errors.district && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.district.message}
                 </p>
               )}
@@ -462,13 +462,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     />
                   )}
                 />
-                {errors.zipCode && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.zipCode.message}
-                  </p>
-                )}
-              </div>
-            )}
+              {errors.zipCode && (
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
+                  {errors.zipCode.message}
+                </p>
+              )}
+            </div>)}
 
             {/* NIC */}
             {isVendor && (
@@ -497,13 +496,12 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                     />
                   )}
                 />
-                {errors.NIC && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                    {errors.NIC.message}
-                  </p>
-                )}
-              </div>
-            )}
+              {errors.NIC && (
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
+                  {errors.NIC.message}
+                </p>
+              )}
+            </div>)}
 
             {/* Mobile Number */}
             <div>
@@ -529,7 +527,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 )}
               />
               {errors.mobileNumber && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.mobileNumber.message}
                 </p>
               )}
@@ -559,7 +557,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 )}
               />
               {errors.whatsappNumber && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.whatsappNumber.message}
                 </p>
               )}
@@ -590,8 +588,8 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 )}
               />
               {errors.password && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
-                  {errors.password.message}
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
+                  {errors.password. message}
                 </p>
               )}
             </div>
@@ -621,7 +619,7 @@ export const CommonRegisterPage: React.FC<ICommonRegisterPageProps> = ({
                 )}
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.confirmPassword.message}
                 </p>
               )}
