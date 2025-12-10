@@ -7,6 +7,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import Select from "react-select";
 import { PasswordInput } from "@/components";
 import { useSelector, useDispatch } from "react-redux";
+import { storage } from "@/config/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { RootState } from "@/app/store/store";
 import {
   updateUserProfile,
@@ -29,13 +31,16 @@ interface UserProfileFormData {
   email: string;
   conmpanyBR: string;
   locationLink?: string | null;
-  description: string;
   currentPassword: string;
   newPassword?: string | null;
   district: string;
+  firstName: string;
+  lastName: string;
+  address: string;
   mainCategories: { value: string; label: string }[];
   vehicleBrand: { value: string; label: string }[];
   vehicleModel: { value: string; label: string }[];
+  companyLogo?: string | null;
 }
 
 // Loaded dynamically from Firestore main categories
@@ -69,6 +74,7 @@ const VendorProfile = () => {
   const [modelOptionsDynamic, setModelOptionsDynamic] = useState<
     { value: string; label: string }[]
   >([]);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Yup schema for validation
   const schema = Yup.object().shape({
@@ -76,7 +82,9 @@ const VendorProfile = () => {
     contactPerson: Yup.string().required("Contact person is required."),
     conmpanyBR: Yup.string().required("Company BR is required."),
     locationLink: Yup.string().nullable().notRequired(),
-    description: Yup.string().required("Description is required."),
+    firstName: Yup.string().required("First name is required."),
+    lastName: Yup.string().required("Last name is required."),
+    address: Yup.string().required("Address is required."),
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required."),
@@ -131,6 +139,7 @@ const VendorProfile = () => {
   useEffect(() => {
     const mapStringArrayToOptions = (arr?: string[]) =>
       (arr || []).map((v) => ({ value: v, label: v }));
+
     const initialValues: UserProfileFormData = {
       companyName: currentUser?.companyName || "",
       contactPerson: currentUser?.contactPerson || "",
@@ -139,18 +148,52 @@ const VendorProfile = () => {
       email: currentUser?.email || "",
       conmpanyBR: currentUser?.conmpanyBR || "",
       locationLink: currentUser?.locationLink || "",
-      description: currentUser?.address || "",
+
+      // map from Firestore
+      firstName: currentUser?.firstName || "",
+      lastName: currentUser?.lastName || "",
+      address: currentUser?.address || "",
+
       currentPassword: "",
       newPassword: "",
       district: currentUser?.district || "",
       mainCategories: mapStringArrayToOptions(currentUser?.mainCategories),
       vehicleBrand: mapStringArrayToOptions(currentUser?.vehicleBrand),
       vehicleModel: mapStringArrayToOptions(currentUser?.vehicleModel),
+
+      companyLogo: currentUser?.companyLogo || "",
     };
 
     setDefaultValues(initialValues);
     reset(initialValues);
+    setLogoPreview(currentUser?.companyLogo || null);
   }, [reset, currentUser]);
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0] || !currentUser) return;
+
+    const file = e.target.files[0];
+
+    try {
+      const userId = (currentUser.id || currentUser.userId) as string;
+      const fileRef = ref(
+        storage,
+        `vendorLogos/${userId}/${Date.now()}-${file.name}`
+      );
+
+      await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+
+      setLogoPreview(downloadURL);
+      setValue("companyLogo", downloadURL, {
+        shouldDirty: true,
+        shouldValidate: false,
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload logo. Please try again.");
+    }
+  };
 
   // Load main categories from Firestore
   useEffect(() => {
@@ -298,12 +341,18 @@ const VendorProfile = () => {
           phone: data.companyMobileNumber,
           whatsApp: data.whatsappNumber,
           district: data.district,
-          address: data.description || "",
+
+          firstName: data.firstName,
+          lastName: data.lastName,
+          address: data.address || "",
+
           conmpanyBR: data.conmpanyBR || "",
           locationLink: data.locationLink || "",
           mainCategories: (data.mainCategories || []).map((o) => o.value),
           vehicleBrand: (data.vehicleBrand || []).map((o) => o.value),
           vehicleModel: (data.vehicleModel || []).map((o) => o.value),
+
+          companyLogo: data.companyLogo ?? currentUser?.companyLogo ?? "",
         };
         await updateUserProfile(userId, updates);
         await (dispatch as any)(refreshUserProfile());
@@ -315,18 +364,117 @@ const VendorProfile = () => {
       alert(err?.message || "Failed to update profile.");
     }
   };
+
   return (
     <div className="w-full py-10 px-4 md:px-12 bg-white max-w-screen-lg mx-auto">
       <div className="w-full p-8 bg-[#F8F8F8] rounded-tr-[15px] rounded-br-[15px] rounded-bl-[15px]">
         <h1 className="text-[18px] font-bold font-body text-center text-[#111102] mb-6">
-          Vendor Profile - {control._formValues.companyName}
+          Vendor Profile - {control._formValues.firstName}{" "}
+          {control._formValues.lastName}
         </h1>
+
+        <div className="flex flex-row justify-center items-center mb-6 gap-x-3">
+          {isEditable ? (
+            <label className="w-30 h-24 rounded-md overflow-hidden bg-white border border-gray-200 flex items-center justify-center cursor-pointer">
+              {logoPreview ? (
+                <img
+                  src={logoPreview}
+                  alt="Company logo"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[11px] text-gray-400 text-center px-2">
+                  Click to upload logo
+                </span>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleLogoChange}
+              />
+            </label>
+          ) : (
+            <div className="w-30 h-24 rounded-md overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
+              {logoPreview ? (
+                <img
+                  src={logoPreview}
+                  alt="Company logo"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[11px] text-gray-400 text-center px-2">
+                  No logo uploaded
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
         <form
           onSubmit={
             isEditable ? handleSubmit(onSubmit) : (e) => e.preventDefault()
           }
           className="md:grid  md:grid-cols-2 gap-6 space-y-4 md:space-y-0"
         >
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              First Name
+            </label>
+            <Controller
+              name="firstName"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.firstName
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.firstName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.firstName.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              Last Name
+            </label>
+            <Controller
+              name="lastName"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.lastName
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.lastName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.lastName.message}
+              </p>
+            )}
+          </div>
           {/* First Name */}
           <div>
             <label className="block text-[14px] font-medium font-body text-[#111102]">
@@ -651,17 +799,17 @@ const VendorProfile = () => {
 
           <div className="col-span-2">
             <label className="block text-[14px] font-medium font-body text-[#111102]">
-              Description
+              Address
             </label>
             <Controller
-              name="description"
+              name="address"
               control={control}
               render={({ field }) => (
                 <textarea
                   {...field}
                   readOnly={!isEditable}
-                  className={`mt-1 block w-full h-[108px] rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
-                    errors.description
+                  className={`mt-1 block w-full h-[80px] rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.address
                       ? "focus:ring-red-500 focus:border-red-500"
                       : "focus:ring-yellow-500 focus:border-yellow-500"
                   } ${
@@ -672,13 +820,12 @@ const VendorProfile = () => {
                 />
               )}
             />
-            {errors.description && (
+            {errors.address && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.description.message}
+                {errors.address.message}
               </p>
             )}
           </div>
-
           {/* Main Categories */}
           <div>
             <label className="block text-[14px] font-medium font-body text-[#111102]">

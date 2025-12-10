@@ -41,6 +41,7 @@ export type User = {
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  companyLogo?: string;
 };
 
 interface IAuthState {
@@ -174,6 +175,7 @@ const authSlice = createSlice({
         mainCategories: (profile as any).mainCategories,
         vehicleBrand: (profile as any).vehicleBrand,
         vehicleModel: (profile as any).vehicleModel,
+        companyLogo: (profile as any).companyLogo || "",
         isActive: profile.isActive,
         createdAt:
           profile.createdAt instanceof Date ? profile.createdAt : new Date(),
@@ -237,6 +239,7 @@ const authSlice = createSlice({
           mainCategories: (action.payload.profile as any).mainCategories,
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
+          companyLogo: (action.payload.profile as any).companyLogo || "",
           isActive: action.payload.profile.isActive,
           createdAt:
             action.payload.profile.createdAt instanceof Date
@@ -295,6 +298,7 @@ const authSlice = createSlice({
           mainCategories: (action.payload.profile as any).mainCategories,
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
+          companyLogo: (action.payload.profile as any).companyLogo || "",
           isActive: action.payload.profile.isActive,
           createdAt:
             action.payload.profile.createdAt instanceof Date
@@ -365,6 +369,7 @@ const authSlice = createSlice({
             mainCategories: (action.payload as any).mainCategories,
             vehicleBrand: (action.payload as any).vehicleBrand,
             vehicleModel: (action.payload as any).vehicleModel,
+            companyLogo: (action.payload as any).companyLogo || "",
             isActive: action.payload.isActive,
             createdAt:
               action.payload.createdAt instanceof Date
