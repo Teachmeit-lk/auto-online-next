@@ -211,7 +211,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                   )}
                 />
                 {(errors as any).phone && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                     {(errors as any).phone.message as string}
                   </p>
                 )}
@@ -244,7 +244,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                   )}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                  <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                     {errors.email.message}
                   </p>
                 )}
@@ -274,7 +274,7 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
                 )}
               />
               {errors.password && (
-                <p className="text-red-500 text-[10px] md:text-[14px] mt-1">
+                <p className="text-red-500 text-[10px] md:text-[12px] mt-1 break-words whitespace-normal max-w-full">
                   {errors.password.message}
                 </p>
               )}
