@@ -60,6 +60,13 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
     return "-";
   };
 
+  const netTotal = useMemo(() => {
+    // Use saved netTotal if available
+    if (order?.netTotal) {
+      return Number(order.netTotal);
+    }
+  }, [order]);
+
   const getPaymentMethodLabel = (method?: string) => {
     if (method === "cash_at_shop") return "Cash at shop";
     if (method === "bank_transfer") return "Bank transfer";
@@ -119,14 +126,14 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 />
               </div>
 
-              {/* Total Amount */}
+              {/* Net Total */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Amount (Rs.)
+                  Net Total (Rs.)
                 </label>
                 <input
                   type="text"
-                  value={order?.totalAmount?.toString() || ""}
+                  value={netTotal}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -146,6 +153,20 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 />
               </div>
               )}
+
+              
+              {/* Total Amount */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Grand Total (Rs.)
+                </label>
+                <input
+                  type="text"
+                  value={order?.totalAmount?.toString() || ""}
+                  readOnly
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
 
               {/* Status */}
               <div>
@@ -259,7 +280,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
-                      <td className="p-3 border">{item.netTotal}</td>
+                      <td className="p-3 border">{netTotal}</td>
                       <td className="p-3 border">{item.stockAvailability}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>
