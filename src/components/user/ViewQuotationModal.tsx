@@ -42,8 +42,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     phone?: string;
   };
 
-  console.log("quotation", quotation);
-
   const parseStaffInfo = (notes?: string): StaffInfo => {
     if (!notes) return {};
 
@@ -64,8 +62,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     () => parseStaffInfo(quotation?.notes),
     [quotation?.notes]
   );
-
-  console.log("Parsed Staff Info:", staffInfo);
 
   const staffIdForDisplay = staffInfo.nic ?? "";
 
