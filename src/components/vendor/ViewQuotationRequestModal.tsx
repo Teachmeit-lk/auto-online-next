@@ -625,11 +625,11 @@ export const ViewQuotationRequestModal: React.FC<
                       value={field.value ?? ""}
                       placeholder="Enter unit price"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-      ${
-        errors.unitPrice
-          ? "focus:ring-red-500 focus:border-red-500"
-          : "focus:ring-yellow-500 focus:border-yellow-500"
-      }`}
+                        ${
+                          errors.unitPrice
+                            ? "focus:ring-red-500 focus:border-red-500"
+                            : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     />
                   )}
                 />

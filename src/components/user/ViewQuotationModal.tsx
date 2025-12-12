@@ -108,7 +108,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="500.00"
                   value={extractDeliveryCost(quotation?.notes)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
@@ -118,11 +117,10 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
               {/* Total Cost */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Cost (Rs.)
+                  {/* Total Cost (Rs.) */}Net Total (Rs.)
                 </label>
                 <input
                   type="text"
-                  placeholder="14,500.00"
                   value={quotation?.totalAmount?.toString() || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
@@ -182,7 +180,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
-                      <td className="p-3 border">{item.netTotal}</td>
+                      <td className="p-3 border">{quotation?.totalAmount?.toString()}</td>
                       <td className="p-3 border">{item.stock}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>

@@ -169,6 +169,7 @@ export interface PurchaseOrder extends BaseDocument {
   paymentStatus: "pending" | "paid" | "refunded";
   paymentMethod?: "cash_at_shop" | "bank_transfer" | "pay_online";
   deliveryMethod?: "arrange_delivery" | "collect_from_shop";
+  netTotal: number;
   deliveryCost?: number;
   deliveryCostRequested?: boolean;
   paymentSlipUrl?: string;
