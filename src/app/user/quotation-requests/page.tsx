@@ -113,7 +113,7 @@ const QuotationRequests: React.FC = () => {
         rcode: r.id || "-",
         vcode: r.vendorId || "-",
 
-        cname: vendorCompanyMap[r.vendorId] || r.vendorName || "-",
+        cname: vendorCompanyMap[r.vendorId] || "-",
         pname: r.category || "-",
         rdate,
         raw: r,
