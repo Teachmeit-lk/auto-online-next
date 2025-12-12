@@ -197,6 +197,41 @@ export const AddGalleryImageModal: React.FC<IAddGalleryImageModalProps> = ({
               )}
             </div>
 
+            {/* Image Preview */}
+            {fileName && (
+              <div className="flex items-center justify-between p-2 bg-white rounded-md">
+                <div className="flex items-center gap-2">
+                  <Controller
+                    name="image"
+                    control={control}
+                    render={({ field }) => (
+                      field.value && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={URL.createObjectURL(field.value)}
+                          alt="Preview"
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )
+                    )}
+                  />
+                  <span className="text-[10px] text-[#111102] font-body truncate">
+                    {fileName}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFileName("");
+                    reset({ partName: control._formValues.partName, image: null });
+                  }}
+                  className="text-red-500 hover:text-red-700 text-[10px] font-body font-medium"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="flex justify-center ">
               <button
