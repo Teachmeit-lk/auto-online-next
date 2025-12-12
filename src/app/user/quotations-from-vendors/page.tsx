@@ -35,6 +35,9 @@ const QuotationsFromVendors: React.FC = () => {
   const [requestImageUrl, setRequestImageUrl] = useState<string | null>(null);
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [vendorCompanyMap, setVendorCompanyMap] = useState<
+    Record<string, string>
+  >({});
 
   const loadRequestImage = async (quotationRequestId?: string | null) => {
     if (!quotationRequestId) {
@@ -93,28 +96,68 @@ const QuotationsFromVendors: React.FC = () => {
     load();
   }, [currentUser?.id]);
 
+  useEffect(() => {
+    const loadVendorCompanies = async () => {
+      const vendorIds = Array.from(
+        new Set((quotations || []).map((q: any) => q?.vendorId).filter(Boolean))
+      );
+
+      if (!vendorIds.length) {
+        setVendorCompanyMap({});
+        return;
+      }
+
+      try {
+        const results = await Promise.all(
+          vendorIds.map(async (vid) => {
+            try {
+              // IMPORTANT: companyName is in COLLECTIONS.VENDORS (per your screenshot)
+              const v: any = await FirestoreService.getById(
+                COLLECTIONS.VENDORS,
+                vid
+              );
+              return [vid, v?.companyName || "-"] as const;
+            } catch {
+              return [vid, "-"] as const;
+            }
+          })
+        );
+
+        setVendorCompanyMap(Object.fromEntries(results));
+      } catch (e) {
+        console.error("Failed to load vendor companies", e);
+        setVendorCompanyMap({});
+      }
+    };
+
+    loadVendorCompanies();
+  }, [quotations]);
+
   const rows = useMemo(() => {
-    return (quotations || []).map((q) => {
-      const createdAt: any = (q as any).createdAt;
+    return (quotations || []).map((q: any) => {
+      const createdAt: any = q.createdAt;
       const d = createdAt?.seconds
         ? new Date(createdAt.seconds * 1000)
         : createdAt instanceof Date
         ? createdAt
         : null;
+
       const idate = d ? d.toLocaleDateString() : "-";
       const pname = (q.products && q.products[0]?.partName) || "-";
+
       return {
-        id: (q as any).id,
-        rcode: q.quotationRequestId,
-        vcode: q.vendorId,
-        cname: q.vendorName || "-",
+        id: q.id,
+        rcode: q.quotationRequestId || "-",
+        vcode: q.vendorId || "-",
+
+        cname: vendorCompanyMap[q.vendorId] || "-",
         pname,
         idate,
         status: q.status,
         raw: q,
       };
     });
-  }, [quotations]);
+  }, [quotations, vendorCompanyMap]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
