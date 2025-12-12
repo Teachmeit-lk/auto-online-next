@@ -34,17 +34,18 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            {vendor?.companyName || (vendor?. firstName || "") + " " + (vendor?.lastName || "")}
+            {vendor?.companyName ||
+              (vendor?.firstName || "") + " " + (vendor?.lastName || "")}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-[500px] h-[600px] overflow-y-auto no-scrollbar">
             {/* Logo and Company Name Row */}
             <div className="sm:grid sm:grid-cols-3 gap-x-6 items-center sm:space-y-0 space-y-2">
               {/* Logo */}
               <div className="flex justify-center">
                 <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500 overflow-hidden">
-                  {vendor?.companyLogo ?  (
+                  {vendor?.companyLogo ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={vendor.companyLogo}
@@ -64,7 +65,10 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.companyName || (vendor?. firstName || "") + " " + (vendor?.lastName || "")}
+                  value={
+                    vendor?.companyName ||
+                    (vendor?.firstName || "") + " " + (vendor?.lastName || "")
+                  }
                   readOnly
                   className="w-full h-[36px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] "
                 />
@@ -158,7 +162,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={ vendor?.address || ""}
+                  value={vendor?.address || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -166,20 +170,20 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
 
               {/* Company Location Link */}
               {vendor?.locationLink && (
-              <div className="col-span-3">
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Location Link
-                </label>
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Location Link
+                  </label>
 
-                <a
-                  href={vendor?.locationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline"
-                >
-                  {vendor?.locationLink || "No link available"}
-                </a>
-              </div>
+                  <a
+                    href={vendor?.locationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline"
+                  >
+                    {vendor?.locationLink || "No link available"}
+                  </a>
+                </div>
               )}
 
               {/* Main Categories */}
