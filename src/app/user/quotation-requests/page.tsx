@@ -26,6 +26,9 @@ const QuotationRequests: React.FC = () => {
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [vendorCompanyMap, setVendorCompanyMap] = useState<
+    Record<string, string>
+  >({});
 
   useEffect(() => {
     const load = async () => {
@@ -56,26 +59,67 @@ const QuotationRequests: React.FC = () => {
     load();
   }, [currentUser?.id]);
 
+  useEffect(() => {
+    const loadVendorCompanies = async () => {
+      const vendorIds = Array.from(
+        new Set((requests || []).map((r: any) => r?.vendorId).filter(Boolean))
+      );
+
+      if (!vendorIds.length) {
+        setVendorCompanyMap({});
+        return;
+      }
+
+      try {
+        const results = await Promise.all(
+          vendorIds.map(async (vid) => {
+            try {
+              const v: any = await FirestoreService.getById(
+                COLLECTIONS.VENDORS,
+                vid
+              );
+              return [
+                vid,
+                v?.companyName || v?.company || v?.name || "-",
+              ] as const;
+            } catch {
+              return [vid, "-"] as const;
+            }
+          })
+        );
+
+        setVendorCompanyMap(Object.fromEntries(results));
+      } catch (e) {
+        console.error("Failed to load vendor companies", e);
+        setVendorCompanyMap({});
+      }
+    };
+
+    loadVendorCompanies();
+  }, [requests]);
+
   const formatted = useMemo(() => {
-    return requests.map((r) => {
-      const ts: any = (r as any).createdAt;
+    return requests.map((r: any) => {
+      const ts: any = r.createdAt;
       const date = ts?.seconds
         ? new Date(ts.seconds * 1000)
         : ts instanceof Date
         ? ts
         : null;
       const rdate = date ? date.toLocaleDateString() : "-";
+
       return {
-        id: (r as any).id,
-        rcode: (r as any).id || "-",
+        id: r.id,
+        rcode: r.id || "-",
         vcode: r.vendorId || "-",
-        cname: r.vendorName || "-",
-        pname: r.model || "-",
+
+        cname: vendorCompanyMap[r.vendorId] || r.vendorName || "-",
+        pname: r.category || "-",
         rdate,
         raw: r,
       };
     });
-  }, [requests]);
+  }, [requests, vendorCompanyMap]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -162,7 +206,7 @@ const QuotationRequests: React.FC = () => {
                   Company Name
                 </th>
                 <th className="border border-r-2 border-b-2 border-white py-2">
-                  Part Name
+                  Category
                 </th>
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Request Date
