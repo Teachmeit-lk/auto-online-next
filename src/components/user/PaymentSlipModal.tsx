@@ -2,10 +2,12 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { Camera, CirclePlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { OrderService } from "@/service/firestoreService";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
+import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
+import { FirestoreService, COLLECTIONS } from "@/service/firestoreService";
 
 interface IPaymentSlipModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface IPaymentSlipModalProps {
   orderId: string;
   orderNumber?: string;
   onSuccess?: () => void;
+  vendorId?: string;
 }
 
 export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
@@ -21,6 +24,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
   orderId,
   orderNumber,
   onSuccess,
+  vendorId,
 }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,18 +32,43 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [vendorBank, setVendorBank] = useState<any | null>(null);
+  const [bankLoading, setBankLoading] = useState(false);
 
-  console.log("[PaymentSlipModal] Modal opened:", {
-    isOpen,
-    orderId,
-    orderNumber,
-  });
+  useEffect(() => {
+    if (!vendorId || !isOpen) return;
+
+    const loadVendorBankDetails = async () => {
+      try {
+        setBankLoading(true);
+
+        const vendor: any = await FirestoreService.getById(
+          COLLECTIONS.VENDORS,
+          vendorId
+        );
+
+        const bank = vendor?.bankDetails || {
+          bankName: vendor?.bankName,
+          branchName: vendor?.bankBranch,
+          accountName: vendor?.accountName,
+          accountNumber: vendor?.accountNumber,
+        };
+
+        setVendorBank(bank);
+      } catch (err) {
+        console.error("Failed to load vendor bank details", err);
+        setVendorBank(null);
+      } finally {
+        setBankLoading(false);
+      }
+    };
+
+    loadVendorBankDetails();
+  }, [vendorId, isOpen]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    console.log("[PaymentSlipModal] File selected:", file.name);
 
     // Validate file
     const validation = FirebaseStorageService.validateFile(
@@ -73,12 +102,6 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       setSubmitError("Please select a file");
       return;
     }
-
-    console.log("[PaymentSlipModal] Uploading payment slip:", {
-      fileName: selectedFile.name,
-      fileSize: selectedFile.size,
-      orderId,
-    });
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -155,7 +178,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
             Upload Payment Slip
             {orderNumber && (
               <span className="text-[12px] font-normal text-[#5B5B5B] ml-2">
-                ({orderNumber})
+                ({useRefactoredIdLast("ON", orderNumber)})
               </span>
             )}
           </Dialog.Title>
@@ -168,6 +191,53 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
 
           <div className="space-y-4">
             <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
+              {/* Vendor Bank Details */}
+              <div className="bg-[#F8F8F8] rounded-[8px] mb-10 space-y-3">
+                <h3 className="text-[13px] font-bold font-body text-[#111102]">
+                  Vendor Bank Details
+                </h3>
+
+                {bankLoading ? (
+                  <p className="text-[11px] text-[#5B5B5B]">
+                    Loading bank details...
+                  </p>
+                ) : vendorBank?.bankName ? (
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[11px] font-body">
+                    <div>
+                      <span className="text-[#5B5B5B]">Bank</span>
+                      <div className="text-[#111102] ">
+                        {vendorBank.bankName}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[#5B5B5B]">Branch</span>
+                      <div className="text-[#111102] ">
+                        {vendorBank.branchName}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[#5B5B5B]">Account Name</span>
+                      <div className="text-[#111102] ">
+                        {vendorBank.accountName}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[#5B5B5B]">Account Number</span>
+                      <div className="text-[#111102]  tracking-wider">
+                        {vendorBank.accountNumber}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[#930000] font-body">
+                    Bank details not available. Please contact the vendor.
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
                   Payment Slip (Image or PDF) *

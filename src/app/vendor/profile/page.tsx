@@ -42,6 +42,11 @@ interface UserProfileFormData {
   vehicleBrand: { value: string; label: string }[];
   vehicleModel: { value: string; label: string }[];
   companyLogo?: string | null;
+
+  bankName: string;
+  bankBranch: string;
+  accountName: string;
+  accountNumber: string;
 }
 
 // Loaded dynamically from Firestore main categories
@@ -123,6 +128,12 @@ const VendorProfile = () => {
       .default([])
       .min(1, "At least one vehicle brand is required."),
     vehicleModel: Yup.array().default([]).optional(),
+    bankName: Yup.string().required("Bank name is required."),
+    bankBranch: Yup.string().required("Branch is required."),
+    accountName: Yup.string().required("Account name is required."),
+    accountNumber: Yup.string()
+      .required("Account number is required.")
+      .matches(/^[0-9]{6,20}$/, "Account number must be 6–20 digits."),
   });
 
   const {
@@ -154,6 +165,11 @@ const VendorProfile = () => {
       firstName: currentUser?.firstName || "",
       lastName: currentUser?.lastName || "",
       address: currentUser?.address || "",
+
+      bankName: currentUser?.bankName || "",
+      bankBranch: currentUser?.bankBranch || "",
+      accountName: currentUser?.accountName || "",
+      accountNumber: currentUser?.accountNumber || "",
 
       currentPassword: "",
       newPassword: "",
@@ -355,6 +371,11 @@ const VendorProfile = () => {
           mainCategories: (data.mainCategories || []).map((o) => o.value),
           vehicleBrand: (data.vehicleBrand || []).map((o) => o.value),
           vehicleModel: (data.vehicleModel || []).map((o) => o.value),
+
+          bankName: data.bankName,
+          bankBranch: data.bankBranch,
+          accountName: data.accountName,
+          accountNumber: data.accountNumber,
 
           companyLogo: data.companyLogo ?? currentUser?.companyLogo ?? "",
         };
@@ -1112,6 +1133,136 @@ const VendorProfile = () => {
             {errors.vehicleModel && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.vehicleModel.message}
+              </p>
+            )}
+          </div>
+          <div></div>
+          <div className="text-[18px] font-bold font-body text-[#111102] pt-2">
+            Bank Details
+          </div>
+
+          <div></div>
+          {/* Bank Name */}
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              Bank Name
+            </label>
+            <Controller
+              name="bankName"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.bankName
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.bankName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.bankName.message}
+              </p>
+            )}
+          </div>
+
+          {/* Branch */}
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              Branch
+            </label>
+            <Controller
+              name="bankBranch"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.bankBranch
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.bankBranch && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.bankBranch.message}
+              </p>
+            )}
+          </div>
+
+          {/* Account Name */}
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              Account Name
+            </label>
+            <Controller
+              name="accountName"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.accountName
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.accountName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.accountName.message}
+              </p>
+            )}
+          </div>
+
+          {/* Account Number */}
+          <div>
+            <label className="block text-[14px] font-medium font-body text-[#111102]">
+              Account Number
+            </label>
+            <Controller
+              name="accountNumber"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  readOnly={!isEditable}
+                  inputMode="numeric"
+                  className={`mt-1 block w-full rounded-md shadow-sm px-3 py-2 font-body text-sm focus:outline-none focus:ring-2 ${
+                    errors.accountNumber
+                      ? "focus:ring-red-500 focus:border-red-500"
+                      : "focus:ring-yellow-500 focus:border-yellow-500"
+                  } ${
+                    !isEditable
+                      ? "bg-white text-[#5B5B5B]"
+                      : "bg-white text-[#111102]"
+                  }`}
+                />
+              )}
+            />
+            {errors.accountNumber && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.accountNumber.message}
               </p>
             )}
           </div>

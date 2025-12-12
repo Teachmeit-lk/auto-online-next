@@ -42,6 +42,10 @@ export type User = {
   createdAt?: Date;
   updatedAt?: Date;
   companyLogo?: string;
+  bankName?: string;
+  bankBranch?: string;
+  accountName?: string;
+  accountNumber?: string;
 };
 
 interface IAuthState {
@@ -176,6 +180,10 @@ const authSlice = createSlice({
         vehicleBrand: (profile as any).vehicleBrand,
         vehicleModel: (profile as any).vehicleModel,
         companyLogo: (profile as any).companyLogo || "",
+        bankName: profile.bankName,
+        bankBranch: profile.bankBranch,
+        accountName: profile.accountName,
+        accountNumber: profile.accountNumber,
         isActive: profile.isActive,
         createdAt:
           profile.createdAt instanceof Date ? profile.createdAt : new Date(),
@@ -240,6 +248,10 @@ const authSlice = createSlice({
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
           companyLogo: (action.payload.profile as any).companyLogo || "",
+          bankName: action.payload.profile.bankName,
+          bankBranch: action.payload.profile.bankBranch,
+          accountName: action.payload.profile.accountName,
+          accountNumber: action.payload.profile.accountNumber,
           isActive: action.payload.profile.isActive,
           createdAt:
             action.payload.profile.createdAt instanceof Date
@@ -299,6 +311,10 @@ const authSlice = createSlice({
           vehicleBrand: (action.payload.profile as any).vehicleBrand,
           vehicleModel: (action.payload.profile as any).vehicleModel,
           companyLogo: (action.payload.profile as any).companyLogo || "",
+          bankName: action.payload.profile.bankName,
+          bankBranch: action.payload.profile.bankBranch,
+          accountName: action.payload.profile.accountName,
+          accountNumber: action.payload.profile.accountNumber,
           isActive: action.payload.profile.isActive,
           createdAt:
             action.payload.profile.createdAt instanceof Date
@@ -370,6 +386,10 @@ const authSlice = createSlice({
             vehicleBrand: (action.payload as any).vehicleBrand,
             vehicleModel: (action.payload as any).vehicleModel,
             companyLogo: (action.payload as any).companyLogo || "",
+            bankName: action.payload.bankName,
+            bankBranch: action.payload.bankBranch,
+            accountName: action.payload.accountName,
+            accountNumber: action.payload.accountNumber,
             isActive: action.payload.isActive,
             createdAt:
               action.payload.createdAt instanceof Date

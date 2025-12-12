@@ -333,6 +333,7 @@ const AcceptedPO: React.FC = () => {
             setPaymentSlipModalOpen(false);
           }}
           orderId={selected?.id || ""}
+          vendorId={selected?.vendorId || ""}
           orderNumber={selected?.orderNumber}
           onSuccess={async () => {
             console.log(

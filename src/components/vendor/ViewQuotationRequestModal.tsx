@@ -48,7 +48,9 @@ export const ViewQuotationRequestModal: React.FC<
   const { user } = useAuth();
   const [showDetails, setShowDetails] = useState<boolean>(true);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null
+  );
   const [pendingWhatsAppData, setPendingWhatsAppData] = useState<{
     buyerPhone: string;
     buyerName?: string | null;
@@ -383,7 +385,7 @@ export const ViewQuotationRequestModal: React.FC<
                       Vehicle Model
                     </div>
                     <div className="text-[11px] text-[#111102]">
-                      {request?. model || "-"}
+                      {request?.model || "-"}
                     </div>
                   </div>
                   <div>
@@ -419,34 +421,38 @@ export const ViewQuotationRequestModal: React.FC<
                     </div>
                   </div>
                   {Array.isArray(request?.attachedImages) &&
-                  request!.attachedImages.length > 0 && (
-                    <div className="col-span-3">
-                      <div className="text-[10px] text-[#5B5B5B] mb-1">
-                        Attached Images ({request! .attachedImages.length} {request!.attachedImages.length === 1 ? 'image' : 'images'})
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {request!. attachedImages.map((url, idx) => (
-                          <div
-                            key={idx}
-                            className="relative w-[64px] h-[48px] border rounded overflow-hidden bg-white cursor-pointer hover:border-[#F9C301] transition-all group"
-                            onClick={() => setSelectedImageIndex(idx)}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={url}
-                              alt={`attachment-${idx}`}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                              <span className="text-white text-[8px] font-body opacity-0 group-hover:opacity-100 bg-[#F9C301] px-2 py-0.5 rounded-full">
-                                View
-                              </span>
+                    request!.attachedImages.length > 0 && (
+                      <div className="col-span-3">
+                        <div className="text-[10px] text-[#5B5B5B] mb-1">
+                          Attached Images ({request!.attachedImages.length}{" "}
+                          {request!.attachedImages.length === 1
+                            ? "image"
+                            : "images"}
+                          )
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {request!.attachedImages.map((url, idx) => (
+                            <div
+                              key={idx}
+                              className="relative w-[64px] h-[48px] border rounded overflow-hidden bg-white cursor-pointer hover:border-[#F9C301] transition-all group"
+                              onClick={() => setSelectedImageIndex(idx)}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={url}
+                                alt={`attachment-${idx}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                                <span className="text-white text-[8px] font-body opacity-0 group-hover:opacity-100 bg-[#F9C301] px-2 py-0.5 rounded-full">
+                                  View
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
             </div>
@@ -1007,11 +1013,14 @@ export const ViewQuotationRequestModal: React.FC<
 
       {/* Image Lightbox Modal */}
       {selectedImageIndex !== null && request?.attachedImages && (
-        <Dialog.Root open={true} onOpenChange={() => setSelectedImageIndex(null)}>
+        <Dialog.Root
+          open={true}
+          onOpenChange={() => setSelectedImageIndex(null)}
+        >
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60]" />
             <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] md:w-auto md:max-w-[90vw] max-h-[90vh] focus:outline-none z-[60] px-4 md:px-0">
-              <Dialog. Title></Dialog.Title>
+              <Dialog.Title></Dialog.Title>
               <div className="relative flex flex-col items-center">
                 {/* Main Image */}
                 <Image
@@ -1021,14 +1030,14 @@ export const ViewQuotationRequestModal: React.FC<
                   height={800}
                   className="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-lg object-contain"
                 />
-                
+
                 {/* Image Counter */}
                 <div className="absolute top-2 md:-top-12 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 md:px-4 py-1 md:py-2 rounded-full text-[10px] md:text-[12px] font-body z-10">
                   {selectedImageIndex + 1} / {request.attachedImages.length}
                 </div>
 
                 {/* Navigation Buttons */}
-                {request. attachedImages.length > 1 && (
+                {request.attachedImages.length > 1 && (
                   <>
                     {/* Previous Button */}
                     {selectedImageIndex > 0 && (
@@ -1042,7 +1051,7 @@ export const ViewQuotationRequestModal: React.FC<
                         ‹
                       </button>
                     )}
-                    
+
                     {/* Next Button */}
                     {selectedImageIndex < request.attachedImages.length - 1 && (
                       <button
@@ -1071,14 +1080,14 @@ export const ViewQuotationRequestModal: React.FC<
                 {/* Thumbnail Strip */}
                 {request.attachedImages.length > 1 && (
                   <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 flex gap-1 md:gap-2 bg-black/70 p-1.5 md:p-2 max-w-[90vw] overflow-x-auto no-scrollbar">
-                    {request. attachedImages.map((img, idx) => (
+                    {request.attachedImages.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
                         className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${
                           idx === selectedImageIndex
-                            ? 'border-[#F9C301] scale-110'
-                            : 'border-white/30 hover:border-white/60'
+                            ? "border-[#F9C301] scale-110"
+                            : "border-white/30 hover:border-white/60"
                         }`}
                       >
                         <Image
