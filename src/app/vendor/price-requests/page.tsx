@@ -15,6 +15,7 @@ import {
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/store/store";
+import { useRouter } from "next/navigation";
 import {
   FirestoreService,
   COLLECTIONS,
@@ -22,6 +23,7 @@ import {
   Quotation,
 } from "@/service/firestoreService";
 import * as Dialog from "@radix-ui/react-dialog";
+import { BankDetailsRequiredModal } from "./BankDetailsRequiredModal";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -34,7 +36,9 @@ const NewPriceRequests: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [quotationToDelete, setQuotationToDelete] = useState<string | null>(null);
+  const [quotationToDelete, setQuotationToDelete] = useState<string | null>(
+    null
+  );
 
   const [filter, setFilter] = useState<string>("New Quotations Requested");
   const [search, setSearch] = useState<string>("");
@@ -46,13 +50,48 @@ const NewPriceRequests: React.FC = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(
     null
   );
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [currentRequestImages, setCurrentRequestImages] = useState<string[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null
+  );
+  const [currentRequestImages, setCurrentRequestImages] = useState<string[]>(
+    []
+  );
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
   const authState = useSelector((state: RootState) => state.auth as any);
   const currentUser = authState?.user;
+  const [bankModalOpen, setBankModalOpen] = useState(false);
+
+  const router = useRouter();
+
+  const hasBankDetails = (v: any) => {
+    const bankName = (v?.bankName || "").trim();
+    const bankBranch = (v?.bankBranch || "").trim();
+    const accountName = (v?.accountName || "").trim();
+    const accountNumber = (v?.accountNumber || "").trim();
+    return !!(bankName && bankBranch && accountName && accountNumber);
+  };
+
+  const ensureVendorBankDetails = async () => {
+    if (!currentUser?.id) return false;
+
+    const vendorDoc: any = await FirestoreService.getById(
+      COLLECTIONS.VENDORS,
+      currentUser.id
+    );
+
+    const bankOk =
+      vendorDoc?.bankName &&
+      vendorDoc?.bankBranch &&
+      vendorDoc?.accountName &&
+      vendorDoc?.accountNumber;
+
+    if (bankOk) return true;
+
+    setBankModalOpen(true);
+    return false;
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -97,14 +136,17 @@ const NewPriceRequests: React.FC = () => {
 
   const handleDeleteQuotation = async () => {
     if (!quotationToDelete) return;
-    
+
     try {
       const quotationToRemove = vendorQuotations.find(
         (q: any) => q.quotationRequestId === quotationToDelete
       );
-      
-      if (quotationToRemove?. id) {
-        await FirestoreService.delete(COLLECTIONS.QUOTATIONS, quotationToRemove.id);
+
+      if (quotationToRemove?.id) {
+        await FirestoreService.delete(
+          COLLECTIONS.QUOTATIONS,
+          quotationToRemove.id
+        );
         setIsDeleteModalOpen(false);
         setQuotationToDelete(null);
         setReloadToken((t) => t + 1);
@@ -175,7 +217,7 @@ const NewPriceRequests: React.FC = () => {
   //   setPopupImage(imageSrc);
   // };
   const handleImageClick = (request: QuotationRequest) => {
-  if (request.attachedImages && request.attachedImages.length > 0) {
+    if (request.attachedImages && request.attachedImages.length > 0) {
       setCurrentRequestImages(request.attachedImages);
       setSelectedImageIndex(0);
     }
@@ -368,8 +410,12 @@ const NewPriceRequests: React.FC = () => {
                         <td className="grid grid-cols-2 gap-1 text-center w-full h-full">
                           <button
                             className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
-                            onClick={() => {
+                            onClick={async () => {
                               setSelectedRequest(vendor.raw);
+
+                              const ok = await ensureVendorBankDetails();
+                              if (!ok) return;
+
                               setIsModalOpen2(true);
                             }}
                           >
@@ -414,7 +460,7 @@ const NewPriceRequests: React.FC = () => {
                           <button
                             className="bg-[#D1D1D1] py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500"
                             onClick={() => {
-                              setQuotationToDelete(vendor.raw. id);
+                              setQuotationToDelete(vendor.raw.id);
                               setIsDeleteModalOpen(true);
                             }}
                           >
@@ -488,7 +534,9 @@ const NewPriceRequests: React.FC = () => {
 
               I'm contacting you regarding your price request for:
               Vehicle Type: ${selectedRequest.vehicleType || "-"}
-              Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
+              Brand/Model: ${selectedRequest.brand || ""} ${
+              selectedRequest.model || ""
+            }
 
               `.trim();
 
@@ -529,7 +577,10 @@ const NewPriceRequests: React.FC = () => {
 
       {/* Image Lightbox Modal */}
       {selectedImageIndex !== null && currentRequestImages.length > 0 && (
-        <Dialog.Root open={true} onOpenChange={() => setSelectedImageIndex(null)}>
+        <Dialog.Root
+          open={true}
+          onOpenChange={() => setSelectedImageIndex(null)}
+        >
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
             <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] md:w-auto md:max-w-[90vw] max-h-[90vh] focus:outline-none z-50 px-4 md:px-0">
@@ -543,7 +594,7 @@ const NewPriceRequests: React.FC = () => {
                   height={800}
                   className="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-lg object-contain"
                 />
-                
+
                 {/* Image Counter */}
                 <div className="absolute top-2 md:-top-12 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 md:px-4 py-1 md:py-2 rounded-full text-[10px] md:text-[12px] font-body z-10">
                   {selectedImageIndex + 1} / {currentRequestImages.length}
@@ -564,7 +615,7 @@ const NewPriceRequests: React.FC = () => {
                         ‹
                       </button>
                     )}
-                    
+
                     {/* Next Button */}
                     {selectedImageIndex < currentRequestImages.length - 1 && (
                       <button
@@ -599,8 +650,8 @@ const NewPriceRequests: React.FC = () => {
                         onClick={() => setSelectedImageIndex(idx)}
                         className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${
                           idx === selectedImageIndex
-                            ? 'border-[#F9C301] scale-110'
-                            : 'border-white/30 hover:border-white/60'
+                            ? "border-[#F9C301] scale-110"
+                            : "border-white/30 hover:border-white/60"
                         }`}
                       >
                         <Image
@@ -615,10 +666,19 @@ const NewPriceRequests: React.FC = () => {
                   </div>
                 )}
               </div>
-            </Dialog. Content>
+            </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
       )}
+
+      <BankDetailsRequiredModal
+        isOpen={bankModalOpen}
+        onClose={() => setBankModalOpen(false)}
+        onConfirm={() => {
+          setBankModalOpen(false);
+          router.push("/vendor/profile");
+        }}
+      />
     </TabLayout>
   );
 };
