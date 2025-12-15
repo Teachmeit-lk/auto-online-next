@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus, Camera } from "lucide-react";
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useRef, useState } from "react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller, useWatch } from "react-hook-form";
@@ -34,6 +34,7 @@ interface IGetQuotationModalProps {
   onClose: () => void;
   vendor?: Vendor | null;
   mode?: "direct" | "search";
+  onSuccess?: (vendorId: string) => void;
   onSearchSubmit?: (
     filters: {
       country: string;
@@ -43,6 +44,8 @@ interface IGetQuotationModalProps {
     fullData?: any
   ) => void;
   preSelectedCategory?: string;
+
+  resetKey?: string;
 }
 
 export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
@@ -52,6 +55,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
   mode = "direct",
   onSearchSubmit,
   preSelectedCategory,
+  onSuccess,
+  resetKey,
 }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -232,6 +237,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       doc
     );
 
+    if (vendor?.id) onSuccess?.(vendor.id);
+
     setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
     setWhatsAppModalOpen(true);
 
@@ -279,6 +286,55 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     string[]
   >([]);
   const [brandData, setBrandData] = useState<any[]>([]);
+
+  const clearFormState = () => {
+    reset({
+      country: "",
+      category: "",
+      brand: "",
+      model: "",
+      district: "",
+      vehicletype: "",
+      manufactoringyear: "",
+      fueltype: "",
+      measurement: "",
+      noofunits: undefined,
+      description: "",
+      images: [],
+    });
+
+    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    setSelectedFiles([]);
+    setImagePreviews([]);
+    setLastSubmission(null);
+    setWhatsAppModalOpen(false);
+
+    const fileInput = document.getElementById(
+      "file-upload-multiple"
+    ) as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+  };
+
+  const prevResetKeyRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    // ignore first render
+    if (prevResetKeyRef.current === undefined) {
+      prevResetKeyRef.current = resetKey;
+      return;
+    }
+
+    if (resetKey && prevResetKeyRef.current !== resetKey) {
+      clearFormState(); // ✅ only when filters changed
+
+      // optional: if you want category prefilled in search mode after reset
+      if (mode === "search" && preSelectedCategory) {
+        setValue("category", preSelectedCategory, { shouldValidate: false });
+      }
+    }
+
+    prevResetKeyRef.current = resetKey;
+  }, [resetKey, mode, preSelectedCategory, setValue]);
 
   useEffect(() => {
     (async () => {

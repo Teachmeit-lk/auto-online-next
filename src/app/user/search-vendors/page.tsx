@@ -40,6 +40,7 @@ const SearchVendors: React.FC = () => {
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [profileVendor, setProfileVendor] = useState<any | null>(null);
+  const [quotationModalKey, setQuotationModalKey] = useState(0);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
@@ -59,6 +60,56 @@ const SearchVendors: React.FC = () => {
   const [sentToVendors, setSentToVendors] = useState<Record<string, boolean>>(
     {}
   );
+  const [isInitFromUrl, setIsInitFromUrl] = useState(true);
+  const [hasUrlFilters, setHasUrlFilters] = useState(false);
+
+  const filterKey = useMemo(
+    () =>
+      JSON.stringify({
+        filterCategory,
+        filterCountry,
+        filterDistrict,
+        search,
+      }),
+    [filterCategory, filterCountry, filterDistrict, search]
+  );
+
+  const resetNormalFlowState = () => {
+    setSentToVendors({});
+    setPendingVendor(null);
+    setSelectedVendor(null);
+    setProfileVendor(null);
+    setSelectedVendorGallery([]);
+
+    setConfirmationModalOpen(false);
+    setGetQuotationModalOpen(false);
+    setViewVendorProfileModalOpen(false);
+    setWhatsAppModalOpen(false);
+    setUploadedImageUrl("");
+
+    setQuotationModalKey((k) => k + 1);
+  };
+
+  // useEffect(() => {
+  //   if (isInitFromUrl) return;
+  //   setSentToVendors({});
+  //   setPendingVendor(null);
+  //   setSelectedVendor(null);
+  //   setConfirmationModalOpen(false);
+  //   setWhatsAppModalOpen(false);
+  //   setUploadedImageUrl("");
+  // }, [filterKey, isInitFromUrl]);
+
+  const clearAutoQuotationFlow = () => {
+    setPreFilledQuotationData(null);
+    setIsFromShopNow(false);
+    setSentToVendors({});
+    setPendingVendor(null);
+
+    setConfirmationModalOpen(false);
+    setWhatsAppModalOpen(false);
+    setUploadedImageUrl("");
+  };
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
@@ -66,19 +117,24 @@ const SearchVendors: React.FC = () => {
     const districtFromUrl = searchParams.get("filterDistrict");
     const fromShopNow = searchParams.get("fromShopNow");
 
-    if (categoryFromUrl) {
-      setFilterCategory(categoryFromUrl);
-    }
-    if (countryFromUrl) {
-      setFilterCountry(countryFromUrl);
-    }
-    if (districtFromUrl && fromShopNow !== "true") {
+    const anyFilters =
+      !!categoryFromUrl ||
+      !!countryFromUrl ||
+      !!districtFromUrl ||
+      fromShopNow === "true";
+
+    setHasUrlFilters(anyFilters);
+
+    if (categoryFromUrl) setFilterCategory(categoryFromUrl);
+    if (countryFromUrl) setFilterCountry(countryFromUrl);
+    if (districtFromUrl && fromShopNow !== "true")
       setFilterDistrict(districtFromUrl);
-    }
-    if (fromShopNow === "true") {
-      setIsFromShopNow(true);
-    }
-  }, [searchParams]);
+
+    setIsFromShopNow(fromShopNow === "true");
+
+    setIsInitFromUrl(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const user = authState.user as any;
 
@@ -460,7 +516,20 @@ const SearchVendors: React.FC = () => {
               <select
                 className="h-[32px] rounded-[5px] px-3 text-sm font-body text-gray-700 w-full focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+
+                  if (!isInitFromUrl) {
+                    if (isFromShopNow || preFilledQuotationData) {
+                      clearAutoQuotationFlow();
+                    }
+
+                    // always reset normal mode "sent" + modals etc
+                    resetNormalFlowState();
+                  }
+
+                  setFilterCategory(val);
+                }}
               >
                 <option value="all">All Categories</option>
                 {categories.map((c: any) => (
@@ -479,7 +548,19 @@ const SearchVendors: React.FC = () => {
               <select
                 className="h-[32px] rounded-[5px] px-3 text-sm font-body text-gray-700 w-full focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 value={filterCountry}
-                onChange={(e) => setFilterCountry(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+
+                  if (!isInitFromUrl) {
+                    if (isFromShopNow || preFilledQuotationData) {
+                      clearAutoQuotationFlow();
+                    }
+
+                    resetNormalFlowState();
+                  }
+
+                  setFilterCountry(val);
+                }}
               >
                 <option value="all">All Countries</option>
                 {countryOptions.map((c) => (
@@ -498,7 +579,19 @@ const SearchVendors: React.FC = () => {
               <select
                 className="h-[32px] rounded-[5px] px-3 text-sm font-body text-gray-700 w-full focus:ring-2 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
                 value={filterDistrict}
-                onChange={(e) => setFilterDistrict(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+
+                  if (!isInitFromUrl) {
+                    if (isFromShopNow || preFilledQuotationData) {
+                      clearAutoQuotationFlow();
+                    }
+
+                    resetNormalFlowState();
+                  }
+
+                  setFilterDistrict(val);
+                }}
               >
                 <option value="all">All Districts</option>
                 {districtOptions.map((d) => (
@@ -841,6 +934,10 @@ const SearchVendors: React.FC = () => {
         isOpen={getQuotationModalOpen}
         onClose={() => setGetQuotationModalOpen(false)}
         vendor={selectedVendor}
+        resetKey={filterKey}
+        onSuccess={(vendorId) => {
+          setSentToVendors((prev) => ({ ...prev, [vendorId]: true }));
+        }}
       />
       <ViewVendorProfileModal
         isOpen={ViewVendorProfileModalOpen}
