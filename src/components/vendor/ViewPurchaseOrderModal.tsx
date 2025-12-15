@@ -36,11 +36,36 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
 
   console.log(order);
 
+  const formatDeliveryAddress = (address?:  {
+    street: string;
+    city: string;
+    district:  string;
+    zipCode: string;
+    country: string;
+  }): string => {
+    if (! address) return "-";
+    
+    const { street, city, district, zipCode, country } = address;
+
+    const parts = [street, city, district, zipCode, country].filter(
+      (part) => part && part. trim() !== ""
+    );
+    
+    return parts.length > 0 ? parts.join(", ") : "-";
+  };
+
   const getDeliveryMethodLabel = (method?: string) => {
     if (method === "arrange_delivery") return "Arrange delivery through vendor";
     if (method === "collect_from_shop") return "Collect from shop";
     return "-";
   };
+
+  const netTotal = useMemo(() => {
+    // Use saved netTotal if available
+    if (order?.netTotal) {
+      return Number(order.netTotal);
+    }
+  }, [order]);
 
   const getPaymentMethodLabel = (method?: string) => {
     if (method === "cash_at_shop") return "Cash at shop";
@@ -101,20 +126,21 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 />
               </div>
 
-              {/* Total Amount */}
+              {/* Net Total */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Amount (Rs.)
+                  Net Total (Rs.)
                 </label>
                 <input
                   type="text"
-                  value={order?.totalAmount?.toString() || ""}
+                  value={netTotal}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
               {/* Delivery Cost */}
+              {order?.deliveryMethod === "arrange_delivery" && (
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Delivery Cost (Rs.)
@@ -122,6 +148,21 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 <input
                   type="text"
                   value={order?.deliveryCost?.toString() || "-"}
+                  readOnly
+                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+              )}
+
+              
+              {/* Total Amount */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Grand Total (Rs.)
+                </label>
+                <input
+                  type="text"
+                  value={order?.totalAmount?.toString() || ""}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -152,6 +193,21 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
+
+              {/* Delivery Address */}
+              {order?.deliveryMethod === "arrange_delivery" && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Delivery Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formatDeliveryAddress(order?.deliveryAddress)}
+                    readOnly
+                    className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus: outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
 
               {/* Payment Slip */}
               <div className="col-span-3">
@@ -224,7 +280,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
-                      <td className="p-3 border">{item.netTotal}</td>
+                      <td className="p-3 border">{netTotal}</td>
                       <td className="p-3 border">{item.stockAvailability}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>

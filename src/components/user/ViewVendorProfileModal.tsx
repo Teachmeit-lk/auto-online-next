@@ -2,7 +2,6 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import Image from "next/image";
 import { GalleryImage } from "@/service/firestoreService";
 
 interface IViewVendorProfileModalProps {
@@ -35,17 +34,27 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-auto bg-white py-8 px-7 rounded-[10px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[15px] font-bold mb-5 text-[#111102] font-body text-left">
-            {(vendor?.firstName || "") + " " + (vendor?.lastName || "")}
+            {vendor?.companyName ||
+              (vendor?.firstName || "") + " " + (vendor?.lastName || "")}
           </Dialog.Title>
 
           {/* Gray Container */}
-          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-full h-[600px] overflow-y-auto">
+          <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-[500px] h-[600px] overflow-y-auto no-scrollbar">
             {/* Logo and Company Name Row */}
             <div className="sm:grid sm:grid-cols-3 gap-x-6 items-center sm:space-y-0 space-y-2">
               {/* Logo */}
               <div className="flex justify-center">
-                <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500">
-                  Logo
+                <div className="w-[90px] h-[63px] rounded-[3px] bg-white flex items-center justify-center text-[10px] text-gray-500 overflow-hidden">
+                  {vendor?.companyLogo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={vendor.companyLogo}
+                      alt="Company Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <span>Logo</span>
+                  )}
                 </div>
               </div>
 
@@ -57,6 +66,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 <input
                   type="text"
                   value={
+                    vendor?.companyName ||
                     (vendor?.firstName || "") + " " + (vendor?.lastName || "")
                   }
                   readOnly
@@ -145,6 +155,37 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 />
               </div>
 
+              {/* Company Address */}
+              <div className="col-span-3">
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={vendor?.address || ""}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {/* Company Location Link */}
+              {vendor?.locationLink && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Location Link
+                  </label>
+
+                  <a
+                    href={vendor?.locationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline"
+                  >
+                    {vendor?.locationLink || "No link available"}
+                  </a>
+                </div>
+              )}
+
               {/* Main Categories */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -154,7 +195,8 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                   type="text"
                   value={prettyList(vendor?.mainCategories, categoryLabelMap)}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  title={prettyList(vendor?.mainCategories, categoryLabelMap)}
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus: ring-[#F9C301] truncate cursor-default"
                 />
               </div>
 
@@ -167,7 +209,8 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                   type="text"
                   value={prettyList(vendor?.vehicleBrand, brandLabelMap)}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  title={prettyList(vendor?.vehicleBrand, brandLabelMap)}
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus: ring-[#F9C301] truncate cursor-default"
                 />
               </div>
 
@@ -180,20 +223,8 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                   type="text"
                   value={prettyList(vendor?.vehicleModel, modelLabelMap)}
                   readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
-              </div>
-
-              {/* Company Description */}
-              <div className="col-span-3">
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Company Description
-                </label>
-                <textarea
-                  rows={3}
-                  readOnly
-                  value={vendor?.description || vendor?.address || ""}
-                  className="w-full placeholder:text-[#111102] h-[60px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  title={prettyList(vendor?.vehicleModel, modelLabelMap)}
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] truncate cursor-default"
                 />
               </div>
 
@@ -202,14 +233,14 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Gallery Images
                 </label>
-                <div className="flex space-x-2 mt-2">
-                  {(gallery || []).slice(0, 7).map((g) => (
+                <div className="flex space-x-2 mt-2 overflow-x-auto pb-2">
+                  {(gallery || []).map((g) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={g.imageUrl}
                       src={g.imageUrl}
                       alt={g.title}
-                      className="w-[75px] h-[75px] rounded-[3px] object-cover"
+                      className="w-[75px] h-[75px] rounded-[3px] object-cover flex-shrink-0"
                     />
                   ))}
                 </div>

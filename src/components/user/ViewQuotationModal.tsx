@@ -35,6 +35,36 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     }));
   }, [quotation]);
 
+  type StaffInfo = {
+    nic?: string;
+    staffId?: string;
+    staffName?: string;
+    phone?: string;
+  };
+
+  const parseStaffInfo = (notes?: string): StaffInfo => {
+    if (!notes) return {};
+
+    const get = (re: RegExp) => notes.match(re)?.[1]?.trim();
+
+    return {
+      nic: get(/NIC[:\s]+([0-9]{9,12}[VvXx]?)/),
+      staffId:
+        get(/Staff\s*[:\s]+([^,]+)/i) ||
+        get(/Staff[:\s]+([^,]+)/i) ||
+        get(/Staff[:\s]+([0-9]+)/),
+      staffName: get(/Staff\s*Name[:\s]+([^,]+)/i) || get(/Name[:\s]+([^,]+)/i),
+      phone: get(/Phone[:\s]+([0-9+]{9,15})/i),
+    };
+  };
+
+  const staffInfo = useMemo(
+    () => parseStaffInfo(quotation?.notes),
+    [quotation?.notes]
+  );
+
+  const staffIdForDisplay = staffInfo.nic ?? "";
+
   const extractDeliveryCost = (notes?: string): string => {
     if (!notes) return "-";
 
@@ -68,7 +98,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="200212904000"
-                  value={useRefactoredId("ST", quotation?.vendorId) || ""}
+                  value={staffIdForDisplay || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -82,7 +112,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="Shehan Maduranga"
-                  value={quotation?.vendorName || ""}
+                  value={staffInfo.staffId || "-"}
                   readOnly
                   className="w-full h-[36px]  placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -96,6 +126,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="0778903648"
+                  value={staffInfo.phone || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -108,7 +139,6 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="500.00"
                   value={extractDeliveryCost(quotation?.notes)}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
@@ -118,11 +148,10 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
               {/* Total Cost */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Total Cost (Rs.)
+                  {/* Total Cost (Rs.) */}Net Total (Rs.)
                 </label>
                 <input
                   type="text"
-                  placeholder="14,500.00"
                   value={quotation?.totalAmount?.toString() || ""}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
@@ -182,7 +211,7 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
-                      <td className="p-3 border">{item.netTotal}</td>
+                      <td className="p-3 border">{quotation?.totalAmount?.toString()}</td>
                       <td className="p-3 border">{item.stock}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>

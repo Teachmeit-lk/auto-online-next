@@ -5,11 +5,12 @@ export interface SignupRequest {
   email: string;
   password: string;
   whatsApp: string;
-  address: string;
-  city: string;
+  address?: string;
+  city?: string;
   district: string;
-  zipCode: string;
-  NIC: string;
+  zipCode?: string;
+  NIC?: string;
+  companyLogo?: string;
 }
 
 export type LoginRequest =

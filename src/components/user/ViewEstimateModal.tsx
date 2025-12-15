@@ -3,9 +3,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 import Image from "next/image";
-
-import { ViewEstimate1 } from "@/assets/Images";
 import { QuotationRequest } from "@/service/firestoreService";
+import { useState } from "react";
 
 interface EstimateModalProps {
   isOpen: boolean;
@@ -18,13 +17,13 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
   onClose,
   request,
 }) => {
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const createdAt: any = (request as any)?.createdAt;
   const createdDate = createdAt?.seconds
     ? new Date(createdAt.seconds * 1000)
     : createdAt instanceof Date
     ? createdAt
     : null;
-  const firstImage = request?.attachedImages?.[0];
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -38,24 +37,48 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
 
           {/* Gray Container */}
           <div className="bg-[#F8F8F8] rounded-[8px] sm:p-8 p-4 space-y-6 sm:h-[550px] h-[600px] overflow-y-auto no-scrollbar">
-            {/* Image Section */}
-            <div className="flex justify-center">
-              {firstImage ? (
-                <Image
-                  src={firstImage}
-                  alt="Attachment"
-                  width={214}
-                  height={146}
-                  className="w-[214px] h-[146px] rounded-[6px] object-cover"
-                />
+            {/* Image Section - Multiple Images */}
+            <div className="space-y-3">
+              <label className="text-[12px] font-body font-[500] text-[#111102] block">
+                Attached Images {request?.attachedImages && request.attachedImages.length > 0 && (
+                  <span className="text-[10px] text-gray-500">
+                    ({request.attachedImages.length} {request.attachedImages.length === 1 ? 'image' : 'images'})
+                  </span>
+                )}
+              </label>
+              
+              {request?.attachedImages && request.attachedImages.length > 0 ?  (
+                <div className="grid grid-cols-3 gap-3">
+                  {request.attachedImages.map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer"
+                      onClick={() => setSelectedImageIndex(index)}
+                    >
+                      <Image
+                        src={imageUrl}
+                        alt={`Attachment ${index + 1}`}
+                        width={200}
+                        height={150}
+                        className="w-full h-[120px] rounded-[6px] object-cover border-2 border-transparent group-hover:border-[#F9C301] transition-all"
+                      />
+                      <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-body px-2 py-0.5 rounded-full">
+                        {index + 1}/{request.attachedImages.length}
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-[6px] transition-all flex items-center justify-center">
+                        <span className="text-white text-[10px] font-body opacity-0 group-hover:opacity-100 bg-[#F9C301] px-3 py-1 rounded-full">
+                          View
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <Image
-                  src={ViewEstimate1}
-                  alt="No image"
-                  width={107}
-                  height={73}
-                  className="w-[107px] h-[73px] rounded-[3px] object-cover"
-                />
+                <div className="flex flex-col items-center justify-center py-4">
+                  <p className="text-[10px] text-gray-500 font-body text-center mt-2">
+                    No images attached
+                  </p>
+                </div>
               )}
             </div>
 
@@ -239,6 +262,98 @@ export const ViewEstimateModal: React.FC<EstimateModalProps> = ({
             </button>
           </Dialog.Close>
         </Dialog.Content>
+        {/* Image Lightbox Modal */}
+        {selectedImageIndex !== null && request?.attachedImages && (
+          <Dialog.Root open={true} onOpenChange={() => setSelectedImageIndex(null)}>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
+                <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] md:w-auto md:max-w-[90vw] max-h-[90vh] focus:outline-none z-50 px-4 md:px-0">
+                  <Dialog.Title></Dialog.Title>
+                  <div className="relative flex flex-col items-center">
+                  {/* Main Image */}
+                  <Image
+                    src={request.attachedImages[selectedImageIndex]}
+                    alt={`Full size image ${selectedImageIndex + 1}`}
+                    width={1200}
+                    height={800}
+                    className="max-w-[90vw] max-h-[85vh] w-auto h-auto rounded-lg object-contain"
+                  />
+                  
+                  {/* Image Counter */}
+                  <div className="absolute top-2 md:-top-12 left-1/2 -translate-x-1/2 bg-black/70 text-white px-3 md:px-4 py-1 md:py-2 rounded-full text-[10px] md:text-[12px] font-body z-10">
+                    {selectedImageIndex + 1} / {request.attachedImages.length}
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  {request.attachedImages.length > 1 && (
+                    <>
+                      {/* Previous Button */}
+                      {selectedImageIndex > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedImageIndex(selectedImageIndex - 1);
+                          }}
+                          className="absolute left-2 md:-left-14 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-[#F9C301] text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 text-lg md:text-xl"
+                        >
+                          ‹
+                        </button>
+                      )}
+                      
+                      {/* Next Button */}
+                      {selectedImageIndex < request.attachedImages.length - 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedImageIndex(selectedImageIndex + 1);
+                          }}
+                          className="absolute right-2 md:-right-14 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-[#F9C301] text-white w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10 text-lg md:text-xl"
+                        >
+                          ›
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Close Button */}
+                  <Dialog.Close asChild>
+                    <button
+                      onClick={() => setSelectedImageIndex(null)}
+                      className="absolute top-2 right-2 md:-top-12 md:-right-12 bg-black/70 hover:bg-red-500 text-white w-8 h-8 md: w-10 md:h-10 rounded-full flex items-center justify-center transition-all z-10"
+                    >
+                      <CirclePlus className="w-4 h-4 md:w-5 md:h-5 rotate-45" />
+                    </button>
+                  </Dialog.Close>
+
+                  {/* Thumbnail Strip */}
+                  {request.attachedImages.length > 1 && (
+                    <div className="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 flex gap-1 md:gap-2 bg-black/70 p-1.5 md:p-2 max-w-[90vw] overflow-x-auto no-scrollbar">
+                      {request.attachedImages. map((img, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedImageIndex(idx)}
+                          className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${
+                            idx === selectedImageIndex
+                              ? 'border-[#F9C301] scale-110'
+                              : 'border-white/30 hover: border-white/60'
+                          }`}
+                        >
+                          <Image
+                            src={img}
+                            alt={`Thumbnail ${idx + 1}`}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+        )}
       </Dialog.Portal>
     </Dialog.Root>
   );

@@ -109,7 +109,7 @@ const AdminMainCategoriesPage: React.FC = () => {
         imageUrl: imageUrl || "",
       } as any);
 
-      setMessage("Category created successfully.");
+      // setMessage("Category created successfully.");
       reset({ name: "", description: "", sortOrder: 0, imageFile: null });
       setCreatePreview(null);
       setOpen(false);
@@ -152,7 +152,7 @@ const AdminMainCategoriesPage: React.FC = () => {
         } as any
       );
 
-      setMessage("Category updated successfully.");
+      // setMessage("Category updated successfully.");
       setEditOpen(false);
       setEditImageFile(null);
       setEditPreview(null);

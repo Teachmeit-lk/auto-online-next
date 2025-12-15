@@ -7,12 +7,9 @@ import { TabLayout, ViewVendorProfileModal } from "@/components";
 import { GetQuotationModal } from "@/components/";
 import { SendWhatsAppConfirmationModal } from "@/components/user/SendWhatsAppConfirmationModal";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
-import {
-  QuotationRequest,
-} from "@/service/firestoreService";
+import { QuotationRequest } from "@/service/firestoreService";
 import { buildWhatsAppQuotationUrl } from "@/components/hooks/openWhatsAppWithQuotation";
 
-import withAuth from "@/components/authGuard/withAuth";
 import {
   FirestoreService,
   COLLECTIONS,
@@ -35,7 +32,8 @@ const SearchVendors: React.FC = () => {
     useState(false);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [pendingVendor, setPendingVendor] = useState<any | null>(null);
-  const [preFilledQuotationData, setPreFilledQuotationData] = useState<any>(null);
+  const [preFilledQuotationData, setPreFilledQuotationData] =
+    useState<any>(null);
   const [isFromShopNow, setIsFromShopNow] = useState(false);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
@@ -63,7 +61,7 @@ const SearchVendors: React.FC = () => {
     const countryFromUrl = searchParams.get("filterCountry");
     const districtFromUrl = searchParams.get("filterDistrict");
     const fromShopNow = searchParams.get("fromShopNow");
-    
+
     if (categoryFromUrl) {
       setFilterCategory(categoryFromUrl);
     }
@@ -122,15 +120,15 @@ const SearchVendors: React.FC = () => {
     })();
   }, []);
 
-useEffect(() => {
-  if (isFromShopNow) {
-    const storedData = sessionStorage.getItem("preFilledQuotationData");
-    if (storedData) {
-      setPreFilledQuotationData(JSON.parse(storedData));
-      sessionStorage.removeItem("preFilledQuotationData");
+  useEffect(() => {
+    if (isFromShopNow) {
+      const storedData = sessionStorage.getItem("preFilledQuotationData");
+      if (storedData) {
+        setPreFilledQuotationData(JSON.parse(storedData));
+        sessionStorage.removeItem("preFilledQuotationData");
+      }
     }
-  }
-}, [isFromShopNow]);
+  }, [isFromShopNow]);
 
   const countryOptions = useMemo(() => {
     const set = new Set<string>();
@@ -145,9 +143,9 @@ useEffect(() => {
   }, [vendors]);
 
   useEffect(() => {
-    if (authState. isAuthenticated && ! loading) {
+    if (authState.isAuthenticated && !loading) {
       const pendingQuotation = localStorage.getItem("pendingQuotation");
-      
+
       if (pendingQuotation) {
         try {
           const parsed = JSON.parse(pendingQuotation);
@@ -155,17 +153,19 @@ useEffect(() => {
           setPreFilledQuotationData(parsed.quotationData);
           setIsFromShopNow(parsed.fromShopNow);
 
-          if (parsed. returnUrl) {
-            const urlParams = new URLSearchParams(parsed.returnUrl.split('?')[1]);
+          if (parsed.returnUrl) {
+            const urlParams = new URLSearchParams(
+              parsed.returnUrl.split("?")[1]
+            );
             const category = urlParams.get("category");
             const country = urlParams.get("filterCountry");
-            
+
             if (category) setFilterCategory(category);
             if (country) setFilterCountry(country);
           }
 
-          const vendor = vendors.find((v: any) => v. id === parsed.vendorId);
-          
+          const vendor = vendors.find((v: any) => v.id === parsed.vendorId);
+
           if (vendor) {
             setPendingVendor(vendor);
             setSelectedVendor(vendor);
@@ -176,11 +176,11 @@ useEffect(() => {
           } else if (parsed.vendorInfo) {
             const vendorInfo = {
               id: parsed.vendorId,
-              ... parsed.vendorInfo,
+              ...parsed.vendorInfo,
             };
             setPendingVendor(vendorInfo);
             setSelectedVendor(vendorInfo);
-            
+
             setTimeout(() => {
               setConfirmationModalOpen(true);
             }, 500);
@@ -188,7 +188,7 @@ useEffect(() => {
 
           localStorage.removeItem("pendingQuotation");
         } catch (error) {
-          console. error("Error restoring pending quotation:", error);
+          console.error("Error restoring pending quotation:", error);
           localStorage.removeItem("pendingQuotation");
         }
       }
@@ -202,18 +202,19 @@ useEffect(() => {
           const mc: string[] = (v.mainCategories || []) as string[];
 
           const matchedCategory = categories.find(
-            (cat: any) => cat. name === filterCategory || cat.id === filterCategory
+            (cat: any) =>
+              cat.name === filterCategory || cat.id === filterCategory
           );
-          
+
           const categoryId = matchedCategory?.id || filterCategory;
           const categoryName = matchedCategory?.name || filterCategory;
 
           const hasCategory = mc.some(
-            (vendorCat) => vendorCat === categoryId || vendorCat === categoryName
+            (vendorCat) =>
+              vendorCat === categoryId || vendorCat === categoryName
           );
-          
-          if (!hasCategory) return false;
 
+          if (!hasCategory) return false;
         }
         if (filterCountry !== "all") {
           const vendorBrandIds: string[] = (v.vehicleBrand || []) as string[];
@@ -251,103 +252,126 @@ useEffect(() => {
     categories,
   ]);
 
-const handleAutoSubmitQuotation = async (vendor: any) => {
-  if (!preFilledQuotationData || !user?. id) return;
+  const handleAutoSubmitQuotation = async (vendor: any) => {
+    if (!preFilledQuotationData || !user?.id) return;
 
-  const data = preFilledQuotationData;
+    const data = preFilledQuotationData;
+    console.log("Data:", preFilledQuotationData);
 
-  let uploadedUrl = "";
-  if (data.imageData) {
-    try {
-      const response = await fetch(data.imageData. data);
-      const blob = await response.blob();
-      const file = new File([blob], data.imageData. name, { 
-        type: data.imageData.type 
-      });
+    let uploadedUrls: string[] = [];
 
-      const compressed = file. type. startsWith("image/")
-        ? await FirebaseStorageService. compressImage(file, 1920, 1080, 0.7)
-        : file;
+    if (data.imageDataArray && data.imageDataArray.length > 0) {
+      try {
+        const uploadPromises = data.imageDataArray.map(
+          async (imageData: any) => {
+            const response = await fetch(imageData.data);
+            const blob = await response.blob();
+            const file = new File([blob], imageData.name, {
+              type: imageData.type,
+            });
 
-      const res = await FirebaseStorageService.uploadDocument(
-        user.id,
-        "quotation",
-        compressed
-      );
-      uploadedUrl = res.url;
-      setUploadedImageUrl(uploadedUrl);
-    } catch (error) {
-      console.error("Error uploading image:", error);
+            const compressed = file.type.startsWith("image/")
+              ? await FirebaseStorageService.compressImage(
+                  file,
+                  1920,
+                  1080,
+                  0.7
+                )
+              : file;
+
+            const requestId = `req_${Date.now()}_${Math.random()
+              .toString(36)
+              .substring(2, 9)}`;
+
+            const res = await FirebaseStorageService.uploadDocument(
+              user.id,
+              `quotation/${requestId}`,
+              compressed
+            );
+
+            return res.url;
+          }
+        );
+
+        uploadedUrls = await Promise.all(uploadPromises);
+        setUploadedImageUrl(uploadedUrls[0] || "");
+
+        console.log("Images uploaded:", uploadedUrls);
+      } catch (error) {
+        console.error("Error uploading images:", error);
+      }
     }
-  }
 
-  const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
-    buyerId: user.id,
-    buyerName: `${user.firstName || ""} ${user.lastName || ""}`. trim(),
-    buyerEmail: user.email || "",
-    buyerPhone: user.phone || "",
-    vendorId: vendor?. id,
-    vendorName: vendor?. firstName,
-    country: data.country,
-    brand: data.brand,
-    model: data.model,
-    category: data.category,
-    district: data.district,
-    vehicleType: data.vehicletype,
-    manufacturingYear: data.manufactoringyear,
-    fuelType: data.fueltype,
-    measurement: data.measurement,
-    numberOfUnits: data.noofunits,
-    description: data. description,
-    attachedImages: uploadedUrl ?  [uploadedUrl] : [],
-    status: "pending",
-    quotationsReceived: 0,
-  } as any;
+    const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
+      buyerId: user.id,
+      buyerName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      buyerEmail: user.email || "",
+      buyerPhone: user.phone || "",
+      vendorId: vendor?.id || null,
+      vendorName: vendor?.firstName || null,
+      country: data.country,
+      brand: data.brand,
+      model: data.model,
+      category: data.category,
+      district: data.district,
+      vehicleType: data.vehicletype,
+      manufacturingYear: data.manufactoringyear,
+      fuelType: data.fueltype,
+      measurement: data.measurement,
+      numberOfUnits: data.noofunits,
+      description: data.description,
+      attachedImages: uploadedUrls.length > 0 ? uploadedUrls : [],
+      status: "pending",
+      quotationsReceived: 0,
+      isActive: true,
+    } as any;
 
-  await FirestoreService.create<QuotationRequest>(
-    COLLECTIONS.QUOTATION_REQUESTS,
-    doc
-  );
+    await FirestoreService.create<QuotationRequest>(
+      COLLECTIONS.QUOTATION_REQUESTS,
+      doc
+    );
 
-  setWhatsAppModalOpen(true);
-};
+    setWhatsAppModalOpen(true);
+  };
 
-const handleConfirmWhatsApp = () => {
-  if (! preFilledQuotationData || ! selectedVendor || !user) return;
+  const handleConfirmWhatsApp = () => {
+    if (!preFilledQuotationData || !selectedVendor || !user) return;
 
-  const vendorPhone = selectedVendor?. whatsApp || selectedVendor?.phone || "";
-  const vendorDisplayName =
-    selectedVendor?.companyName ||
-    `${selectedVendor?.firstName || ""} ${selectedVendor?. lastName || ""}`.trim() ||
-    "Vendor";
+    const vendorPhone = selectedVendor?.whatsApp || selectedVendor?.phone || "";
+    const vendorDisplayName =
+      selectedVendor?.companyName ||
+      `${selectedVendor?.firstName || ""} ${
+        selectedVendor?.lastName || ""
+      }`.trim() ||
+      "Vendor";
 
-  const waUrl = buildWhatsAppQuotationUrl({
-    vendor: {
-      id: selectedVendor?.id || "",
-      name: vendorDisplayName,
-    },
-    vendorPhone,
-    data: preFilledQuotationData,
-    currentUser: user,
-    fileUrl: uploadedImageUrl,
-  });
+    const waUrl = buildWhatsAppQuotationUrl({
+      vendor: {
+        id: selectedVendor?.id || "",
+        name: vendorDisplayName,
+      },
+      vendorPhone,
+      data: preFilledQuotationData,
+      currentUser: user,
+      fileUrl: uploadedImageUrl,
+    });
 
-  if (waUrl) {
-    window.location.href = waUrl;
-  }
+    if (waUrl) {
+      window.location.href = waUrl;
+    }
 
-  setWhatsAppModalOpen(false);
-  setPreFilledQuotationData(null);
-  setIsFromShopNow(false);
-  setUploadedImageUrl("");
-};
+    setWhatsAppModalOpen(false);
+    setPreFilledQuotationData(null);
+    setIsFromShopNow(false);
+    setUploadedImageUrl("");
+  };
 
-const handleSkipWhatsApp = () => {
-  setWhatsAppModalOpen(false);
-  setPreFilledQuotationData(null);
-  setIsFromShopNow(false);
-  setUploadedImageUrl("");
-};
+  const handleSkipWhatsApp = () => {
+    setWhatsAppModalOpen(false);
+    setPreFilledQuotationData(null);
+    setIsFromShopNow(false);
+    setUploadedImageUrl("");
+  };
 
   const categoryLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -370,12 +394,27 @@ const handleSkipWhatsApp = () => {
 
   const modelLabelMap = useMemo(() => {
     const map: Record<string, string> = {};
+
     models.forEach((m: any) => {
-      if (m.id) map[m.id] = m.name;
+      const id = m.id || m.name;
+      if (!id) return;
+
+      map[id] = m.name;
+
       map[m.name] = m.name;
     });
+
+    vendors.forEach((v: any) => {
+      const vm: string[] = (v.vehicleModel || []) as string[];
+      vm.forEach((val) => {
+        if (val && !map[val]) {
+          map[val] = val;
+        }
+      });
+    });
+
     return map;
-  }, [models]);
+  }, [models, vendors]);
 
   return (
     <TabLayout type="user">
@@ -400,10 +439,7 @@ const handleSkipWhatsApp = () => {
               >
                 <option value="all">All Categories</option>
                 {categories.map((c: any) => (
-                  <option
-                    key={(c as any).id || c.name}
-                    value={c.name}
-                  >
+                  <option key={(c as any).id || c.name} value={c.name}>
                     {c.name}
                   </option>
                 ))}
@@ -533,7 +569,10 @@ const handleSkipWhatsApp = () => {
                       {index + 1}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {(vendor.firstName || "") + " " + (vendor.lastName || "")}
+                      {vendor?.companyName ||
+                        (vendor?.firstName || "") +
+                          " " +
+                          (vendor?.lastName || "")}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
                       {vendor.address || "-"}
@@ -544,24 +583,29 @@ const handleSkipWhatsApp = () => {
                         onClick={() => {
                           if (!authState.isAuthenticated) {
                             if (isFromShopNow && preFilledQuotationData) {
-                              localStorage.setItem("pendingQuotation", JSON.stringify({
-                                quotationData: preFilledQuotationData,
-                                vendorId: vendor.id,
-                                vendorInfo: {
-                                  firstName: vendor.firstName,
-                                  lastName: vendor.lastName,
-                                  companyName: vendor.companyName,
-                                  whatsApp: vendor.whatsApp,
-                                  phone: vendor.phone,
-                                },
-                                fromShopNow: true,
-                                returnUrl: window.location.pathname + window.location.search,
-                              }));
+                              localStorage.setItem(
+                                "pendingQuotation",
+                                JSON.stringify({
+                                  quotationData: preFilledQuotationData,
+                                  vendorId: vendor.id,
+                                  vendorInfo: {
+                                    firstName: vendor.firstName,
+                                    lastName: vendor.lastName,
+                                    companyName: vendor.companyName,
+                                    whatsApp: vendor.whatsApp,
+                                    phone: vendor.phone,
+                                  },
+                                  fromShopNow: true,
+                                  returnUrl:
+                                    window.location.pathname +
+                                    window.location.search,
+                                })
+                              );
                             }
                             router.push("/user/login");
                             return;
                           }
-                          
+
                           if (isFromShopNow && preFilledQuotationData) {
                             setPendingVendor(vendor);
                             setConfirmationModalOpen(true);
@@ -650,19 +694,24 @@ const handleSkipWhatsApp = () => {
                         onClick={() => {
                           if (!authState.isAuthenticated) {
                             if (isFromShopNow && preFilledQuotationData) {
-                              localStorage.setItem("pendingQuotation", JSON.stringify({
-                                quotationData: preFilledQuotationData,
-                                vendorId: vendor.id,
-                                vendorInfo: {
-                                  firstName: vendor.firstName,
-                                  lastName: vendor.lastName,
-                                  companyName: vendor.companyName,
-                                  whatsApp: vendor.whatsApp,
-                                  phone: vendor.phone,
-                                },
-                                fromShopNow: true,
-                                returnUrl: window.location.pathname + window.location.search,
-                              }));
+                              localStorage.setItem(
+                                "pendingQuotation",
+                                JSON.stringify({
+                                  quotationData: preFilledQuotationData,
+                                  vendorId: vendor.id,
+                                  vendorInfo: {
+                                    firstName: vendor.firstName,
+                                    lastName: vendor.lastName,
+                                    companyName: vendor.companyName,
+                                    whatsApp: vendor.whatsApp,
+                                    phone: vendor.phone,
+                                  },
+                                  fromShopNow: true,
+                                  returnUrl:
+                                    window.location.pathname +
+                                    window.location.search,
+                                })
+                              );
                             }
                             router.push("/user/login");
                             return;
@@ -714,7 +763,6 @@ const handleSkipWhatsApp = () => {
         <div className="mt-4 text-[12px] text-[#5B5B5B] font-body">
           Showing 1-{entries} Entries
         </div>
-
       </div>
       <GetQuotationConfirmation
         isOpen={confirmationModalOpen}
@@ -737,7 +785,9 @@ const handleSkipWhatsApp = () => {
         }}
         vendorName={
           pendingVendor?.companyName ||
-          `${pendingVendor?.firstName || ""} ${pendingVendor?.lastName || ""}`.trim()
+          `${pendingVendor?.firstName || ""} ${
+            pendingVendor?.lastName || ""
+          }`.trim()
         }
       />
       <GetQuotationModal

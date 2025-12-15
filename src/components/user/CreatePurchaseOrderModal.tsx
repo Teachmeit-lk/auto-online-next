@@ -121,10 +121,13 @@ export const CreatePurchaseOrderModal: React.FC<
     setItems(mapped);
   }, [quotation]);
 
+  const netTotal = useMemo(() => {
+    return Number(quotation?.totalAmount) || 0;
+  }, [quotation]);
+
   const grandTotal = useMemo(() => {
-    const itemsTotal = items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
-    return itemsTotal + deliveryCost;
-  }, [items, deliveryCost]);
+    return netTotal + deliveryCost;
+  }, [netTotal, deliveryCost]);
 
   const {
     control,
@@ -177,18 +180,17 @@ export const CreatePurchaseOrderModal: React.FC<
         const price = Number(p.unitPrice) || 0;
         return {
           id: p.id || String(idx),
-          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
+          itemDescription: p.partName || p. description || `Item ${idx + 1}`,
           partNumber: p.partNumber || "",
           image: Array.isArray(p.images) ? p.images[0] : undefined,
           quantity: qty,
-          unitPrice: price,
+          unitPrice:  price,
           totalPrice: Number(p.totalPrice) || qty * price,
         };
       }
     );
     setItems(mapped);
-
-    setDeliveryCost(Number(quotation.deliveryCost) || 0);
+    setDeliveryCost(0);
 
     const outOfStock = (quotation.products || []).some(
       (p: any) =>
@@ -197,7 +199,6 @@ export const CreatePurchaseOrderModal: React.FC<
     );
     setHasOutOfStock(outOfStock);
 
-    // Show alert immediately if out of stock
     if (outOfStock) {
       setShowOutOfStockAlert(true);
     }
@@ -245,6 +246,15 @@ export const CreatePurchaseOrderModal: React.FC<
       });
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (deliveryMethod === "collect_from_shop") {
+      setDeliveryCost(0);
+    } else if (deliveryMethod === "arrange_delivery" && quotation) {
+      // Restore original delivery cost when switching back to arrange_delivery
+      setDeliveryCost(Number(quotation.deliveryCost) || 0);
+    }
+  }, [deliveryMethod, quotation]);
 
   const onSubmit = async (data: PurchaseOrderFormData) => {
     if (hasOutOfStock) {
@@ -296,6 +306,7 @@ export const CreatePurchaseOrderModal: React.FC<
           unitPrice: it.unitPrice,
           totalPrice: it.totalPrice,
         })),
+        netTotal: netTotal,
         totalAmount: grandTotal,
         currency: quotation.currency || "LKR",
         deliveryMethod: data.deliveryMethod,
@@ -475,7 +486,7 @@ export const CreatePurchaseOrderModal: React.FC<
                     className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
                   />
                 </div>
-                <div>
+                {/* <div>
                   <label className="text-[12px] font-[500]">Address</label>
                   <input
                     readOnly
@@ -483,7 +494,7 @@ export const CreatePurchaseOrderModal: React.FC<
                     placeholder="Customer address"
                     className="mt-1 w-full h-[32px] px-3 text-[11px] bg-[#FEFEFE] rounded-[3px] focus:outline-none"
                   />
-                </div>
+                </div> */}
                 <div>
                   <label className="text-[12px] font-[500]">
                     Quotation reference no
@@ -660,20 +671,24 @@ export const CreatePurchaseOrderModal: React.FC<
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-[#FFF8D9] font-[600]">
-                      <td className="p-2 border text-right" colSpan={4}>
-                        Delivery Cost
-                      </td>
-                      <td className="p-2 border text-right" colSpan={1}>
-                        {deliveryCost.toFixed(2)} {quotation.currency || "LKR"}
-                      </td>
-                      <td className="p-2 border text-right" colSpan={1}>
-                        Grand Total
-                      </td>
-                      <td className="p-2 border text-right" colSpan={1}>
-                        {grandTotal.toFixed(2)} {quotation.currency || "LKR"}
-                      </td>
-                    </tr>
+                      <tr className="bg-[#FFF8D9] font-[600] border">
+                        <td className="p-2 text-[10px]" colSpan={7}>
+                          <div className="flex justify-between items-center px-4">
+                            <div className="flex items-center gap-2">
+                              <span>Net Total :</span>
+                              <span>{netTotal.toFixed(2)} {quotation.currency}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>Delivery Cost :</span>
+                              <span>{deliveryCost.toFixed(2)} {quotation.currency}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>Grand Total :</span>
+                              <span>{grandTotal.toFixed(2)} {quotation.currency}</span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                   </tbody>
                 </table>
               </div>
