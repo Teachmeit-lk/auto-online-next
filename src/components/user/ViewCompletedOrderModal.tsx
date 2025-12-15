@@ -236,16 +236,58 @@ export const ViewCompletedOrderModal: React.FC<
       ? productsList.length
       : orderData?.itemCount || 0;
 
+  // Delivery Cost
+  const extractDeliveryCost = (notes?: string): string => {
+    if (!notes) return "-";
+
+    const match = notes. match(/Delivery Cost[:\s]+([0-9]+(?:\.[0-9]{1,2})?)/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+
+    return "-";
+  };
+
+  const deliveryCost = (() => {
+    if (orderData?.specialNotes) {
+      const extracted = extractDeliveryCost(orderData. specialNotes);
+      if (extracted !== "-") {
+        return Number(extracted).toFixed(2);
+      }
+    }
+
+    if (orderData?.notes) {
+      const extracted = extractDeliveryCost(orderData.notes);
+      if (extracted !== "-") {
+        Number(extracted).toFixed(2);
+      }
+    }
+
+    if (orderData?.deliveryCost != null) {
+      return Number(orderData.deliveryCost).toFixed(2);
+    }
+
+    const grand = orderData?.totalAmount;
+    const net = orderData?.netTotal;
+    
+    if (grand != null && net != null) {
+      const deliveryCostValue = grand - net;
+      return deliveryCostValue > 0 ? Number(deliveryCostValue).toFixed(2) : "0.00";
+    }
+    
+    return "-";
+  })();
+
   // Total Amount
   const totalAmount =
-    orderData?.totalAmount != null ? String(orderData.totalAmount) : "-";
+    orderData?.totalAmount != null ? Number(orderData.totalAmount).toFixed(2) : "-";
 
   // Net Total
   const netTotal =
     orderData?.netTotal != null
-      ? String(orderData.netTotal)
+      ? Number(orderData.netTotal).toFixed(2)
       : orderData?.totalAmount != null
-      ? String(orderData.totalAmount)
+      ? Number(orderData.totalAmount).toFixed(2)
       : "-";
 
   // Completed Date
@@ -382,11 +424,11 @@ export const ViewCompletedOrderModal: React.FC<
 
                 <div>
                   <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Total Price (Rs.)
+                    Net Total (Rs.)
                   </label>
                   <input
                     type="text"
-                    value={totalAmount}
+                    value={netTotal}
                     readOnly
                     className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   />
@@ -394,11 +436,23 @@ export const ViewCompletedOrderModal: React.FC<
 
                 <div>
                   <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Net Total Price (Rs.)
+                    Delivery Cost (Rs.)
                   </label>
                   <input
                     type="text"
-                    value={netTotal}
+                    value={deliveryCost}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus: ring-[#F9C301]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Grand Total (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={totalAmount}
                     readOnly
                     className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   />
