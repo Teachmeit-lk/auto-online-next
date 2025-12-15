@@ -39,6 +39,7 @@ const SearchVendors: React.FC = () => {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [vendors, setVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [profileVendor, setProfileVendor] = useState<any | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
@@ -55,6 +56,9 @@ const SearchVendors: React.FC = () => {
   const initialSearch = (searchParams.get("search") || "").trim();
   const [search, setSearch] = useState<string>(initialSearch);
   const authState = useSelector((state: RootState) => state.auth as any);
+  const [sentToVendors, setSentToVendors] = useState<Record<string, boolean>>(
+    {}
+  );
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
@@ -77,6 +81,31 @@ const SearchVendors: React.FC = () => {
   }, [searchParams]);
 
   const user = authState.user as any;
+
+  const requestKey = useMemo(() => {
+    if (!preFilledQuotationData) return "";
+
+    const d = preFilledQuotationData;
+    return JSON.stringify({
+      country: d.country,
+      brand: d.brand,
+      model: d.model,
+      category: d.category,
+      district: d.district,
+      vehicletype: d.vehicletype,
+      manufactoringyear: d.manufactoringyear,
+      fueltype: d.fueltype,
+      measurement: d.measurement,
+      noofunits: d.noofunits,
+      description: d.description,
+
+      imageCount: (d.imageDataArray || []).length,
+    });
+  }, [preFilledQuotationData]);
+
+  useEffect(() => {
+    setSentToVendors({});
+  }, [requestKey]);
 
   const loadVendors = async () => {
     setLoading(true);
@@ -331,6 +360,8 @@ const SearchVendors: React.FC = () => {
       doc
     );
 
+    setSentToVendors((prev) => ({ ...prev, [vendor.id]: true }));
+
     setWhatsAppModalOpen(true);
   };
 
@@ -357,20 +388,14 @@ const SearchVendors: React.FC = () => {
     });
 
     if (waUrl) {
-      window.location.href = waUrl;
+      window.open(waUrl, "_blank");
     }
 
     setWhatsAppModalOpen(false);
-    setPreFilledQuotationData(null);
-    setIsFromShopNow(false);
-    setUploadedImageUrl("");
   };
 
   const handleSkipWhatsApp = () => {
     setWhatsAppModalOpen(false);
-    setPreFilledQuotationData(null);
-    setIsFromShopNow(false);
-    setUploadedImageUrl("");
   };
 
   const categoryLabelMap = useMemo(() => {
@@ -560,87 +585,99 @@ const SearchVendors: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((vendor, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
-                  >
-                    <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
-                      {index + 1}
-                    </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {vendor?.companyName ||
-                        (vendor?.firstName || "") +
-                          " " +
-                          (vendor?.lastName || "")}
-                    </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {vendor.address || "-"}
-                    </td>
-                    <td className="grid grid-cols-2 text-center w-full h-full">
-                      <button
-                        className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        onClick={() => {
-                          if (!authState.isAuthenticated) {
-                            if (isFromShopNow && preFilledQuotationData) {
-                              localStorage.setItem(
-                                "pendingQuotation",
-                                JSON.stringify({
-                                  quotationData: preFilledQuotationData,
-                                  vendorId: vendor.id,
-                                  vendorInfo: {
-                                    firstName: vendor.firstName,
-                                    lastName: vendor.lastName,
-                                    companyName: vendor.companyName,
-                                    whatsApp: vendor.whatsApp,
-                                    phone: vendor.phone,
-                                  },
-                                  fromShopNow: true,
-                                  returnUrl:
-                                    window.location.pathname +
-                                    window.location.search,
-                                })
-                              );
+                filtered.map((vendor, index) => {
+                  const isDisabled = !!sentToVendors[vendor.id];
+                  return (
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
+                    >
+                      <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
+                        {index + 1}
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                        {vendor?.companyName ||
+                          (vendor?.firstName || "") +
+                            " " +
+                            (vendor?.lastName || "")}
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                        {vendor.address || "-"}
+                      </td>
+                      <td className="grid grid-cols-2 text-center w-full h-full">
+                        <button
+                          className={`bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full
+    ${
+      isDisabled
+        ? "opacity-50 cursor-not-allowed"
+        : "hover:bg-yellow-500 active:bg-yellow-500"
+    }`}
+                          onClick={() => {
+                            if (isDisabled) return;
+                            if (!authState.isAuthenticated) {
+                              if (isFromShopNow && preFilledQuotationData) {
+                                localStorage.setItem(
+                                  "pendingQuotation",
+                                  JSON.stringify({
+                                    quotationData: preFilledQuotationData,
+                                    vendorId: vendor.id,
+                                    vendorInfo: {
+                                      firstName: vendor.firstName,
+                                      lastName: vendor.lastName,
+                                      companyName: vendor.companyName,
+                                      whatsApp: vendor.whatsApp,
+                                      phone: vendor.phone,
+                                    },
+                                    fromShopNow: true,
+                                    returnUrl:
+                                      window.location.pathname +
+                                      window.location.search,
+                                  })
+                                );
+                              }
+                              router.push("/user/login");
+                              return;
                             }
-                            router.push("/user/login");
-                            return;
-                          }
 
-                          if (isFromShopNow && preFilledQuotationData) {
-                            setPendingVendor(vendor);
-                            setConfirmationModalOpen(true);
-                          } else {
-                            setSelectedVendor(vendor);
-                            setGetQuotationModalOpen(true);
-                          }
-                        }}
-                      >
-                        Get Quotation
-                      </button>
-                      <button
-                        className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        onClick={async () => {
-                          setSelectedVendor(vendor);
-                          const imgs =
-                            await FirestoreService.getAll<GalleryImage>(
-                              COLLECTIONS.GALLERY,
-                              [
-                                {
-                                  field: "vendorId",
-                                  operator: "==",
-                                  value: (vendor as any).id,
-                                },
-                              ]
-                            );
-                          setSelectedVendorGallery(imgs);
-                          setViewVendorProfileModalOpen(true);
-                        }}
-                      >
-                        View More
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                            if (isFromShopNow && preFilledQuotationData) {
+                              setPendingVendor(vendor);
+                              setConfirmationModalOpen(true);
+                            } else {
+                              setSelectedVendor(vendor);
+                              setGetQuotationModalOpen(true);
+                            }
+                          }}
+                          disabled={isDisabled}
+                        >
+                          {isDisabled ? "Quotation Sent" : "Get Quotation"}
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                          onClick={async () => {
+                            setProfileVendor(vendor);
+
+                            const imgs =
+                              await FirestoreService.getAll<GalleryImage>(
+                                COLLECTIONS.GALLERY,
+                                [
+                                  {
+                                    field: "vendorId",
+                                    operator: "==",
+                                    value: vendor.id,
+                                  },
+                                ]
+                              );
+
+                            setSelectedVendorGallery(imgs);
+                            setViewVendorProfileModalOpen(true);
+                          }}
+                        >
+                          View More
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -677,83 +714,95 @@ const SearchVendors: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((vendor, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
-                  >
-                    <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
-                      {index + 1}
-                    </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {(vendor.firstName || "") + " " + (vendor.lastName || "")}
-                    </td>
-                    <td className="grid grid-cols-2 text-center w-full h-full">
-                      <button
-                        className="bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3  text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        onClick={() => {
-                          if (!authState.isAuthenticated) {
-                            if (isFromShopNow && preFilledQuotationData) {
-                              localStorage.setItem(
-                                "pendingQuotation",
-                                JSON.stringify({
-                                  quotationData: preFilledQuotationData,
-                                  vendorId: vendor.id,
-                                  vendorInfo: {
-                                    firstName: vendor.firstName,
-                                    lastName: vendor.lastName,
-                                    companyName: vendor.companyName,
-                                    whatsApp: vendor.whatsApp,
-                                    phone: vendor.phone,
-                                  },
-                                  fromShopNow: true,
-                                  returnUrl:
-                                    window.location.pathname +
-                                    window.location.search,
-                                })
-                              );
+                filtered.map((vendor, index) => {
+                  const isDisabled = !!sentToVendors[vendor.id];
+                  return (
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 bg-white text-[12px] text-[#111102] "
+                    >
+                      <td className="border border-r-2 border-b-2  border-[#F8F8F8] px-4 py-2 text-center">
+                        {index + 1}
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                        {(vendor.firstName || "") +
+                          " " +
+                          (vendor.lastName || "")}
+                      </td>
+                      <td className="grid grid-cols-2 text-center w-full h-full">
+                        <button
+                          className={`bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full
+    ${
+      isDisabled
+        ? "opacity-50 cursor-not-allowed"
+        : "hover:bg-yellow-500 active:bg-yellow-500"
+    }`}
+                          onClick={() => {
+                            if (isDisabled) return;
+                            if (!authState.isAuthenticated) {
+                              if (isFromShopNow && preFilledQuotationData) {
+                                localStorage.setItem(
+                                  "pendingQuotation",
+                                  JSON.stringify({
+                                    quotationData: preFilledQuotationData,
+                                    vendorId: vendor.id,
+                                    vendorInfo: {
+                                      firstName: vendor.firstName,
+                                      lastName: vendor.lastName,
+                                      companyName: vendor.companyName,
+                                      whatsApp: vendor.whatsApp,
+                                      phone: vendor.phone,
+                                    },
+                                    fromShopNow: true,
+                                    returnUrl:
+                                      window.location.pathname +
+                                      window.location.search,
+                                  })
+                                );
+                              }
+                              router.push("/user/login");
+                              return;
                             }
-                            router.push("/user/login");
-                            return;
-                          }
-                          if (isFromShopNow && preFilledQuotationData) {
-                            setPendingVendor(vendor);
-                            setConfirmationModalOpen(true);
-                          } else {
+                            if (isFromShopNow && preFilledQuotationData) {
+                              setPendingVendor(vendor);
+                              setConfirmationModalOpen(true);
+                            } else {
+                              setSelectedVendor(vendor);
+                              setGetQuotationModalOpen(true);
+                            }
+                          }}
+                          disabled={isDisabled}
+                        >
+                          {isDisabled ? "Quotation Sent" : "Get Quotation"}
+                        </button>
+                        <button
+                          className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
+                          onClick={async () => {
                             setSelectedVendor(vendor);
-                            setGetQuotationModalOpen(true);
-                          }
-                        }}
-                      >
-                        Get Quotation
-                      </button>
-                      <button
-                        className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
-                        onClick={async () => {
-                          setSelectedVendor(vendor);
-                          const imgs =
-                            await FirestoreService.getAll<GalleryImage>(
-                              COLLECTIONS.GALLERY,
-                              [
-                                {
-                                  field: "vendorId",
-                                  operator: "==",
-                                  value: (vendor as any).id,
-                                },
-                              ]
-                            );
-                          setSelectedVendorGallery(imgs);
-                          setViewVendorProfileModalOpen(true);
-                        }}
-                      >
-                        View More
-                      </button>
-                    </td>
-                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                      {vendor.address || "-"}
-                    </td>
-                  </tr>
-                ))
+                            const imgs =
+                              await FirestoreService.getAll<GalleryImage>(
+                                COLLECTIONS.GALLERY,
+                                [
+                                  {
+                                    field: "vendorId",
+                                    operator: "==",
+                                    value: (vendor as any).id,
+                                  },
+                                ]
+                              );
+                            setSelectedVendorGallery(imgs);
+                            setViewVendorProfileModalOpen(true);
+                          }}
+                        >
+                          View More
+                        </button>
+                      </td>
+                      <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
+                        {vendor.address || "-"}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -780,8 +829,6 @@ const SearchVendors: React.FC = () => {
         onClose={() => {
           setConfirmationModalOpen(false);
           setPendingVendor(null);
-          setPreFilledQuotationData(null);
-          setIsFromShopNow(false);
         }}
         vendorName={
           pendingVendor?.companyName ||
@@ -798,7 +845,7 @@ const SearchVendors: React.FC = () => {
       <ViewVendorProfileModal
         isOpen={ViewVendorProfileModalOpen}
         onClose={() => setViewVendorProfileModalOpen(false)}
-        vendor={selectedVendor}
+        vendor={profileVendor}
         gallery={selectedVendorGallery}
         categoryLabelMap={categoryLabelMap}
         brandLabelMap={brandLabelMap}
