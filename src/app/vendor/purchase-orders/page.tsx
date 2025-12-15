@@ -54,6 +54,7 @@ const NewPurchaseOrders: React.FC = () => {
     status: "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
     items: any[];
     totalAmount: number;
+    netTotal?: number;
     currency: string;
     deliveryMethod: string;
     deliveryCost?: number;
@@ -760,6 +761,7 @@ const NewPurchaseOrders: React.FC = () => {
                     status: "confirmed",
                     items: ((selected as any).products || []) as any,
                     totalAmount: (selected as any).totalAmount || 0,
+                    netTotal: (selected as any).netTotal || 0,
                     currency: (selected as any).currency || "LKR",
                     deliveryMethod: (selected as any).deliveryMethod,
                     deliveryCost: (selected as any).deliveryCost,
@@ -855,6 +857,7 @@ const NewPurchaseOrders: React.FC = () => {
                     status: "cancelled",
                     items: ((selected as any).products || []) as any,
                     totalAmount: (selected as any).totalAmount || 0,
+                    netTotal: (selected as any).netTotal || 0,
                     currency: (selected as any).currency || "LKR",
                     deliveryMethod: (selected as any).deliveryMethod,
                     deliveryCost: (selected as any).deliveryCost,
@@ -962,7 +965,7 @@ Order No: ${
                 pendingWhatsAppStatus
               );
               if (waUrl) {
-                window.location.href = waUrl;
+                window.open(waUrl, "_blank");
               }
             } catch (e) {
               console.error("[PurchaseOrders] WhatsApp sending error", e);
