@@ -872,7 +872,8 @@ const SearchVendors: React.FC = () => {
                         <button
                           className="bg-[#D1D1D1] lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full focus:hover:bg-yellow-500 hover:bg-yellow-500 active:bg-yellow-500"
                           onClick={async () => {
-                            setSelectedVendor(vendor);
+                            setProfileVendor(vendor);
+
                             const imgs =
                               await FirestoreService.getAll<GalleryImage>(
                                 COLLECTIONS.GALLERY,
@@ -880,10 +881,11 @@ const SearchVendors: React.FC = () => {
                                   {
                                     field: "vendorId",
                                     operator: "==",
-                                    value: (vendor as any).id,
+                                    value: vendor.id,
                                   },
                                 ]
                               );
+
                             setSelectedVendorGallery(imgs);
                             setViewVendorProfileModalOpen(true);
                           }}
