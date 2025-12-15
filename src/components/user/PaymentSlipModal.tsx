@@ -8,6 +8,7 @@ import { FirebaseStorageService } from "@/service/firebaseStorageService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
 import { FirestoreService, COLLECTIONS } from "@/service/firestoreService";
+import { showToast } from "@/app/utils/toast";
 
 interface IPaymentSlipModalProps {
   isOpen: boolean;
@@ -141,6 +142,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       await OrderService.uploadPaymentSlip(orderId, uploadResult.url);
 
       console.log("[PaymentSlipModal] Payment slip uploaded successfully");
+      showToast.success('Payment slip uploaded successfully! ');
       // TODO: Send payment slip via WhatsApp
       console.log("[PaymentSlipModal] TODO: Send payment slip via WhatsApp");
 
@@ -154,6 +156,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       setSubmitError(
         error.message || "Failed to upload payment slip. Please try again."
       );
+      showToast.error('Failed to upload payment slip. Please try again.');
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);

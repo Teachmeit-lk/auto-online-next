@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReduxProvider } from "./providers";
 import { FirebaseProvider } from "@/contexts/FirebaseContext";
 import ClientShell from "./ClientShell";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,10 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <FirebaseProvider>
-            <ClientShell>{children}</ClientShell>
+            <ClientShell>
+              {children}
+              <Toaster position="bottom-right" />
+            </ClientShell>
           </FirebaseProvider>
         </ReduxProvider>
       </body>
