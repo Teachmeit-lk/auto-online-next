@@ -31,7 +31,7 @@ interface FormValues {
   name: string;
   categoryId: { value: string; label: string } | null;
   brandId: { value: string; label: string } | null;
-  modelId: { value: string; label: string } | null;
+  vehicleModel: { value: string; label: string } | null;
   vehicleType: { value: string; label: string } | null;
   yearOfManufacturing: string;
   description: string;
@@ -56,7 +56,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
     name: Yup.string().required("Product Name is required"),
     categoryId: Yup.mixed().required("Category is required"),
     brandId: Yup.mixed().required("Brand is required"),
-    modelId: Yup.mixed().required("Model is required"),
+    vehicleModel: Yup.mixed().required("Model is required"),
     vehicleType: Yup.mixed().required("Vehicle Type is required"),
     yearOfManufacturing: Yup.string().required("Year is required"),
     description: Yup.string().required("Description is required"),
@@ -93,7 +93,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
                 label: product.vehicleBrand || "",
               }
             : null,
-          modelId: product.vehicleModel
+          vehicleModel: product.vehicleModel
             ? {
                 value: String(product.vehicleModel || ""),
                 label: product.vehicleModel || "",
@@ -114,7 +114,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
           name: "",
           categoryId: null,
           brandId: null,
-          modelId: null,
+          vehicleModel: null,
           vehicleType: null,
           yearOfManufacturing: "",
           description: "",
@@ -140,7 +140,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
         partName: data.name,
         mainCategory: data.categoryId?.value || undefined,
         vehicleBrand: data.brandId?.value || undefined,
-        vehicleModel: data.modelId?.value || undefined,
+        vehicleModel: data.vehicleModel?.value || undefined,
         vehicleType: data.vehicleType?.value || undefined,
         yearOfManufacturing: data.yearOfManufacturing || undefined,
         description: data.description,
@@ -273,9 +273,22 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
     const brandId =
       brandOptions.find((opt) => opt.value === String(product.vehicleBrand)) ||
       null;
-    const modelId =
-      modelOptions.find((opt) => opt.value === String(product.vehicleModel)) ||
-      null;
+    const norm = (v: any) =>
+      String(v ?? "")
+        .trim()
+        .toLowerCase();
+
+    const vehicleModel =
+      modelOptions.find(
+        (opt) => norm(opt.value) === norm(product.vehicleModel)
+      ) ??
+      (product.vehicleModel
+        ? {
+            value: String(product.vehicleModel),
+            label: String(product.vehicleModel),
+          }
+        : null);
+
     const vehicleType =
       vehicleTypeOptions.find(
         (opt) => opt.value === String(product.vehicleType)
@@ -293,7 +306,7 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
       name: product.partName || "",
       categoryId,
       brandId,
-      modelId,
+      vehicleModel,
       vehicleType,
       yearOfManufacturing: String(product.yearOfManufacturing || ""),
       description: product.description || "",
@@ -412,23 +425,34 @@ const UpdateProductModal: React.FC<IUpdateProductModalProps> = ({
               <label className="block text-[12px] font-body font-medium text-[#111102]">
                 Model
               </label>
+
               <Controller
-                name="modelId"
+                name="vehicleModel"
                 control={control}
                 render={({ field }) => (
-                  <Select
-                    {...field}
-                    value={field.value}
-                    onChange={(val) => field.onChange(val)}
-                    options={modelOptions}
-                    classNamePrefix="react-select"
-                    className="mt-1 text-[10px]"
+                  <input
+                    type="text"
+                    placeholder="Enter Model"
+                    value={field.value?.label ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(
+                        val.trim()
+                          ? { value: val.trim(), label: val.trim() }
+                          : null
+                      );
+                    }}
+                    className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102]
+      focus:outline-none focus:ring-2 ${
+        errors.vehicleModel ? "focus:ring-red-500" : "focus:ring-yellow-500"
+      }`}
                   />
                 )}
               />
-              {errors.modelId && (
+
+              {errors.vehicleModel && (
                 <p className="text-red-500 text-[10px] mt-1">
-                  {errors.modelId.message}
+                  {errors.vehicleModel.message as string}
                 </p>
               )}
             </div>

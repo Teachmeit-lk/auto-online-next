@@ -528,15 +528,13 @@ const NewPriceRequests: React.FC = () => {
               "Your vendor";
 
             const msg = `
-              Hi ${selectedRequest.buyerName || "Customer"},
+Hi ${selectedRequest.buyerName || "Customer"},
 
-              This is ${vendorName} from AutoOnline.lk.
+This is ${vendorName} from AutoOnline.lk.
 
-              I'm contacting you regarding your price request for:
-              Vehicle Type: ${selectedRequest.vehicleType || "-"}
-              Brand/Model: ${selectedRequest.brand || ""} ${
-              selectedRequest.model || ""
-            }
+I'm contacting you regarding your price request for:
+Vehicle Type: ${selectedRequest.vehicleType || "-"}
+Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
 
               `.trim();
 

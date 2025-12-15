@@ -360,24 +360,39 @@ const AddProductModal: React.FC<IAddProductModalProps> = ({
               <label className="block text-[12px] font-body font-medium text-[#111102]">
                 Model
               </label>
+
               <Controller
                 name="modelId"
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <Select
-                    {...field}
-                    value={field.value}
-                    onChange={(val) => field.onChange(val)}
-                    options={modelOptions}
-                    classNamePrefix="react-select"
-                    className="mt-1 text-[10px]"
+                  <input
+                    type="text"
+                    placeholder="Enter Model"
+                    value={field.value?.label || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+
+                      field.onChange(
+                        val
+                          ? {
+                              value: val.trim(),
+                              label: val.trim(),
+                            }
+                          : null
+                      );
+                    }}
+                    className={`w-full mt-1 p-2 rounded-md text-[10px] font-body text-[#111102]
+          focus:outline-none focus:ring-2 ${
+            errors.modelId ? "focus:ring-red-500" : "focus:ring-yellow-500"
+          }`}
                   />
                 )}
               />
+
               {errors.modelId && (
                 <p className="text-red-500 text-[10px] mt-1">
-                  {errors.modelId.message}
+                  {errors.modelId.message as string}
                 </p>
               )}
             </div>

@@ -420,21 +420,21 @@ const QuotationsFromVendors: React.FC = () => {
               "-";
 
             const msg = `
-              Hi ${vendorName},
+Hi ${vendorName},
 
-              This is ${buyerName} from AutoOnline.lk.
+This is ${buyerName} from AutoOnline.lk.
 
-              I'm contacting you regarding the quotation you sent:
+I'm contacting you regarding the quotation you sent:
 
-              Request Code: ${useRefactoredId("RC", quotation.quotationRequestId) || "-"} 
-              Part: ${partName}
-              Issued Date: ${
-                            quotation.createdAt?.seconds
-                              ? new Date(
-                                  quotation.createdAt.seconds * 1000
-                                ).toLocaleDateString()
-                              : "-"
-                          }
+Request Code: ${useRefactoredId("RC", quotation.quotationRequestId) || "-"} 
+Part: ${partName}
+Issued Date: ${
+              quotation.createdAt?.seconds
+                ? new Date(
+                    quotation.createdAt.seconds * 1000
+                  ).toLocaleDateString()
+                : "-"
+            }
 
               `.trim();
 

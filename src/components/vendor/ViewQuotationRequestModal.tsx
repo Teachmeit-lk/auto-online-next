@@ -8,10 +8,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
-import { QuotationService, QuotationRequest } from "@/service/firestoreService";
+import { QuotationService, QuotationRequest, FirestoreService, COLLECTIONS } from "@/service/firestoreService";
 import { buildVendorQuotationWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "../user/SendWhatsAppConfirmationModal";
 import Image from "next/image";
+import { showToast } from "@/app/utils/toast";
 
 interface IViewQuotationRequestModalProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const ViewQuotationRequestModal: React.FC<
   const { user } = useAuth();
   const [showDetails, setShowDetails] = useState<boolean>(true);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [measurementOptions, setMeasurementOptions] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null
   );
@@ -158,6 +160,18 @@ export const ViewQuotationRequestModal: React.FC<
     }
   }, [watchedStock, setValue]);
 
+  useEffect(() => {
+    (async () => {
+      const units = await FirestoreService.getAll<any>(
+        COLLECTIONS.MEASUREMENT_UNITS,
+        undefined,
+        "name",
+        "asc"
+      );
+      setMeasurementOptions((units || []).map((t:  any) => t.name));
+    })();
+  }, []);
+
   // Form submission handler
   const onSubmit = async (data: IFormValues) => {
     if (!user) {
@@ -234,6 +248,8 @@ export const ViewQuotationRequestModal: React.FC<
         isActive: true,
       } as any);
 
+      showToast. success('Quotation submitted successfully! ');
+
       const buyerPhone = (request as any)?.buyerPhone;
       const buyerName = request?.buyerName;
 
@@ -268,6 +284,7 @@ export const ViewQuotationRequestModal: React.FC<
     } catch (e: any) {
       console.error("Error submitting quotation", e);
       setSubmitError(e?.message || "Failed to submit quotation");
+      showToast.error('Failed to submit quotation. Please try again. ');
     } finally {
       setIsSubmitting(false);
     }
@@ -394,6 +411,14 @@ export const ViewQuotationRequestModal: React.FC<
                     </div>
                     <div className="text-[11px] text-[#111102]">
                       {request?.manufacturingYear || "-"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-[#5B5B5B]">
+                      Requested Category
+                    </div>
+                    <div className="text-[11px] text-[#111102]">
+                      {request?.category || "-"}
                     </div>
                   </div>
                   <div>
@@ -561,17 +586,20 @@ export const ViewQuotationRequestModal: React.FC<
                     <select
                       {...field}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.measurement
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                      ${
+                        errors.measurement
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Unit
                       </option>
-                      <option value="Kg">Kg</option>
-                      <option value="Lbs">Lbs</option>
+                      {measurementOptions.map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
                     </select>
                   )}
                 />
