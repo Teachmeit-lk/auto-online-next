@@ -818,9 +818,10 @@ const SearchVendors: React.FC = () => {
                         {index + 1}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
-                        {(vendor.firstName || "") +
-                          " " +
-                          (vendor.lastName || "")}
+                        {vendor?.companyName ||
+                          (vendor?.firstName || "") +
+                            " " +
+                            (vendor?.lastName || "")}
                       </td>
                       <td className="grid grid-cols-2 text-center w-full h-full">
                         <button
