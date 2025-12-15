@@ -195,6 +195,7 @@ export const buildPurchaseOrderWhatsAppUrl = ({
   requestImageUrl,
   deliveryCost,
   deliveryAddress,
+  netTotal,
 }: {
   vendorPhone: string;
   vendorName: string;
@@ -206,6 +207,7 @@ export const buildPurchaseOrderWhatsAppUrl = ({
     totalPrice: number;
   }[];
   grandTotal: number;
+  netTotal?: number;
   currency: string;
   deliveryMethod: string;
   paymentMethod: string;
@@ -234,8 +236,9 @@ export const buildPurchaseOrderWhatsAppUrl = ({
       (it, i) =>
         `${i + 1}. ${it.itemDescription}
 Qty: ${it.quantity}
-Unit Price: ${it.unitPrice}
-Total: ${it.totalPrice}`
+Unit Price: ${it.unitPrice} ${currency}
+Total Price (before VAT): ${it.totalPrice} ${currency}
+Net Total (incl. VAT): ${netTotal ? netTotal.toFixed(2) : "N/A"} ${currency}`
     )
     .join("\n\n");
 
@@ -296,6 +299,7 @@ export const buildPurchaseOrderStatusWhatsAppUrl = ({
   status,
   items,
   totalAmount,
+  netTotal,
   currency,
   deliveryMethod,
   deliveryCost,
@@ -314,6 +318,7 @@ export const buildPurchaseOrderStatusWhatsAppUrl = ({
     totalPrice: number;
   }[];
   totalAmount: number;
+  netTotal?: number;
   currency: string;
   deliveryMethod?: string;
   deliveryCost?: number;
@@ -336,7 +341,8 @@ export const buildPurchaseOrderStatusWhatsAppUrl = ({
       return `${i + 1}. ${name}
 Qty: ${it.quantity}
 Unit: ${it.unitPrice.toFixed(2)} ${currency}
-Total: ${it.totalPrice.toFixed(2)} ${currency}`;
+Total (before VAT): ${it.totalPrice.toFixed(2)} ${currency}
+Net Total (incl. VAT): ${netTotal ? netTotal.toFixed(2) : "N/A"} ${currency}`;
     })
     .join("\n\n");
 
@@ -388,7 +394,7 @@ Thank you for using AutoOnline.lk
     typeof deliveryCost === "number" &&
     deliveryCost > 0
   ) {
-    effectiveTotal = totalAmount - deliveryCost;
+    effectiveTotal = totalAmount;
   }
 
   const deliveryBlock = isDeliveryOrder
