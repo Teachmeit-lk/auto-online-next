@@ -128,124 +128,130 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     images: File[];
   }) => {
     try {
-    if (mode === "search" && onSearchSubmit) {
-      let imageDataArray: Array<{ data: string; name: string; type: string }> =
-        [];
-      const filesToProcess =
-        selectedFiles.length > 0 ? selectedFiles : data.images || [];
+      if (mode === "search" && onSearchSubmit) {
+        let imageDataArray: Array<{
+          data: string;
+          name: string;
+          type: string;
+        }> = [];
+        const filesToProcess =
+          selectedFiles.length > 0 ? selectedFiles : data.images || [];
 
-      if (filesToProcess && filesToProcess.length > 0) {
-        imageDataArray = await Promise.all(
-          filesToProcess.map(
-            (file) =>
-              new Promise<{ data: string; name: string; type: string }>(
-                (resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    resolve({
-                      data: reader.result as string,
-                      name: file.name,
-                      type: file.type,
-                    });
-                  };
-                  reader.onerror = () => reject(reader.error);
-                  reader.readAsDataURL(file);
-                }
-              )
-          )
+        if (filesToProcess && filesToProcess.length > 0) {
+          imageDataArray = await Promise.all(
+            filesToProcess.map(
+              (file) =>
+                new Promise<{ data: string; name: string; type: string }>(
+                  (resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      resolve({
+                        data: reader.result as string,
+                        name: file.name,
+                        type: file.type,
+                      });
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(file);
+                  }
+                )
+            )
+          );
+        }
+
+        const { images, ...dataWithoutImage } = data;
+
+        console.log("Images", imageDataArray);
+
+        onSearchSubmit(
+          {
+            country: data.country,
+            category: data.category,
+            district: data.district,
+          },
+          {
+            ...dataWithoutImage,
+            imageDataArray,
+          }
         );
+        onClose();
+        return;
       }
 
-      const { images, ...dataWithoutImage } = data;
+      if (!currentUser?.id) return;
 
-      console.log("Images", imageDataArray);
+      const files = data.images;
+      let uploadedUrls: string[] = [];
 
-      onSearchSubmit(
-        {
-          country: data.country,
-          category: data.category,
-          district: data.district,
-        },
-        {
-          ...dataWithoutImage,
-          imageDataArray,
-        }
+      if (files && files.length > 0) {
+        console.log("Uploading images:", files.length);
+        const compressedFiles = await Promise.all(
+          files.map((file) =>
+            file.type.startsWith("image/")
+              ? FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
+              : Promise.resolve(file)
+          )
+        );
+
+        const requestId = `req_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 9)}`;
+
+        const uploadResults =
+          await FirebaseStorageService.uploadQuotationImages(
+            currentUser.id,
+            requestId,
+            compressedFiles
+          );
+
+        uploadedUrls = uploadResults.map((result) => result.url);
+        console.log("Images uploaded:", uploadedUrls);
+      }
+
+      const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
+        buyerId: currentUser.id,
+        buyerName: `${currentUser.firstName || ""} ${
+          currentUser.lastName || ""
+        }`.trim(),
+        buyerEmail: currentUser.email || "",
+        buyerPhone: currentUser.phone || "",
+        vendorId: vendor?.id || null,
+        vendorName: vendor?.firstName || null,
+        country: data.country,
+        brand: data.brand,
+        model: data.model,
+        category: data.category,
+        district: data.district,
+        vehicleType: data.vehicletype,
+        manufacturingYear: data.manufactoringyear,
+        fuelType: data.fueltype,
+        measurement: data.measurement,
+        numberOfUnits: data.noofunits,
+        description: data.description,
+        attachedImages: uploadedUrls.length > 0 ? uploadedUrls : [],
+        status: "pending",
+        quotationsReceived: 0,
+        isActive: true,
+      } as any;
+
+      await FirestoreService.create<QuotationRequest>(
+        COLLECTIONS.QUOTATION_REQUESTS,
+        doc
       );
+
+      showToast.success(
+        `Successfully sent your inquiry to ${vendor?.firstName} ${vendor?.lastName}!`
+      );
+      if (vendor?.id) onSuccess?.(vendor.id);
+
+      setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
+      setWhatsAppModalOpen(true);
+
       onClose();
-      return;
+    } catch (error) {
+      console.error("Error submitting quotation:", error);
+      showToast.error("Failed to submit quotation. Please try again.");
     }
-
-    if (!currentUser?.id) return;
-
-    const files = data.images;
-    let uploadedUrls: string[] = [];
-
-    if (files && files.length > 0) {
-      console.log("Uploading images:", files.length);
-      const compressedFiles = await Promise.all(
-        files.map((file) =>
-          file.type.startsWith("image/")
-            ? FirebaseStorageService.compressImage(file, 1920, 1080, 0.7)
-            : Promise.resolve(file)
-        )
-      );
-
-      const requestId = `req_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
-
-      const uploadResults = await FirebaseStorageService.uploadQuotationImages(
-        currentUser.id,
-        requestId,
-        compressedFiles
-      );
-
-      uploadedUrls = uploadResults.map((result) => result.url);
-      console.log("Images uploaded:", uploadedUrls);
-    }
-
-    const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
-      buyerId: currentUser.id,
-      buyerName: `${currentUser.firstName || ""} ${
-        currentUser.lastName || ""
-      }`.trim(),
-      buyerEmail: currentUser.email || "",
-      buyerPhone: currentUser.phone || "",
-      vendorId: vendor?.id || null,
-      vendorName: vendor?.firstName || null,
-      country: data.country,
-      brand: data.brand,
-      model: data.model,
-      category: data.category,
-      district: data.district,
-      vehicleType: data.vehicletype,
-      manufacturingYear: data.manufactoringyear,
-      fuelType: data.fueltype,
-      measurement: data.measurement,
-      numberOfUnits: data.noofunits,
-      description: data.description,
-      attachedImages: uploadedUrls.length > 0 ? uploadedUrls : [],
-      status: "pending",
-      quotationsReceived: 0,
-      isActive: true,
-    } as any;
-
-    await FirestoreService.create<QuotationRequest>(
-      COLLECTIONS.QUOTATION_REQUESTS,
-      doc
-    );
-
-    showToast.success('Quotation request submitted successfully!');
-    if (vendor?.id) onSuccess?.(vendor.id);
-
-    setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
-    setWhatsAppModalOpen(true);
-
-    onClose();
-  } catch (error) {
-    console.error('Error submitting quotation:', error);
-    showToast.error('Failed to submit quotation. Please try again.');
-  }
   };
 
   // useEffect(() => {
