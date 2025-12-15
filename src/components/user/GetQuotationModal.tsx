@@ -458,7 +458,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     });
 
     if (waUrl) {
-      window.location.href = waUrl;
+      window.open(waUrl, "_blank");
     }
 
     setWhatsAppModalOpen(false);

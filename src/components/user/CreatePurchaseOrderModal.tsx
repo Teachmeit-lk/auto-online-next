@@ -87,6 +87,7 @@ export const CreatePurchaseOrderModal: React.FC<
     orderNumber: string;
     items: OrderItem[];
     grandTotal: number;
+    netTotal?: number;
     currency: string;
     deliveryMethod: PurchaseOrderFormData["deliveryMethod"];
     paymentMethod: PurchaseOrderFormData["paymentMethod"];
@@ -180,11 +181,11 @@ export const CreatePurchaseOrderModal: React.FC<
         const price = Number(p.unitPrice) || 0;
         return {
           id: p.id || String(idx),
-          itemDescription: p.partName || p. description || `Item ${idx + 1}`,
+          itemDescription: p.partName || p.description || `Item ${idx + 1}`,
           partNumber: p.partNumber || "",
           image: Array.isArray(p.images) ? p.images[0] : undefined,
           quantity: qty,
-          unitPrice:  price,
+          unitPrice: price,
           totalPrice: Number(p.totalPrice) || qty * price,
         };
       }
@@ -345,6 +346,7 @@ export const CreatePurchaseOrderModal: React.FC<
             vendorName,
             orderNumber,
             items,
+            netTotal,
             grandTotal,
             currency: quotation.currency || "LKR",
             deliveryMethod: data.deliveryMethod,
@@ -402,7 +404,7 @@ export const CreatePurchaseOrderModal: React.FC<
       const waUrl = buildPurchaseOrderWhatsAppUrl(pendingWhatsAppData);
 
       if (waUrl) {
-        window.location.href = waUrl;
+        window.open(waUrl, "_blank");
       }
     } catch (e) {
       console.error("WhatsApp sending error", e);
@@ -671,24 +673,30 @@ export const CreatePurchaseOrderModal: React.FC<
                         </td>
                       </tr>
                     ))}
-                      <tr className="bg-[#FFF8D9] font-[600] border">
-                        <td className="p-2 text-[10px]" colSpan={7}>
-                          <div className="flex justify-between items-center px-4">
-                            <div className="flex items-center gap-2">
-                              <span>Net Total :</span>
-                              <span>{netTotal.toFixed(2)} {quotation.currency}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>Delivery Cost :</span>
-                              <span>{deliveryCost.toFixed(2)} {quotation.currency}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>Grand Total :</span>
-                              <span>{grandTotal.toFixed(2)} {quotation.currency}</span>
-                            </div>
+                    <tr className="bg-[#FFF8D9] font-[600] border">
+                      <td className="p-2 text-[10px]" colSpan={7}>
+                        <div className="flex justify-between items-center px-4">
+                          <div className="flex items-center gap-2">
+                            <span>Net Total :</span>
+                            <span>
+                              {netTotal.toFixed(2)} {quotation.currency}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
+                          <div className="flex items-center gap-2">
+                            <span>Delivery Cost :</span>
+                            <span>
+                              {deliveryCost.toFixed(2)} {quotation.currency}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span>Grand Total :</span>
+                            <span>
+                              {grandTotal.toFixed(2)} {quotation.currency}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
