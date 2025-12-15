@@ -16,7 +16,7 @@ import {
 } from "@/service/firestoreService";
 import { buildWhatsAppQuotationUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
-import { log } from "console";
+import { showToast } from "@/app/utils/toast";
 
 interface Vendor {
   id: string;
@@ -127,6 +127,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     description: string;
     images: File[];
   }) => {
+    try {
     if (mode === "search" && onSearchSubmit) {
       let imageDataArray: Array<{ data: string; name: string; type: string }> =
         [];
@@ -170,7 +171,6 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
           imageDataArray,
         }
       );
-
       onClose();
       return;
     }
@@ -230,19 +230,22 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       isActive: true,
     } as any;
 
-    console.log("logs: ", doc);
-
     await FirestoreService.create<QuotationRequest>(
       COLLECTIONS.QUOTATION_REQUESTS,
       doc
     );
 
+    showToast.success('Quotation request submitted successfully!');
     if (vendor?.id) onSuccess?.(vendor.id);
 
     setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
     setWhatsAppModalOpen(true);
 
     onClose();
+  } catch (error) {
+    console.error('Error submitting quotation:', error);
+    showToast.error('Failed to submit quotation. Please try again.');
+  }
   };
 
   // useEffect(() => {

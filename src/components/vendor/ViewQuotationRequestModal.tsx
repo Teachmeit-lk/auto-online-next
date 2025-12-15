@@ -12,6 +12,7 @@ import { QuotationService, QuotationRequest, FirestoreService, COLLECTIONS } fro
 import { buildVendorQuotationWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "../user/SendWhatsAppConfirmationModal";
 import Image from "next/image";
+import { showToast } from "@/app/utils/toast";
 
 interface IViewQuotationRequestModalProps {
   isOpen: boolean;
@@ -247,6 +248,8 @@ export const ViewQuotationRequestModal: React.FC<
         isActive: true,
       } as any);
 
+      showToast. success('Quotation submitted successfully! ');
+
       const buyerPhone = (request as any)?.buyerPhone;
       const buyerName = request?.buyerName;
 
@@ -281,6 +284,7 @@ export const ViewQuotationRequestModal: React.FC<
     } catch (e: any) {
       console.error("Error submitting quotation", e);
       setSubmitError(e?.message || "Failed to submit quotation");
+      showToast.error('Failed to submit quotation. Please try again. ');
     } finally {
       setIsSubmitting(false);
     }

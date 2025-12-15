@@ -12,6 +12,7 @@ import Image from "next/image";
 import { useRefactoredId } from "../hooks/useRefactoredId";
 import { buildPurchaseOrderWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
+import { showToast } from "@/app/utils/toast";
 
 interface ICreatePurchaseOrderModalProps {
   isOpen: boolean;
@@ -334,6 +335,8 @@ export const CreatePurchaseOrderModal: React.FC<
 
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
 
+      showToast. success('Purchase order created successfully! ');
+
       onSuccess && onSuccess();
 
       try {
@@ -382,6 +385,7 @@ export const CreatePurchaseOrderModal: React.FC<
       setSubmitError(
         error.message || "Failed to create purchase order. Please try again."
       );
+      showToast.error('Failed to create purchase order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

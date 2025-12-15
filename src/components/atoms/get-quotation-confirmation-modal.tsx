@@ -1,5 +1,6 @@
 "use client";
 
+import { showToast } from "@/app/utils/toast";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
 
@@ -34,7 +35,10 @@ export const GetQuotationConfirmation: React.FC<IGetQuotationConfirmationProps> 
             </div>
             <div className="flex justify-center gap-x-6 mt-8">
               <button
-                onClick={onConfirm}
+                onClick={() => {
+                  showToast.success('Quotation request submitted successfully!');
+                  onConfirm();
+                }}
                 className="w-[100px] h-[24px] bg-[#F9C301] text-[#111102] font-[600] font-body text-[11px] rounded-[4px] hover:bg-yellow-500"
               >
                 Confirm
