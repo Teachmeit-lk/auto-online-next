@@ -177,6 +177,7 @@ export interface PurchaseOrder extends BaseDocument {
   vendorMessage?: string;
   trackingNumber?: string;
   notes?: string;
+  specialNotes?: string;
 }
 
 // Order interfaces (completed orders)
