@@ -44,6 +44,7 @@ export const ViewQuotationRequestModal: React.FC<
   IViewQuotationRequestModalProps
 > = ({ isOpen, onClose, request, onSubmitted }) => {
   const [fileName, setFileName] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -171,6 +172,24 @@ export const ViewQuotationRequestModal: React.FC<
       setMeasurementOptions((units || []).map((t:  any) => t.name));
     })();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  useEffect(() => {
+    if (! isOpen) {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+        setImagePreview(null);
+      }
+      setFileName("");
+    }
+  }, [isOpen, imagePreview]);
 
   // Form submission handler
   const onSubmit = async (data: IFormValues) => {
@@ -332,6 +351,10 @@ export const ViewQuotationRequestModal: React.FC<
   const handleModalClose = () => {
     reset();
     setFileName("");
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
     onClose();
   };
 
@@ -798,30 +821,34 @@ export const ViewQuotationRequestModal: React.FC<
 
               {/* Image Upload */}
               <div className="col-span-3">
-                <div
-                  className={`flex items-center justify-center w-full h-[40px] p-2 mt-1 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-               ${
-                 errors.image
-                   ? "focus:ring-red-500 focus:border-red-500"
-                   : "focus:ring-yellow-500 focus:border-yellow-500"
-               }`}
-                >
-                  <Camera size="16px" color="#5B5B5B" />
+                <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
+                  Upload Image
+                </label>
+                
+                <Controller
+                  name="image"
+                  control={control}
+                  defaultValue={null}
+                  render={({ field }) => (
+                    <>
+                      <div
+                        className={`flex items-center justify-center w-full h-[40px] p-2 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
+                          ${errors.image ? "border-red-500" : "hover:border-[#F9C301]"}`}
+                      >
+                        <Camera size="16px" color="#5B5B5B" />
 
-                  <Controller
-                    name="image"
-                    control={control}
-                    defaultValue={null}
-                    render={({ field }) => (
-                      <>
                         <input
                           type="file"
-                          accept=".jpg, .png"
+                          accept=".jpg, .png, .jpeg"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               field.onChange(file);
                               setFileName(file.name);
+                              
+                              // Create preview
+                              const previewUrl = URL.createObjectURL(file);
+                              setImagePreview(previewUrl);
                             }
                           }}
                           className="hidden"
@@ -829,15 +856,45 @@ export const ViewQuotationRequestModal: React.FC<
                         />
                         <label
                           htmlFor="file-upload"
-                          className="cursor-pointer text-[#D1D1D1] font-body text-[9px] pl-1 mt-[2px]"
+                          className="cursor-pointer text-[#5B5B5B] font-body text-[10px] pl-1 mt-[2px]"
                         >
-                          {fileName ||
-                            "Choose an Image to upload (jpg and png files only)"}
+                          {fileName || "Choose an Image to upload (jpg and png files only)"}
                         </label>
-                      </>
-                    )}
-                  />
-                </div>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="mt-3 relative group inline-block">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-32 h-24 object-cover rounded-[3px] border border-[#D1D1D1]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // Clear image
+                              field.onChange(null);
+                              setFileName("");
+                              if (imagePreview) {
+                                URL.revokeObjectURL(imagePreview);
+                              }
+                              setImagePreview(null);
+                              
+                              // Reset file input
+                              const fileInput = document.getElementById("file-upload") as HTMLInputElement;
+                              if (fileInput) fileInput.value = "";
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                />
+
                 {/* Error Message */}
                 {errors.image && (
                   <p className="text-red-500 text-[8px] mt-1">
