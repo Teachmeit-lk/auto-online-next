@@ -264,6 +264,46 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 />
               </div>
 
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value={quotation?.status}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {quotation?.status === "cancelled" && (
+                <div className="col-span-2">
+                  <label className=" text-[12px] font-body font-[500] text-[#111102]">
+                    Rejection Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={quotation?.rejectionReason || "-"}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {quotation?.specialNotes && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Special Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    readOnly
+                    value={quotation?.specialNotes || "-"}
+                    className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
               {/* Description */}
               <div className="col-span-3">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">

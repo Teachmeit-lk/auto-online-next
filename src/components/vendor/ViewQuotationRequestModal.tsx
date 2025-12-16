@@ -8,7 +8,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
-import { QuotationService, QuotationRequest, FirestoreService, COLLECTIONS } from "@/service/firestoreService";
+import {
+  QuotationService,
+  QuotationRequest,
+  FirestoreService,
+  COLLECTIONS,
+} from "@/service/firestoreService";
 import { buildVendorQuotationWhatsAppUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "../user/SendWhatsAppConfirmationModal";
 import Image from "next/image";
@@ -168,7 +173,7 @@ export const ViewQuotationRequestModal: React.FC<
         "name",
         "asc"
       );
-      setMeasurementOptions((units || []).map((t:  any) => t.name));
+      setMeasurementOptions((units || []).map((t: any) => t.name));
     })();
   }, []);
 
@@ -248,7 +253,7 @@ export const ViewQuotationRequestModal: React.FC<
         isActive: true,
       } as any);
 
-      showToast. success('Quotation submitted successfully! ');
+      showToast.success("Quotation submitted successfully! ");
 
       const buyerPhone = (request as any)?.buyerPhone;
       const buyerName = request?.buyerName;
@@ -284,7 +289,7 @@ export const ViewQuotationRequestModal: React.FC<
     } catch (e: any) {
       console.error("Error submitting quotation", e);
       setSubmitError(e?.message || "Failed to submit quotation");
-      showToast.error('Failed to submit quotation. Please try again. ');
+      showToast.error("Failed to submit quotation. Please try again. ");
     } finally {
       setIsSubmitting(false);
     }
@@ -581,7 +586,7 @@ export const ViewQuotationRequestModal: React.FC<
                 <Controller
                   name="measurement"
                   control={control}
-                  defaultValue={request?.measurement || ""}
+                  defaultValue={""}
                   render={({ field }) => (
                     <select
                       {...field}
@@ -869,7 +874,7 @@ export const ViewQuotationRequestModal: React.FC<
               {/* Item S/N */}
               <div className="col-span-1">
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  NIC
+                  Staff ID / NIC
                 </label>
                 <Controller
                   name="nic"

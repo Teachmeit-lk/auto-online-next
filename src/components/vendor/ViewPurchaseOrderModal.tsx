@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CirclePlus } from "lucide-react";
-import { useMemo } from "react";
 import { PurchaseOrder } from "@/service/firestoreService";
 import Image from "next/image";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/config/firebase";
+import { date } from "yup";
 
 interface IViewPurchaseOrderModalProps {
   isOpen: boolean;
@@ -18,6 +21,101 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   onClose,
   order,
 }) => {
+  const [expiryDate, setExpiryDate] = useState<string>("-");
+  const [expiryLoading, setExpiryLoading] = useState(false);
+
+  const parsePeriodToMs = (period?: string) => {
+    if (!period) return null;
+
+    const m = String(period).match(
+      /(\d+)\s*(hour|hours|day|days|week|weeks|month|months|year|years)/i
+    );
+    if (!m) return null;
+
+    const amount = Number(m[1]);
+    const unit = m[2].toLowerCase();
+
+    const H = 60 * 60 * 1000;
+    const D = 24 * H;
+
+    if (unit.startsWith("hour")) return amount * H;
+    if (unit.startsWith("day")) return amount * D;
+    if (unit.startsWith("week")) return amount * 7 * D;
+
+    return { amount, unit };
+  };
+
+  const formatYYYYMMDD = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  useEffect(() => {
+    const quotationId = order?.quotationId;
+    if (!quotationId) {
+      setExpiryDate("-");
+      return;
+    }
+
+    const run = async () => {
+      try {
+        setExpiryLoading(true);
+
+        const snap = await getDoc(doc(db, "quotations", quotationId));
+        if (!snap.exists()) {
+          setExpiryDate("-");
+          return;
+        }
+
+        const q: any = snap.data();
+
+        const createdAt: Timestamp | undefined = q.createdAt;
+        const createdDate = createdAt?.toDate?.() ?? null;
+
+        const period = q.deliveryTimeframe as string | undefined;
+        if (!createdDate || !period) {
+          setExpiryDate("-");
+          return;
+        }
+
+        const parsed = parsePeriodToMs(period);
+
+        if (typeof parsed === "number") {
+          const exp = new Date(createdDate.getTime() + parsed);
+          setExpiryDate(formatYYYYMMDD(exp));
+          return;
+        }
+
+        if (parsed && typeof parsed === "object") {
+          const exp = new Date(createdDate);
+          if (parsed.unit.startsWith("month"))
+            exp.setMonth(exp.getMonth() + parsed.amount);
+          else if (parsed.unit.startsWith("year"))
+            exp.setFullYear(exp.getFullYear() + parsed.amount);
+
+          setExpiryDate(formatYYYYMMDD(exp));
+          return;
+        }
+
+        setExpiryDate("-");
+      } catch (e) {
+        console.error("Failed to compute expiry date:", e);
+        setExpiryDate("-");
+      } finally {
+        setExpiryLoading(false);
+      }
+    };
+
+    run();
+  }, [order?.quotationId]);
+
+  const isExpired =
+    expiryDate !== "-" &&
+    !expiryLoading &&
+    new Date(expiryDate).getTime() < Date.now();
+
   const tableData = useMemo(() => {
     const items = order?.products || [];
     return items.map((p, idx) => ({
@@ -34,23 +132,21 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
     }));
   }, [order]);
 
-  console.log(order);
-
-  const formatDeliveryAddress = (address?:  {
+  const formatDeliveryAddress = (address?: {
     street: string;
     city: string;
-    district:  string;
+    district: string;
     zipCode: string;
     country: string;
   }): string => {
-    if (! address) return "-";
-    
+    if (!address) return "-";
+
     const { street, city, district, zipCode, country } = address;
 
     const parts = [street, city, district, zipCode, country].filter(
-      (part) => part && part. trim() !== ""
+      (part) => part && part.trim() !== ""
     );
-    
+
     return parts.length > 0 ? parts.join(", ") : "-";
   };
 
@@ -61,7 +157,6 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
   };
 
   const netTotal = useMemo(() => {
-    // Use saved netTotal if available
     if (order?.netTotal) {
       return Number(order.netTotal);
     }
@@ -141,20 +236,19 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
 
               {/* Delivery Cost */}
               {order?.deliveryMethod === "arrange_delivery" && (
-              <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Delivery Cost (Rs.)
-                </label>
-                <input
-                  type="text"
-                  value={order?.deliveryCost?.toString() || "-"}
-                  readOnly
-                  className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
-              </div>
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Delivery Cost (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={order?.deliveryCost?.toString() || "-"}
+                    readOnly
+                    className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
               )}
 
-              
               {/* Total Amount */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -162,7 +256,7 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={order?.totalAmount?.toString() || ""}
+                  value={order?.totalAmount?.toFixed(2) || ""}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -171,26 +265,73 @@ export const ViewPurchaseOrderModal: React.FC<IViewPurchaseOrderModalProps> = ({
               {/* Status */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Status
+                  Order Status
                 </label>
                 <input
                   type="text"
-                  value={order?.status || "-"}
+                  value={
+                    getDeliveryMethodLabel(order?.deliveryMethod) ==
+                      "Collect from shop" &&
+                    (order?.status == "shipped" || order?.status == "delivered")
+                      ? "collected"
+                      : order?.status
+                  }
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
 
-              {/* Payment Status */}
+              {order?.status === "cancelled" && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Rejection Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={order?.rejectionReason || "-"}
+                    readOnly
+                    className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {order?.status === "pending" && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Payment Status
+                  </label>
+                  <input
+                    type="text"
+                    value={order?.paymentStatus || "pending"}
+                    readOnly
+                    className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Payment Status
+                  Special Note
                 </label>
                 <input
                   type="text"
-                  value={order?.paymentStatus || "pending"}
+                  value={order?.specialNotes || "-"}
                   readOnly
                   className="w-full h-[36px] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Expiry Date
+                </label>
+                <input
+                  type="text"
+                  value={expiryLoading ? "loading..." : expiryDate}
+                  readOnly
+                  className={`w-full h-[36px] ${
+                    isExpired ? "text-[#930000]" : "text-[#111102]"
+                  } font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]`}
                 />
               </div>
 

@@ -335,7 +335,7 @@ export const CreatePurchaseOrderModal: React.FC<
 
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
 
-      showToast. success('Purchase order created successfully! ');
+      showToast.success("Purchase order created successfully! ");
 
       onSuccess && onSuccess();
 
@@ -385,7 +385,7 @@ export const CreatePurchaseOrderModal: React.FC<
       setSubmitError(
         error.message || "Failed to create purchase order. Please try again."
       );
-      showToast.error('Failed to create purchase order. Please try again.');
+      showToast.error("Failed to create purchase order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -623,9 +623,9 @@ export const CreatePurchaseOrderModal: React.FC<
                     <tr>
                       <th className="p-2 border w-[5%]">No.</th>
                       <th className="p-2 border w-[25%]">Item description</th>
-                      <th className="p-2 border w-[15%]">Part number</th>
-                      <th className="p-2 border w-[15%]">Photo</th>
-                      <th className="p-2 border w-[10%]">No of units</th>
+                      {/* <th className="p-2 border w-[15%]">Part number</th> */}
+                      <th className="p-2 border w-[25%]">Photo</th>
+                      <th className="p-2 border w-[15%]">No of units</th>
                       <th className="p-2 border w-[15%]">Unit price</th>
                       <th className="p-2 border w-[15%]">Total price</th>
                     </tr>
@@ -640,9 +640,9 @@ export const CreatePurchaseOrderModal: React.FC<
                         <td className="p-2 border text-center">
                           {item.itemDescription}
                         </td>
-                        <td className="p-2 border text-center">
+                        {/* <td className="p-2 border text-center">
                           {item.partNumber || "-"}
-                        </td>
+                        </td> */}
                         <td className="p-2 border text-center">
                           {requestImageUrl ? (
                             <div className=" flex justify-center">
