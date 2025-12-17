@@ -82,6 +82,38 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
     })();
   }, [quotation?.vendorId]);
 
+  useEffect(() => {
+    (async () => {
+      if (quotation?.vendorId && quotation?.deliveryMethod === "collect_from_shop") {
+        try {
+          const vendor = await FirestoreService.getById<any>(
+            COLLECTIONS.VENDORS,
+            quotation. vendorId
+          );
+
+          if (vendor) {
+            setVendorAddress({
+              address: vendor.address || "-",
+              locationLink: vendor. locationLink || "",
+            });
+          } else {
+            setVendorAddress(null);
+          }
+        } catch (error) {
+          console.error("Error fetching vendor address:", error);
+          setVendorAddress(null);
+        }
+      } else {
+        setVendorAddress(null);
+      }
+    })();
+  }, [quotation?.vendorId, quotation?.deliveryMethod]);
+
+  const [vendorAddress, setVendorAddress] = useState<{
+    address: string;
+    locationLink: string;
+  } | null>(null);
+
   const acceptedDate = useMemo(() => {
     const ts: any =
       (quotation as any)?.updatedAt || (quotation as any)?.createdAt;
@@ -97,6 +129,8 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
 
   const firstImage = request?.attachedImages?.[0] || null;
   const partName = quotation?.products?.[0]?.partName || "-";
+
+  console.log("Qou: ", quotation);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -179,19 +213,6 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 />
               </div>
 
-              {/* Part Name */}
-              <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Part Name
-                </label>
-                <input
-                  type="text"
-                  value={partName}
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
-              </div>
-
               {/* Requested Date */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -233,6 +254,19 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
+              
+              {/* Part Name */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Part Name
+                </label>
+                <input
+                  type="text"
+                  value={partName}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
 
               {/* Measurement */}
               <div>
@@ -263,6 +297,38 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
+
+              {/* Company Address */}
+              {quotation?.deliveryMethod === "collect_from_shop" && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Company Address
+                  </label>
+                  <input
+                    type="text"
+                    value={vendorAddress?.address || "-"}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {/* Company Location Link */}
+              {quotation?. deliveryMethod === "collect_from_shop" && vendorAddress?. locationLink && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Location Link
+                  </label>
+                  <a
+                    href={vendorAddress. locationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  >
+                    {vendorAddress.locationLink}
+                  </a>
+                </div>
+              )}
 
               {/* Description */}
               <div className="col-span-3">
