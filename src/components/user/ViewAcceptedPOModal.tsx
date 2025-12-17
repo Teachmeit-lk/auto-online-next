@@ -14,6 +14,7 @@ import {
 } from "@/service/firestoreService";
 import { useRefactoredId } from "../hooks/useRefactoredId";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
+import Slider from "@mui/material/Slider";
 
 interface IViewAcceptedPOModalProps {
   isOpen: boolean;
@@ -84,17 +85,20 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
 
   useEffect(() => {
     (async () => {
-      if (quotation?.vendorId && quotation?.deliveryMethod === "collect_from_shop") {
+      if (
+        quotation?.vendorId &&
+        quotation?.deliveryMethod === "collect_from_shop"
+      ) {
         try {
           const vendor = await FirestoreService.getById<any>(
             COLLECTIONS.VENDORS,
-            quotation. vendorId
+            quotation.vendorId
           );
 
           if (vendor) {
             setVendorAddress({
               address: vendor.address || "-",
-              locationLink: vendor. locationLink || "",
+              locationLink: vendor.locationLink || "",
             });
           } else {
             setVendorAddress(null);
@@ -254,7 +258,7 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
-              
+
               {/* Part Name */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -298,15 +302,6 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 />
               </div>
 
-              {/* Company Address */}
-              {quotation?.deliveryMethod === "collect_from_shop" && (
-                <div className="col-span-3">
-                  <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Company Address
-                  </label>
-                  <input
-                    type="text"
-                    value={vendorAddress?.address || "-"})}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
                   Status
@@ -333,20 +328,38 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 </div>
               )}
 
-              {/* Company Location Link */}
-              {quotation?. deliveryMethod === "collect_from_shop" && vendorAddress?. locationLink && (
+              {/* Company Address */}
+              {quotation?.deliveryMethod === "collect_from_shop" && (
                 <div className="col-span-3">
                   <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Location Link
+                    Company Address
                   </label>
-                  <a
-                    href={vendorAddress. locationLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                  >
-                    {vendorAddress.locationLink}
-                  </a>)}
+                  <input
+                    type="text"
+                    value={vendorAddress?.address || "-"}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {/* Company Location Link */}
+              {quotation?.deliveryMethod === "collect_from_shop" &&
+                vendorAddress?.locationLink && (
+                  <div className="col-span-3">
+                    <label className="text-[12px] font-body font-[500] text-[#111102]">
+                      Location Link
+                    </label>
+                    <a
+                      href={vendorAddress.locationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                    >
+                      {vendorAddress.locationLink}
+                    </a>
+                  </div>
+                )}
               {quotation?.specialNotes && (
                 <div className="col-span-3">
                   <label className="text-[12px] font-body font-[500] text-[#111102]">
