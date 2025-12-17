@@ -97,7 +97,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.phone || ""}
+                  value={vendor?.phone || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -110,7 +110,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.whatsApp || ""}
+                  value={vendor?.whatsApp || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -123,7 +123,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.email || ""}
+                  value={vendor?.email || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -136,7 +136,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.conmpanyBR || ""}
+                  value={vendor?.conmpanyBR || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -149,7 +149,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.district || ""}
+                  value={vendor?.district || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
@@ -162,7 +162,7 @@ export const ViewVendorProfileModal: React.FC<IViewVendorProfileModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={vendor?.address || ""}
+                  value={vendor?.address || "-"}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
