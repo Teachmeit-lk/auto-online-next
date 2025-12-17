@@ -257,7 +257,7 @@ const CompletedOrders: React.FC = () => {
                       {row.vendorName}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
-                      {row.totalAmount}
+                      {row.totalAmount.toFixed(2)}
                     </td>
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {row.dateCompleted}

@@ -306,7 +306,27 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={vendorAddress?.address || "-"}
+                    value={vendorAddress?.address || "-"})}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value={quotation?.status}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {quotation?.status === "cancelled" && (
+                <div className="col-span-2">
+                  <label className=" text-[12px] font-body font-[500] text-[#111102]">
+                    Rejection Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={quotation?.rejectionReason || "-"}
                     readOnly
                     className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   />
@@ -326,7 +346,18 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                     className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   >
                     {vendorAddress.locationLink}
-                  </a>
+                  </a>)}
+              {quotation?.specialNotes && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Special Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    readOnly
+                    value={quotation?.specialNotes || "-"}
+                    className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
                 </div>
               )}
 

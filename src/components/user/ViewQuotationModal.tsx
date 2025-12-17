@@ -76,6 +76,55 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
     return "-";
   };
 
+  const getCreatedAtDate = (): Date | null => {
+    const ts: any = quotation?.createdAt;
+    if (!ts) return null;
+
+    if (typeof ts.toDate === "function") return ts.toDate();
+
+    if (typeof ts.seconds === "number") return new Date(ts.seconds * 1000);
+
+    return null;
+  };
+
+  const computeExpiryDate = (): string => {
+    const base = getCreatedAtDate();
+    const tf = quotation?.deliveryTimeframe;
+    if (!base || !tf) return "-";
+
+    const match = String(tf).match(
+      /(\d+)\s*(hour|hours|day|days|week|weeks|month|months|year|years)/i
+    );
+    if (!match) return "-";
+
+    const amount = Number(match[1]);
+    const unit = match[2].toLowerCase();
+
+    const d = new Date(base);
+
+    if (unit.startsWith("hour")) d.setHours(d.getHours() + amount);
+    else if (unit.startsWith("day")) d.setDate(d.getDate() + amount);
+    else if (unit.startsWith("week")) d.setDate(d.getDate() + amount * 7);
+    else if (unit.startsWith("month")) d.setMonth(d.getMonth() + amount);
+    else if (unit.startsWith("year")) d.setFullYear(d.getFullYear() + amount);
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const expiryDateStr = useMemo(
+    () => computeExpiryDate(),
+    [quotation?.createdAt, quotation?.deliveryTimeframe]
+  );
+
+  const isExpired = useMemo(() => {
+    if (!expiryDateStr || expiryDateStr === "-") return false;
+    const t = new Date(expiryDateStr).getTime();
+    return Number.isFinite(t) && t < Date.now();
+  }, [expiryDateStr]);
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -145,6 +194,21 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 />
               </div>
 
+              {/* Expiry Date */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Expiry Date
+                </label>
+                <input
+                  type="text"
+                  value={expiryDateStr}
+                  readOnly
+                  className={`w-full h-[36px] placeholder:text-[#111102] ${
+                    isExpired ? "text-[#930000]" : "text-[#111102]"
+                  } font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]`}
+                />
+              </div>
+
               {/* Total Cost */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -156,9 +220,8 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
-              </div>
-              <div>
-                <p className="text-[10px] text-[#930000] mt-12">
+
+                <p className="text-[10px] text-[#930000] mt-1">
                   Net total includes 12% VAT rate.
                 </p>
               </div>
@@ -211,7 +274,9 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                       <td className="p-3 border">{item.description}</td>
                       <td className="p-3 border">{item.unitPrice}</td>
                       <td className="p-3 border">{item.totalPrice}</td>
-                      <td className="p-3 border">{quotation?.totalAmount?.toString()}</td>
+                      <td className="p-3 border">
+                        {quotation?.totalAmount?.toString()}
+                      </td>
                       <td className="p-3 border">{item.stock}</td>
                       <td className="p-3 border">{item.comment}</td>
                     </tr>
