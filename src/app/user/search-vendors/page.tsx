@@ -283,7 +283,7 @@ const SearchVendors: React.FC = () => {
   const filtered = useMemo(() => {
     return vendors
       .filter((v) => {
-        const address = (v?.address || "").trim();
+        const address = v?.mainCategories || "";
         if (!address) return false;
 
         if (filterCategory !== "all") {
