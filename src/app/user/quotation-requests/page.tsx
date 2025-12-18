@@ -332,15 +332,15 @@ const QuotationRequests: React.FC = () => {
               "Customer";
 
             const msg = `
-              Hi ${vendorName},
+Hi ${vendorName},
 
-              This is ${buyerName} from AutoOnline.lk.
+This is ${buyerName} from AutoOnline.lk.
 
-              I'm contacting you regarding my quotation request:
-              Request Code: ${useRefactoredId("RC", (selected as any).id) || "-"}    
-              Vehicle: ${(selected as any).vehicleType || "-"} ${
-                            (selected as any).brand || ""
-                          } ${(selected as any).model || ""}
+I'm contacting you regarding my quotation request:
+Request Code: ${useRefactoredId("RC", (selected as any).id) || "-"}    
+Vehicle: ${(selected as any).vehicleType || "-"} ${
+              (selected as any).brand || ""
+            } ${(selected as any).model || ""}
 
               `.trim();
 
