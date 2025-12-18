@@ -8,6 +8,7 @@ import {
   TabLayout,
   ViewProductModal,
   UpdateProductModal,
+  OpenChatConfirmationModal,
 } from "@/components";
 import withAuth from "@/components/authGuard/withAuth";
 import { useSelector } from "react-redux";
@@ -22,6 +23,8 @@ import {
   VehicleModel,
 } from "@/service/firestoreService";
 import { useRefactoredId } from "@/components/hooks/useRefactoredId";
+import { useRouter } from "next/navigation";
+import { CompleteVendorProfileModal } from "./CompleteVendorProfileModal";
 
 const VendorProducts: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -48,6 +51,21 @@ const VendorProducts: React.FC = () => {
     Array<{ id?: string; name: string }>
   >([]);
 
+  const router = useRouter();
+  const [profileAlertOpen, setProfileAlertOpen] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const mc = Array.isArray(currentUser.mainCategories)
+      ? currentUser.mainCategories
+      : [];
+
+    if (mc.length === 0) {
+      setProfileAlertOpen(true);
+    }
+  }, [currentUser]);
+
   const loadProducts = async () => {
     setLoading(true);
     try {
@@ -69,7 +87,6 @@ const VendorProducts: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
 
   useEffect(() => {
@@ -212,9 +229,12 @@ const VendorProducts: React.FC = () => {
                 />
               </div>
             </div>
-            {/* Add Now Button */}
+
             <button
-              className="sm:px-4 py-1 w-[89px] h-[32px]  mt-[25px] rounded-[5px] bg-[#F9C301] font-body text-[#111102] hover:bg-yellow-500 text-sm "
+              className="sm:px-4 py-1 w-[89px] h-[32px] mt-[25px] rounded-[5px] 
+             bg-[#F9C301] font-body text-[#111102] hover:bg-yellow-500 text-sm
+             disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentUser.mainCategories == undefined}
               onClick={() => setIsModalOpen(true)}
             >
               Add now
@@ -356,6 +376,14 @@ const VendorProducts: React.FC = () => {
           onClose={() => setIsModalOpen(false)}
           onCreated={async () => {
             await loadProducts();
+          }}
+        />
+        <CompleteVendorProfileModal
+          isOpen={profileAlertOpen}
+          onClose={() => setProfileAlertOpen(false)}
+          onConfirm={() => {
+            setProfileAlertOpen(false);
+            router.push("/vendor/profile");
           }}
         />
 

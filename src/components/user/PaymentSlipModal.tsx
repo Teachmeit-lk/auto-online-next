@@ -174,8 +174,6 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
     onClose();
   };
 
-  console.log("Quotation in PaymentSlipModal: ", quotation);
-
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
       <Dialog.Portal>
