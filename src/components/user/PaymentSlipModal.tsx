@@ -3,7 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { Camera, CirclePlus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { OrderService } from "@/service/firestoreService";
+import { OrderService, Quotation } from "@/service/firestoreService";
 import { FirebaseStorageService } from "@/service/firebaseStorageService";
 import { useAuth } from "@/components/authGuard/FirebaseAuthGuard";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
@@ -17,6 +17,7 @@ interface IPaymentSlipModalProps {
   orderNumber?: string;
   onSuccess?: () => void;
   vendorId?: string;
+  quotation?: Quotation | null;
 }
 
 export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
@@ -26,6 +27,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
   orderNumber,
   onSuccess,
   vendorId,
+  quotation,
 }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,7 +144,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       await OrderService.uploadPaymentSlip(orderId, uploadResult.url);
 
       console.log("[PaymentSlipModal] Payment slip uploaded successfully");
-      showToast.success('Payment slip uploaded successfully! ');
+      showToast.success("Payment slip uploaded successfully! ");
       // TODO: Send payment slip via WhatsApp
       console.log("[PaymentSlipModal] TODO: Send payment slip via WhatsApp");
 
@@ -156,7 +158,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
       setSubmitError(
         error.message || "Failed to upload payment slip. Please try again."
       );
-      showToast.error('Failed to upload payment slip. Please try again.');
+      showToast.error("Failed to upload payment slip. Please try again.");
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
@@ -171,6 +173,8 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
     setUploadProgress(0);
     onClose();
   };
+
+  console.log("Quotation in PaymentSlipModal: ", quotation);
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
@@ -195,7 +199,7 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
           <div className="space-y-4">
             <div className="bg-[#F8F8F8] rounded-[8px] p-6 space-y-4">
               {/* Vendor Bank Details */}
-              <div className="bg-[#F8F8F8] rounded-[8px] mb-10 space-y-3">
+              <div className="bg-[#F8F8F8] rounded-[8px] mb-6 space-y-3">
                 <h3 className="text-[13px] font-bold font-body text-[#111102]">
                   Vendor Bank Details
                 </h3>
@@ -239,6 +243,20 @@ export const PaymentSlipModal: React.FC<IPaymentSlipModalProps> = ({
                     Bank details not available. Please contact the vendor.
                   </p>
                 )}
+              </div>
+
+              <div className="flex pb-4 space-x-3 items-center">
+                <div>
+                  <p className="text-[10px] text-[#5B5B5B] ">
+                    Grand Total (Rs.) :
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-[12px] font-body font-[500] text-[#111102] mt-[-2px]">
+                    {quotation?.totalAmount}
+                  </p>
+                </div>
               </div>
 
               <div>

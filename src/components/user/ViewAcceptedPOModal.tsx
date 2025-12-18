@@ -134,8 +134,6 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
   const firstImage = request?.attachedImages?.[0] || null;
   const partName = quotation?.products?.[0]?.partName || "-";
 
-  console.log("Qou: ", quotation);
-
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -297,6 +295,47 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                       ? String(request.numberOfUnits)
                       : "-"
                   }
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+              {quotation?.netTotal !== quotation?.totalAmount && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Net Total (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={quotation?.netTotal}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {quotation?.netTotal !== quotation?.totalAmount && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Delivery Cost (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={(quotation.totalAmount - quotation.netTotal).toFixed(
+                      2
+                    )}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Grand Total (Rs.)
+                </label>
+                <input
+                  type="text"
+                  value={quotation?.totalAmount}
                   readOnly
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />

@@ -661,6 +661,7 @@ export const CreatePurchaseOrderModal: React.FC<
                         <td className="p-2 border text-center">
                           <input
                             type="number"
+                            readOnly
                             min={1}
                             value={item.quantity}
                             onChange={(e) =>
