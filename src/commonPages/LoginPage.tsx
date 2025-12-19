@@ -71,14 +71,12 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
     resolver: yupResolver(schema as any),
   });
 
-
   const onSubmit = async (data: any) => {
     try {
-      console.log(`Firebase login attempt for ${type} with:`, data);
       const loginData: LoginRequest =
         type === "buyer"
-          ? { phone: data.phone, password: data. password }
-          : { email: data.email, password: data. password };
+          ? { phone: data.phone, password: data.password }
+          : { email: data.email, password: data.password };
 
       const result = await dispatch(
         loginUserAsync({
@@ -87,14 +85,14 @@ export const CommonLoginPage: React.FC<ICommonLoginPageProps> = ({ type }) => {
         }) as any
       );
 
-      if (loginUserAsync.fulfilled. match(result)) {
+      if (loginUserAsync.fulfilled.match(result)) {
         console.log("Firebase login successful");
 
         const pendingQuotation = localStorage.getItem("pendingQuotation");
 
         if (type === "buyer" && pendingQuotation) {
           try {
-            const parsed = JSON. parse(pendingQuotation);
+            const parsed = JSON.parse(pendingQuotation);
 
             if (parsed.returnUrl) {
               router.push(parsed.returnUrl);

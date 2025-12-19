@@ -14,6 +14,7 @@ import {
 } from "@/service/firestoreService";
 import { useRefactoredId } from "../hooks/useRefactoredId";
 import { useRefactoredIdLast } from "../hooks/useRefactoredIdLast";
+import Slider from "@mui/material/Slider";
 
 interface IViewAcceptedPOModalProps {
   isOpen: boolean;
@@ -81,6 +82,41 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
       }
     })();
   }, [quotation?.vendorId]);
+
+  useEffect(() => {
+    (async () => {
+      if (
+        quotation?.vendorId &&
+        quotation?.deliveryMethod === "collect_from_shop"
+      ) {
+        try {
+          const vendor = await FirestoreService.getById<any>(
+            COLLECTIONS.VENDORS,
+            quotation.vendorId
+          );
+
+          if (vendor) {
+            setVendorAddress({
+              address: vendor.address || "-",
+              locationLink: vendor.locationLink || "",
+            });
+          } else {
+            setVendorAddress(null);
+          }
+        } catch (error) {
+          console.error("Error fetching vendor address:", error);
+          setVendorAddress(null);
+        }
+      } else {
+        setVendorAddress(null);
+      }
+    })();
+  }, [quotation?.vendorId, quotation?.deliveryMethod]);
+
+  const [vendorAddress, setVendorAddress] = useState<{
+    address: string;
+    locationLink: string;
+  } | null>(null);
 
   const acceptedDate = useMemo(() => {
     const ts: any =
@@ -179,19 +215,6 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 />
               </div>
 
-              {/* Part Name */}
-              <div>
-                <label className="text-[12px] font-body font-[500] text-[#111102]">
-                  Part Name
-                </label>
-                <input
-                  type="text"
-                  value={partName}
-                  readOnly
-                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                />
-              </div>
-
               {/* Requested Date */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -234,6 +257,19 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                 />
               </div>
 
+              {/* Part Name */}
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Part Name
+                </label>
+                <input
+                  type="text"
+                  value={partName}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
               {/* Measurement */}
               <div>
                 <label className="text-[12px] font-body font-[500] text-[#111102]">
@@ -263,6 +299,119 @@ export const ViewAcceptedPOModal: React.FC<IViewAcceptedPOModalProps> = ({
                   className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
               </div>
+              {quotation?.netTotal !== quotation?.totalAmount && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Net Total (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={quotation?.netTotal}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {quotation?.netTotal !== quotation?.totalAmount && (
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Delivery Cost (Rs.)
+                  </label>
+                  <input
+                    type="text"
+                    value={(quotation.totalAmount - quotation.netTotal).toFixed(
+                      2
+                    )}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Grand Total (Rs.)
+                </label>
+                <input
+                  type="text"
+                  value={quotation?.totalAmount}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[12px] font-body font-[500] text-[#111102]">
+                  Status
+                </label>
+                <input
+                  type="text"
+                  value={quotation?.status}
+                  readOnly
+                  className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                />
+              </div>
+
+              {quotation?.status === "cancelled" && (
+                <div className="col-span-2">
+                  <label className=" text-[12px] font-body font-[500] text-[#111102]">
+                    Rejection Reason
+                  </label>
+                  <input
+                    type="text"
+                    value={quotation?.rejectionReason || "-"}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {/* Company Address */}
+              {quotation?.deliveryMethod === "collect_from_shop" && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Company Address
+                  </label>
+                  <input
+                    type="text"
+                    value={vendorAddress?.address || "-"}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
+
+              {/* Company Location Link */}
+              {quotation?.deliveryMethod === "collect_from_shop" &&
+                vendorAddress?.locationLink && (
+                  <div className="col-span-3">
+                    <label className="text-[12px] font-body font-[500] text-[#111102]">
+                      Location Link
+                    </label>
+                    <a
+                      href={vendorAddress.locationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-[36px] flex items-center px-3 mt-1 bg-[#FEFEFE] text-[#111102] text-[10px] font-body rounded-[3px] cursor-pointer hover:underline focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                    >
+                      {vendorAddress.locationLink}
+                    </a>
+                  </div>
+                )}
+              {quotation?.specialNotes && (
+                <div className="col-span-3">
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Special Notes
+                  </label>
+                  <textarea
+                    rows={3}
+                    readOnly
+                    value={quotation?.specialNotes || "-"}
+                    className="w-full placeholder:text-[#111102] h-[80px] mt-1 p-3 text-[10px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+              )}
 
               {/* Description */}
               <div className="col-span-3">

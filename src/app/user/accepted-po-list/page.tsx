@@ -335,6 +335,7 @@ const AcceptedPO: React.FC = () => {
           orderId={selected?.id || ""}
           vendorId={selected?.vendorId || ""}
           orderNumber={selected?.orderNumber}
+          quotation={selected as any}
           onSuccess={async () => {
             console.log(
               "[AcceptedPOList] Payment slip uploaded, reloading orders"

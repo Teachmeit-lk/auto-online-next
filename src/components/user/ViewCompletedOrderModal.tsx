@@ -230,11 +230,12 @@ export const ViewCompletedOrderModal: React.FC<
     orderData?.partName ||
     "-";
 
-  // Item Count
-  const itemCount =
-    Array.isArray(productsList) && productsList.length > 0
-      ? productsList.length
-      : orderData?.itemCount || 0;
+  // Number of Units
+  const numberOfUnits = 
+    orderData?.numberOfUnits ||
+    productsList[0]?.quantity ||
+    orderData?.quantity ||
+    0;
 
   // Delivery Cost
   const extractDeliveryCost = (notes?: string): string => {
@@ -370,6 +371,30 @@ export const ViewCompletedOrderModal: React.FC<
                     type="text"
                     value={useRefactoredId("VC", vendorCode)}
                     readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus: ring-[#F9C301]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Contact Number
+                  </label>
+                  <input
+                    type="text"
+                    value={contactNumber}
+                    readOnly
+                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-[12px] font-body font-[500] text-[#111102]">
+                    Completed Date
+                  </label>
+                  <input
+                    type="text"
+                    value={completedDate}
+                    readOnly
                     className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   />
                 </div>
@@ -388,35 +413,11 @@ export const ViewCompletedOrderModal: React.FC<
 
                 <div>
                   <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Completed Date
+                    No of Units
                   </label>
                   <input
                     type="text"
-                    value={completedDate}
-                    readOnly
-                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Contact Number
-                  </label>
-                  <input
-                    type="text"
-                    value={contactNumber}
-                    readOnly
-                    className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[12px] font-body font-[500] text-[#111102]">
-                    Item Count
-                  </label>
-                  <input
-                    type="text"
-                    value={String(itemCount)}
+                    value={numberOfUnits > 0 ? numberOfUnits. toString() : "-"}
                     readOnly
                     className="w-full h-[36px] placeholder:text-[#111102] text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                   />

@@ -85,11 +85,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
       .required("No of units are required"),
     description: Yup.string().required("Description is required"),
     district: Yup.string().required("District is required"),
-    images: Yup.array()
-      .of(Yup.mixed())
-      .min(1, "At least one image is required")
-      .max(5, "Maximum 5 images allowed")
-      .required("Images are required"),
+    images: Yup.array().of(Yup.mixed()).max(5, "Maximum 5 images allowed"),
   });
 
   const {
@@ -334,7 +330,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
     }
 
     if (resetKey && prevResetKeyRef.current !== resetKey) {
-      clearFormState(); // ✅ only when filters changed
+      clearFormState(); //  only when filters changed
 
       // optional: if you want category prefilled in search mode after reset
       if (mode === "search" && preSelectedCategory) {

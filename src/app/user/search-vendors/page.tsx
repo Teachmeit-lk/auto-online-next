@@ -283,6 +283,9 @@ const SearchVendors: React.FC = () => {
   const filtered = useMemo(() => {
     return vendors
       .filter((v) => {
+        const address = v?.mainCategories || "";
+        if (!address) return false;
+
         if (filterCategory !== "all") {
           const mc: string[] = (v.mainCategories || []) as string[];
 
@@ -301,6 +304,7 @@ const SearchVendors: React.FC = () => {
 
           if (!hasCategory) return false;
         }
+
         if (filterCountry !== "all") {
           const vendorBrandIds: string[] = (v.vehicleBrand || []) as string[];
           const hasCountry = vendorBrandIds.some((id) => {
@@ -311,18 +315,21 @@ const SearchVendors: React.FC = () => {
           });
           if (!hasCountry) return false;
         }
+
         if (filterDistrict !== "all" && v.district !== filterDistrict)
           return false;
+
         if (search) {
           const q = search.toLowerCase();
           const name = `${v.firstName || ""} ${v.lastName || ""}`.trim();
-          const address = v.address || "";
+
           if (
             !name.toLowerCase().includes(q) &&
             !address.toLowerCase().includes(q)
           )
             return false;
         }
+
         return true;
       })
       .slice(0, entries);

@@ -342,7 +342,7 @@ Vehicle: ${(selected as any).vehicleType || "-"} ${
               (selected as any).brand || ""
             } ${(selected as any).model || ""}
 
-`.trim();
+              `.trim();
 
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(
               msg
