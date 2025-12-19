@@ -13,6 +13,7 @@ import {
 } from "@/service/firestoreService";
 import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 import { useRefactoredIdLast } from "@/components/hooks/useRefactoredIdLast";
+import { OnlinePaymentFormModal } from "./OnlinePaymentFormModal";
 
 const AcceptedPO: React.FC = () => {
   const [entries, setEntries] = useState(5);
@@ -23,6 +24,7 @@ const AcceptedPO: React.FC = () => {
   const [vendorNameMap, setVendorNameMap] = useState<Record<string, string>>(
     {}
   );
+  const [onlinePaymentOpen, setOnlinePaymentOpen] = useState(false);
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const [paymentSlipModalOpen, setPaymentSlipModalOpen] = useState(false);
 
@@ -269,7 +271,8 @@ const AcceptedPO: React.FC = () => {
                         row.raw.paymentMethod &&
                         (row.raw.paymentMethod === "pay_online" ||
                           row.raw.paymentMethod === "bank_transfer") &&
-                        !row.raw.paymentSlipUrl
+                        !row.raw.paymentSlipUrl &&
+                        row.raw.status != "cancelled"
                           ? "grid-cols-2"
                           : "grid-cols-1"
                       } gap-2 text-center w-full h-full`}
@@ -288,8 +291,8 @@ const AcceptedPO: React.FC = () => {
                         View
                       </button>
                       {row.raw.paymentMethod &&
-                        (row.raw.paymentMethod === "pay_online" ||
-                          row.raw.paymentMethod === "bank_transfer") &&
+                        row.raw.paymentMethod === "bank_transfer" &&
+                        row.raw.status != "cancelled" &&
                         !row.raw.paymentSlipUrl && (
                           <button
                             className="bg-[#F9C301] px-3 font-body py-3 text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500 active:bg-yellow-500"
@@ -303,6 +306,20 @@ const AcceptedPO: React.FC = () => {
                             }}
                           >
                             Upload Payment
+                          </button>
+                        )}
+                      {row.raw.paymentMethod &&
+                        row.raw.status != "cancelled" &&
+                        row.raw.paymentMethod === "pay_online" && (
+                          <button
+                            className="bg-[#F9C301] px-3 py-3 font-body text-[#111102] text-[12px]
+             hover:bg-yellow-500 w-full h-full"
+                            onClick={() => {
+                              setSelected(row.raw);
+                              setOnlinePaymentOpen(true);
+                            }}
+                          >
+                            Pay Online
                           </button>
                         )}
                     </td>
@@ -325,6 +342,18 @@ const AcceptedPO: React.FC = () => {
             setIsModalOpen(false);
           }}
           quotation={selected as any}
+        />
+
+        <OnlinePaymentFormModal
+          isOpen={onlinePaymentOpen}
+          onClose={() => setOnlinePaymentOpen(false)}
+          orderId={selected?.orderNumber || selected?.id || ""}
+          amount={selected?.totalAmount || 0}
+          onPay={() => {
+            console.log("Trigger gateway for:", selected?.id);
+
+            setOnlinePaymentOpen(false);
+          }}
         />
         <PaymentSlipModal
           isOpen={paymentSlipModalOpen}
