@@ -401,17 +401,20 @@ export const CreatePurchaseOrderModal: React.FC<
   const baseAddress =
     (user as any)?.address + " , " + (user as any)?.city || "";
 
-  const handleConfirmWhatsApp = () => {
+  const handleConfirmWhatsApp = async () => {
     if (!pendingWhatsAppData) return;
 
     try {
-      const waUrl = buildPurchaseOrderWhatsAppUrl(pendingWhatsAppData);
+      await fetch("/api/webhooks/whatsapp/purchase-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pendingWhatsAppData),
+      });
 
-      if (waUrl) {
-        window.open(waUrl, "_blank");
-      }
+      showToast.success("Purchase order sent to vendor via WhatsApp!");
     } catch (e) {
-      console.error("WhatsApp sending error", e);
+      console.error("WhatsApp PO send error", e);
+      showToast.error("Failed to send WhatsApp message");
     } finally {
       setWhatsAppModalOpen(false);
       setPendingWhatsAppData(null);

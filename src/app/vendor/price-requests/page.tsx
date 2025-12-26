@@ -24,6 +24,7 @@ import {
 } from "@/service/firestoreService";
 import * as Dialog from "@radix-ui/react-dialog";
 import { BankDetailsRequiredModal } from "./BankDetailsRequiredModal";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 // import {
 //   DeleteQuotationModalAlert,
 //   NewPriceChatAlert,
@@ -236,6 +237,64 @@ const NewPriceRequests: React.FC = () => {
   //   console.log("Quotation Deleted!");
   //   setIsModalOpen4(false);
   // };
+
+  function normalizeSriLankaPhone(raw?: string): string | null {
+    if (!raw) return null;
+    const digits = raw.replace(/\D/g, "");
+    if (digits.startsWith("94") && digits.length === 11) return digits;
+    if (digits.startsWith("0") && digits.length === 10)
+      return "94" + digits.slice(1);
+    if (digits.length === 9) return "94" + digits;
+    return null;
+  }
+
+  async function upsertChatRoomForQuotationRequest(args: {
+    requestId: string;
+    buyerId: string;
+    vendorId: string;
+    buyerPhone: string;
+    vendorPhone: string;
+  }) {
+    const refCode = `RC-${args.requestId}`;
+
+    const existing = await FirestoreService.getAll<any>(
+      COLLECTIONS.CHAT_ROOMS,
+      [
+        { field: "refCode", operator: "==", value: refCode },
+        { field: "status", operator: "==", value: "open" },
+      ]
+    );
+
+    if (existing?.[0]) return existing[0];
+
+    const id = await FirestoreService.create<any>(COLLECTIONS.CHAT_ROOMS, {
+      contextType: "QUOTATION_REQUEST",
+      contextId: args.requestId,
+      refCode,
+      buyerId: args.buyerId,
+      vendorId: args.vendorId,
+      buyerPhone: args.buyerPhone,
+      vendorPhone: args.vendorPhone,
+      status: "open",
+      isActive: true,
+      lastMessageAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    return { id, refCode };
+  }
+
+  function openMediatorWhatsApp(refCode: string, message: string) {
+    const businessRaw = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER;
+    if (!businessRaw)
+      throw new Error("Missing NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER");
+
+    const business = businessRaw.replace(/\D/g, ""); // wa.me needs digits only
+    const url = `https://wa.me/${business}?text=${encodeURIComponent(
+      `${message}\n\nRef: ${refCode}`
+    )}`;
+    window.open(url, "_blank");
+  }
 
   return (
     <TabLayout type="vendor">
@@ -499,52 +558,88 @@ const NewPriceRequests: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           person="buyer"
-          onConfirm={() => {
+          onConfirm={async () => {
             if (!selectedRequest) {
               alert("No request selected for chat.");
               setIsModalOpen(false);
               return;
             }
 
-            const buyerPhone =
-              (selectedRequest as any).buyerPhone ||
-              (selectedRequest as any).whatsapp ||
-              (selectedRequest as any).phone ||
-              "";
+            try {
+              const vendorPhoneRaw =
+                currentUser?.whatsApp ||
+                currentUser?.phone ||
+                currentUser?.mobileNumber ||
+                "";
+              const vendorPhone = normalizeSriLankaPhone(vendorPhoneRaw);
 
-            if (!buyerPhone) {
-              alert("Buyer phone number is not available.");
-              setIsModalOpen(false);
-              return;
-            }
+              if (!vendorPhone) {
+                alert(
+                  "Your phone / WhatsApp number is missing. Please update your profile."
+                );
+                return;
+              }
 
-            const phone = "+94" + buyerPhone.replace(/\D/g, "");
+              let buyerPhoneRaw =
+                (selectedRequest as any).buyerPhone ||
+                (selectedRequest as any).whatsApp ||
+                (selectedRequest as any).phone ||
+                "";
 
-            const vendorName =
-              `${currentUser?.firstName || ""} ${
-                currentUser?.lastName || ""
-              }`.trim() ||
-              currentUser?.companyName ||
-              "Your vendor";
+              if (!buyerPhoneRaw && (selectedRequest as any).buyerId) {
+                const buyer: any = await FirestoreService.getById(
+                  COLLECTIONS.USERS,
+                  (selectedRequest as any).buyerId
+                );
+                buyerPhoneRaw =
+                  buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+              }
 
-            const msg = `
-Hi ${selectedRequest.buyerName || "Customer"},
+              const buyerPhone = normalizeSriLankaPhone(buyerPhoneRaw);
+              if (!buyerPhone) {
+                alert("Buyer phone / WhatsApp number is not available.");
+                return;
+              }
 
-This is ${vendorName} from AutoOnline.lk.
+              const room = await upsertChatRoomForQuotationRequest({
+                requestId: (selectedRequest as any).id,
+                buyerId: (selectedRequest as any).buyerId,
+                vendorId: currentUser.id,
+                buyerPhone,
+                vendorPhone,
+              });
 
-I'm contacting you regarding your price request for:
+              const vendorName =
+                `${currentUser?.firstName || ""} ${
+                  currentUser?.lastName || ""
+                }`.trim() ||
+                currentUser?.companyName ||
+                "Vendor";
+
+              const msg = `
+Hi AutoOnline.lk,
+
+This is ${vendorName}.
+
+I need to chat regarding this price request:
+Request Code: ${useRefactoredId("RC", (selectedRequest as any).id) || "-"}
 Vehicle Type: ${selectedRequest.vehicleType || "-"}
 Brand/Model: ${selectedRequest.brand || ""} ${selectedRequest.model || ""}
+`.trim();
 
-              `.trim();
-
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(
-              msg
-            )}`;
-            window.open(url, "_blank");
-            setIsModalOpen(false);
+              openMediatorWhatsApp(room.refCode, msg);
+            } catch (e) {
+              console.error(
+                "[NewPriceRequests] Failed to open mediator chat:",
+                e
+              );
+              alert("Failed to open WhatsApp chat. Please try again.");
+            } finally {
+              setIsModalOpen(false);
+            }
           }}
         />
+
         <DeleteItemConfirmation
           isOpen={isDeleteModalOpen}
           onClose={() => {
