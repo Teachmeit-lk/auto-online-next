@@ -23,6 +23,8 @@ import { RootState } from "@/app/store/store";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { GetQuotationConfirmation } from "@/components/atoms/get-quotation-confirmation-modal";
+import { showToast } from "@/app/utils/toast";
+import { useRefactoredId } from "@/components/hooks/useRefactoredId";
 
 const SearchVendors: React.FC = () => {
   const [entries, setEntries] = useState(10);
@@ -41,6 +43,9 @@ const SearchVendors: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profileVendor, setProfileVendor] = useState<any | null>(null);
   const [quotationModalKey, setQuotationModalKey] = useState(0);
+  const [pendingWhatsAppPayload, setPendingWhatsAppPayload] = useState<
+    any | null
+  >(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<VehicleBrand[]>([]);
@@ -52,6 +57,9 @@ const SearchVendors: React.FC = () => {
   const [selectedVendorGallery, setSelectedVendorGallery] = useState<
     GalleryImage[]
   >([]);
+  const [submittingToVendors, setSubmittingToVendors] = useState<
+    Record<string, boolean>
+  >({});
 
   const searchParams = useSearchParams();
   const initialSearch = (searchParams.get("search") || "").trim();
@@ -75,6 +83,7 @@ const SearchVendors: React.FC = () => {
   );
 
   const resetNormalFlowState = () => {
+    setSubmittingToVendors({});
     setSentToVendors({});
     setPendingVendor(null);
     setSelectedVendor(null);
@@ -346,9 +355,8 @@ const SearchVendors: React.FC = () => {
 
   const handleAutoSubmitQuotation = async (vendor: any) => {
     if (!preFilledQuotationData || !user?.id) return;
-
+    setSubmittingToVendors((prev) => ({ ...prev, [vendor.id]: true }));
     const data = preFilledQuotationData;
-    console.log("Data:", preFilledQuotationData);
 
     let uploadedUrls: string[] = [];
 
@@ -387,10 +395,10 @@ const SearchVendors: React.FC = () => {
 
         uploadedUrls = await Promise.all(uploadPromises);
         setUploadedImageUrl(uploadedUrls[0] || "");
-
-        console.log("Images uploaded:", uploadedUrls);
       } catch (error) {
         console.error("Error uploading images:", error);
+      } finally {
+        setSubmittingToVendors((prev) => ({ ...prev, [vendor.id]: false }));
       }
     }
 
@@ -418,47 +426,69 @@ const SearchVendors: React.FC = () => {
       isActive: true,
     } as any;
 
-    await FirestoreService.create<QuotationRequest>(
+    const createdId = await FirestoreService.create<QuotationRequest>(
       COLLECTIONS.QUOTATION_REQUESTS,
       doc
     );
 
+    // mark sent
     setSentToVendors((prev) => ({ ...prev, [vendor.id]: true }));
+
+    const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
+    const vendorName =
+      vendor?.companyName ||
+      `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
+      "Vendor";
+
+    setPendingWhatsAppPayload({
+      vendorPhone,
+      vendorName,
+      request: doc,
+      requestId: createdId,
+      imageUrls: uploadedUrls,
+    });
 
     setWhatsAppModalOpen(true);
   };
 
-  const handleConfirmWhatsApp = () => {
-    if (!preFilledQuotationData || !selectedVendor || !user) return;
+  const handleConfirmWhatsApp = async () => {
+    if (!pendingWhatsAppPayload) return;
 
-    const vendorPhone = selectedVendor?.whatsApp || selectedVendor?.phone || "";
-    const vendorDisplayName =
-      selectedVendor?.companyName ||
-      `${selectedVendor?.firstName || ""} ${
-        selectedVendor?.lastName || ""
-      }`.trim() ||
-      "Vendor";
+    try {
+      await fetch("/api/webhooks/whatsapp/quotation-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...pendingWhatsAppPayload,
+          requestId: `${useRefactoredId(
+            "RC",
+            pendingWhatsAppPayload.requestId
+          )}`,
+        }),
+      });
 
-    const waUrl = buildWhatsAppQuotationUrl({
-      vendor: {
-        id: selectedVendor?.id || "",
-        name: vendorDisplayName,
-      },
-      vendorPhone,
-      data: preFilledQuotationData,
-      currentUser: user,
-      fileUrl: uploadedImageUrl,
-    });
+      const vendorDisplayName =
+        selectedVendor?.companyName ||
+        `${selectedVendor?.firstName || ""} ${
+          selectedVendor?.lastName || ""
+        }`.trim() ||
+        "Vendor";
 
-    if (waUrl) {
-      window.open(waUrl, "_blank");
+      showToast.success(
+        `Successfully sent your inquiry to ${vendorDisplayName}!`
+      );
+    } catch (e) {
+      console.error("Failed to send WhatsApp via API", e);
+      alert("Failed to send WhatsApp message. Please try again.");
+    } finally {
+      setWhatsAppModalOpen(false);
+      setPendingWhatsAppPayload(null);
     }
-
-    setWhatsAppModalOpen(false);
   };
 
   const handleSkipWhatsApp = () => {
     setWhatsAppModalOpen(false);
+    setPendingWhatsAppPayload(null);
   };
 
   const categoryLabelMap = useMemo(() => {
@@ -686,7 +716,9 @@ const SearchVendors: React.FC = () => {
                 </tr>
               ) : (
                 filtered.map((vendor, index) => {
-                  const isDisabled = !!sentToVendors[vendor.id];
+                  const isDisabled =
+                    !!sentToVendors[vendor.id] ||
+                    !!submittingToVendors[vendor.id];
                   return (
                     <tr
                       key={index}
@@ -815,7 +847,9 @@ const SearchVendors: React.FC = () => {
                 </tr>
               ) : (
                 filtered.map((vendor, index) => {
-                  const isDisabled = !!sentToVendors[vendor.id];
+                  const isDisabled =
+                    !!sentToVendors[vendor.id] ||
+                    !!submittingToVendors[vendor.id];
                   return (
                     <tr
                       key={index}

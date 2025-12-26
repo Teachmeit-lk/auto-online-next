@@ -266,6 +266,65 @@ const NewPurchaseOrders: React.FC = () => {
   //   setIsModalOpen4(false);
   // };
 
+  function normalizeSriLankaPhone(raw?: string): string | null {
+    if (!raw) return null;
+    const digits = raw.replace(/\D/g, "");
+    if (digits.startsWith("94") && digits.length === 11) return digits;
+    if (digits.startsWith("0") && digits.length === 10)
+      return "94" + digits.slice(1);
+    if (digits.length === 9) return "94" + digits;
+    return null;
+  }
+
+  async function upsertChatRoomForPurchaseOrder(args: {
+    orderId: string;
+    orderNumber: string;
+    buyerId: string;
+    vendorId: string;
+    buyerPhone: string;
+    vendorPhone: string;
+  }) {
+    const refCode = `ON-${args.orderNumber}`;
+
+    // find open room
+    const existing = await FirestoreService.getAll<any>(
+      COLLECTIONS.CHAT_ROOMS,
+      [
+        { field: "refCode", operator: "==", value: refCode },
+        { field: "status", operator: "==", value: "open" },
+      ]
+    );
+    if (existing?.[0]) return existing[0];
+
+    const id = await FirestoreService.create<any>(COLLECTIONS.CHAT_ROOMS, {
+      contextType: "PURCHASE_ORDER",
+      contextId: args.orderId,
+      refCode,
+      buyerId: args.buyerId,
+      vendorId: args.vendorId,
+      buyerPhone: args.buyerPhone,
+      vendorPhone: args.vendorPhone,
+      status: "open",
+      isActive: true,
+      lastMessageAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    return { id, refCode };
+  }
+
+  function openMediatorWhatsApp(refCode: string, message: string) {
+    const businessRaw = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER;
+    if (!businessRaw)
+      throw new Error("Missing NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER");
+
+    const business = businessRaw.replace(/\D/g, "");
+    const url = `https://wa.me/${business}?text=${encodeURIComponent(
+      `${message}\n\nRef: ${refCode}`
+    )}`;
+    window.open(url, "_blank");
+  }
+
   return (
     <TabLayout type="vendor">
       <div
@@ -915,54 +974,70 @@ const NewPurchaseOrders: React.FC = () => {
             }
 
             try {
+              const vendorPhoneRaw =
+                currentUser?.whatsApp ||
+                currentUser?.phone ||
+                currentUser?.mobileNumber ||
+                "";
+              const vendorPhone = normalizeSriLankaPhone(vendorPhoneRaw);
+
+              if (!vendorPhone) {
+                alert(
+                  "Your phone / WhatsApp number is missing. Please update your profile."
+                );
+                return;
+              }
+
               const buyer: any = await FirestoreService.getById(
                 COLLECTIONS.USERS,
                 (selected as any).buyerId
               );
 
-              const customerPhone =
+              const buyerPhoneRaw =
                 buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+              const buyerPhone = normalizeSriLankaPhone(buyerPhoneRaw);
+
               const customerName =
                 buyerNameMap[(selected as any).buyerId] ||
                 `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
                 buyer?.companyName ||
                 "Customer";
 
-              if (!customerPhone) {
+              if (!buyerPhone) {
                 alert("Customer phone / WhatsApp number is not available.");
-                setIsModalOpen2(false);
                 return;
               }
 
-              const phone = "+94" + customerPhone.replace(/\D/g, "");
+              const room = await upsertChatRoomForPurchaseOrder({
+                orderId: (selected as any).id,
+                orderNumber: (selected as any).orderNumber,
+                buyerId: (selected as any).buyerId,
+                vendorId: currentUser.id,
+                buyerPhone,
+                vendorPhone,
+              });
 
               const vendorName =
                 `${currentUser?.firstName || ""} ${
                   currentUser?.lastName || ""
                 }`.trim() ||
                 currentUser?.companyName ||
-                "Your vendor";
+                "Vendor";
 
               const msg = `
-Hi ${customerName},
+Hi AutoOnline.lk,
 
-This is ${vendorName} from AutoOnline.lk.
+This is ${vendorName}.
 
-I'm contacting you regarding your order:
-Order No: ${
-                useRefactoredIdLast("ON", (selected as any).orderNumber) || "-"
-              }        
-
+I need to chat regarding an order.
+Order No: ${useRefactoredIdLast("ON", (selected as any).orderNumber) || "-"}
+Customer: ${customerName}
 `.trim();
 
-              const url = `https://wa.me/${phone}?text=${encodeURIComponent(
-                msg
-              )}`;
-
-              window.open(url, "_blank");
+              openMediatorWhatsApp(room.refCode, msg);
             } catch (err) {
               console.error(
-                "[PurchaseOrders] Failed to open WhatsApp chat:",
+                "[PurchaseOrders] Failed to open mediator chat:",
                 err
               );
               alert("Failed to open WhatsApp chat. Please try again.");
@@ -975,17 +1050,17 @@ Order No: ${
         <SendWhatsAppConfirmationModal
           person="buyer"
           isOpen={whatsAppModalOpen}
-          onConfirm={() => {
+          onConfirm={async () => {
             if (!pendingWhatsAppStatus) return;
+
             try {
-              const waUrl = buildPurchaseOrderStatusWhatsAppUrl(
-                pendingWhatsAppStatus
-              );
-              if (waUrl) {
-                window.open(waUrl, "_blank");
-              }
+              await fetch("/api/webhooks/whatsapp/purchase-order-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pendingWhatsAppStatus),
+              });
             } catch (e) {
-              console.error("[PurchaseOrders] WhatsApp sending error", e);
+              console.error("[PurchaseOrders] WhatsApp status send error", e);
             } finally {
               setWhatsAppModalOpen(false);
               setPendingWhatsAppStatus(null);

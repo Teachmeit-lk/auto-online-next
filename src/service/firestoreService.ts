@@ -231,6 +231,28 @@ export interface VehicleModel extends BaseDocument {
   fuelTypes: string[];
 }
 
+type ChatRoom = {
+  id?: string;
+  contextType: "QUOTATION_REQUEST" | "PURCHASE_ORDER";
+  contextId: string;
+  refCode: string;
+
+  buyerId: string;
+  vendorId: string;
+
+  buyerPhone: string;
+  vendorPhone: string;
+
+  status: "open" | "closed";
+
+  lastInboundFrom?: "buyer" | "vendor";
+  lastMessageAt?: any;
+
+  createdAt: any;
+  updatedAt: any;
+  isActive: true;
+};
+
 // Gallery interfaces
 export interface GalleryImage extends BaseDocument {
   vendorId: string;

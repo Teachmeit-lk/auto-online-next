@@ -173,6 +173,64 @@ const QuotationsFromVendors: React.FC = () => {
       .slice(0, entries);
   }, [rows, search, entries]);
 
+  function normalizeSriLankaPhone(raw?: string): string | null {
+    if (!raw) return null;
+    const digits = raw.replace(/\D/g, "");
+    if (digits.startsWith("94") && digits.length === 11) return digits;
+    if (digits.startsWith("0") && digits.length === 10)
+      return "94" + digits.slice(1);
+    if (digits.length === 9) return "94" + digits;
+    return null;
+  }
+
+  async function upsertChatRoomForQuotationRequest(args: {
+    requestId: string;
+    buyerId: string;
+    vendorId: string;
+    buyerPhone: string;
+    vendorPhone: string;
+  }) {
+    const refCode = `RC-${args.requestId}`;
+
+    const existing = await FirestoreService.getAll<any>(
+      COLLECTIONS.CHAT_ROOMS,
+      [
+        { field: "refCode", operator: "==", value: refCode },
+        { field: "status", operator: "==", value: "open" },
+      ]
+    );
+
+    if (existing?.[0]) return existing[0];
+
+    const id = await FirestoreService.create<any>(COLLECTIONS.CHAT_ROOMS, {
+      contextType: "QUOTATION_REQUEST",
+      contextId: args.requestId,
+      refCode,
+      buyerId: args.buyerId,
+      vendorId: args.vendorId,
+      buyerPhone: args.buyerPhone,
+      vendorPhone: args.vendorPhone,
+      status: "open",
+      isActive: true,
+      lastMessageAt: new Date(),
+    });
+
+    return { id, refCode };
+  }
+
+  function openMediatorWhatsApp(refCode: string, message: string) {
+    const businessRaw = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER;
+    if (!businessRaw)
+      throw new Error("Missing NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER");
+
+    const business = businessRaw.replace(/\D/g, "");
+    const url = `https://wa.me/${business}?text=${encodeURIComponent(
+      `${message}\n\nRef: ${refCode}`
+    )}`;
+
+    window.open(url, "_blank");
+  }
+
   return (
     <TabLayout type="user">
       <div
@@ -386,25 +444,47 @@ const QuotationsFromVendors: React.FC = () => {
           }
 
           try {
+            // buyer phone
+            const buyerPhoneRaw =
+              currentUser?.whatsApp ||
+              currentUser?.phone ||
+              currentUser?.mobileNumber ||
+              "";
+            const buyerPhone = normalizeSriLankaPhone(buyerPhoneRaw);
+            if (!buyerPhone) {
+              alert(
+                "Your phone / WhatsApp number is missing. Please update your profile."
+              );
+              return;
+            }
+
+            // vendor phone
             const vendor: any = await FirestoreService.getById(
               COLLECTIONS.USERS,
               (selectedQuotation as any).vendorId
             );
 
-            const vendorPhone =
+            const vendorPhoneRaw =
               vendor?.whatsApp || vendor?.phone || vendor?.mobileNumber || "";
-            const vendorName =
-              vendor?.companyName ||
-              `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
-              "Vendor";
-
+            const vendorPhone = normalizeSriLankaPhone(vendorPhoneRaw);
             if (!vendorPhone) {
               alert("Vendor phone / WhatsApp number is not available.");
-              setOpenChatOpenConfirmation(false);
               return;
             }
 
-            const phone = "+94" + vendorPhone.replace(/\D/g, "");
+            const requestId = (selectedQuotation as any).quotationRequestId;
+            if (!requestId) {
+              alert("Quotation Request Id missing in selected quotation.");
+              return;
+            }
+
+            const room = await upsertChatRoomForQuotationRequest({
+              requestId,
+              buyerId: currentUser.id,
+              vendorId: (selectedQuotation as any).vendorId,
+              buyerPhone,
+              vendorPhone,
+            });
 
             const buyerName =
               `${currentUser?.firstName || ""} ${
@@ -420,32 +500,19 @@ const QuotationsFromVendors: React.FC = () => {
               "-";
 
             const msg = `
-Hi ${vendorName},
+Hi AutoOnline.lk,
 
-This is ${buyerName} from AutoOnline.lk.
+This is ${buyerName}.
 
-I'm contacting you regarding the quotation you sent:
-
-Request Code: ${useRefactoredId("RC", quotation.quotationRequestId) || "-"} 
+I need to chat regarding a quotation I received.
+Request Code: ${useRefactoredId("RC", requestId) || "-"}
 Part: ${partName}
-Issued Date: ${
-              quotation.createdAt?.seconds
-                ? new Date(
-                    quotation.createdAt.seconds * 1000
-                  ).toLocaleDateString()
-                : "-"
-            }
+`.trim();
 
-              `.trim();
-
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(
-              msg
-            )}`;
-
-            window.open(url, "_blank");
+            openMediatorWhatsApp(room.refCode, msg);
           } catch (err) {
             console.error(
-              "[QuotationsFromVendors] Failed to open WhatsApp chat:",
+              "[QuotationsFromVendors] Failed to open mediator chat:",
               err
             );
             alert("Failed to open WhatsApp chat. Please try again.");
