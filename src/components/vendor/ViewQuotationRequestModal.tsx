@@ -187,7 +187,7 @@ export const ViewQuotationRequestModal: React.FC<
   }, [imagePreview]);
 
   useEffect(() => {
-    if (! isOpen) {
+    if (!isOpen) {
       if (imagePreview) {
         URL.revokeObjectURL(imagePreview);
         setImagePreview(null);
@@ -314,7 +314,7 @@ export const ViewQuotationRequestModal: React.FC<
     }
   };
 
-  const handleConfirmWhatsApp = () => {
+  const handleConfirmWhatsApp = async () => {
     if (!pendingWhatsAppData) return;
 
     const {
@@ -326,23 +326,35 @@ export const ViewQuotationRequestModal: React.FC<
       attachmentUrl,
     } = pendingWhatsAppData;
 
-    const waUrl = buildVendorQuotationWhatsAppUrl({
-      buyerPhone,
-      buyerName,
-      request,
-      vendorUser,
-      quotation,
-      attachmentUrl,
-    });
+    const vendorName =
+      `${vendorUser?.firstName || ""} ${vendorUser?.lastName || ""}`.trim() ||
+      vendorUser?.email ||
+      "Your vendor";
 
-    if (waUrl) {
-      window.location.href = waUrl;
+    try {
+      await fetch("/api/webhooks/whatsapp/vendor-quotation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          buyerPhone,
+          buyerName,
+          vendorName,
+          request,
+          quotation,
+          attachmentUrl,
+        }),
+      });
+
+      showToast.success("WhatsApp message sent to buyer!");
+    } catch (e) {
+      console.error(e);
+      showToast.error("Failed to send WhatsApp message");
+    } finally {
+      setWhatsAppModalOpen(false);
+      setPendingWhatsAppData(null);
+      onSubmitted?.();
+      handleModalClose();
     }
-
-    setWhatsAppModalOpen(false);
-    setPendingWhatsAppData(null);
-    onSubmitted?.();
-    handleModalClose();
   };
 
   const handleSkipWhatsApp = () => {
@@ -829,7 +841,7 @@ export const ViewQuotationRequestModal: React.FC<
                 <label className="text-[12px] font-body font-[500] text-[#111102] block mb-2">
                   Upload Image
                 </label>
-                
+
                 <Controller
                   name="image"
                   control={control}
@@ -838,7 +850,11 @@ export const ViewQuotationRequestModal: React.FC<
                     <>
                       <div
                         className={`flex items-center justify-center w-full h-[40px] p-2 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-                          ${errors.image ? "border-red-500" : "hover:border-[#F9C301]"}`}
+                          ${
+                            errors.image
+                              ? "border-red-500"
+                              : "hover:border-[#F9C301]"
+                          }`}
                       >
                         <Camera size="16px" color="#5B5B5B" />
 
@@ -850,7 +866,7 @@ export const ViewQuotationRequestModal: React.FC<
                             if (file) {
                               field.onChange(file);
                               setFileName(file.name);
-                              
+
                               // Create preview
                               const previewUrl = URL.createObjectURL(file);
                               setImagePreview(previewUrl);
@@ -863,7 +879,8 @@ export const ViewQuotationRequestModal: React.FC<
                           htmlFor="file-upload"
                           className="cursor-pointer text-[#5B5B5B] font-body text-[10px] pl-1 mt-[2px]"
                         >
-                          {fileName || "Choose an Image to upload (jpg and png files only)"}
+                          {fileName ||
+                            "Choose an Image to upload (jpg and png files only)"}
                         </label>
                       </div>
 
@@ -885,9 +902,11 @@ export const ViewQuotationRequestModal: React.FC<
                                 URL.revokeObjectURL(imagePreview);
                               }
                               setImagePreview(null);
-                              
+
                               // Reset file input
-                              const fileInput = document.getElementById("file-upload") as HTMLInputElement;
+                              const fileInput = document.getElementById(
+                                "file-upload"
+                              ) as HTMLInputElement;
                               if (fileInput) fileInput.value = "";
                             }}
                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"

@@ -17,6 +17,7 @@ import {
 import { buildWhatsAppQuotationUrl } from "../hooks/openWhatsAppWithQuotation";
 import { SendWhatsAppConfirmationModal } from "./SendWhatsAppConfirmationModal";
 import { showToast } from "@/app/utils/toast";
+import { useRefactoredId } from "../hooks/useRefactoredId";
 
 interface Vendor {
   id: string;
@@ -230,18 +231,46 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
         isActive: true,
       } as any;
 
-      await FirestoreService.create<QuotationRequest>(
+      const created = await FirestoreService.create<QuotationRequest>(
         COLLECTIONS.QUOTATION_REQUESTS,
         doc
       );
 
+      const requestId = useRefactoredId("RC", created) || "N/A";
+
+      const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
+
+      await fetch("/api/webhooks/whatsapp/quotation-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorPhone,
+          vendorName: vendorDisplayName,
+          buyer: {
+            firstName: currentUser?.firstName,
+            lastName: currentUser?.lastName,
+          },
+          requestId,
+          request: {
+            category: data.category,
+            vehicleType: data.vehicletype,
+            brand: data.brand,
+            model: data.model,
+            manufacturingYear: data.manufactoringyear,
+            fuelType: data.fueltype,
+            measurement: data.measurement,
+            numberOfUnits: data.noofunits,
+            district: data.district,
+            description: data.description,
+          },
+          imageUrls: uploadedUrls,
+        }),
+      });
+
       showToast.success(
-        `Successfully sent your inquiry to ${vendor?.firstName} ${vendor?.lastName}!`
+        `Successfully sent your inquiry to ${vendorDisplayName}!`
       );
       if (vendor?.id) onSuccess?.(vendor.id);
-
-      setLastSubmission({ data, fileUrl: uploadedUrls[0] || "" });
-      setWhatsAppModalOpen(true);
 
       onClose();
     } catch (error) {
