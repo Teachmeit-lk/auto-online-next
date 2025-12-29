@@ -79,51 +79,139 @@ export const ViewQuotationRequestModal: React.FC<
     attachmentUrl?: string;
   } | null>(null);
 
+  const isOutOfStock = (val: any) => val === "Out of Stock";
+
+  const optionalNumber = () =>
+    Yup.number()
+      .transform((value, originalValue) =>
+        originalValue === "" ||
+        originalValue === null ||
+        originalValue === undefined
+          ? undefined
+          : value
+      )
+      .nullable()
+      .notRequired();
+
+  const optionalString = () => Yup.string().nullable().notRequired();
+
   const schema = Yup.object().shape({
     itemName: Yup.string().required("Item Name is required"),
     serialNumber: Yup.string().required("Item S/N is required"),
     stockAvailability: Yup.string().required("Stock Availability is required"),
-    measurement: Yup.string().required("Measurement is required"),
+
+    measurement: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () => Yup.string().required("Measurement is required"),
+    }),
+
     noOfUnits: Yup.number()
-      .required("No of Units is required")
-      .integer("Must be an integer")
+      .transform((value, originalValue) =>
+        originalValue === "" ||
+        originalValue === null ||
+        originalValue === undefined
+          ? undefined
+          : value
+      )
       .when("stockAvailability", {
-        is: "Out of Stock",
-        then: (schema) =>
-          schema
+        is: isOutOfStock,
+        then: (s) =>
+          s
+            .notRequired()
+            .nullable()
             .min(0, "Units cannot be negative")
             .max(0, "No of Units must be 0 when out of stock"),
-        otherwise: (schema) =>
-          schema.min(1, "No of Units must be at least 1 when in stock"),
+        otherwise: (s) =>
+          s
+            .required("No of Units is required")
+            .integer("Must be an integer")
+            .min(1, "No of Units must be at least 1 when in stock"),
       }),
-    unitPrice: Yup.number()
-      .required("Unit Price is required")
-      .positive("Must be a positive number"),
-    totalPrice: Yup.number().required("Total Price is required"),
-    netTotalPrice: Yup.number().required("Net Total Price is required"),
-    vendorComments: Yup.string().required("Vendor Comments are required"),
-    description: Yup.string().required("Description is required"),
-    image: Yup.mixed().nullable(),
-    nic: Yup.string()
-      .required("NIC is required")
-      .matches(
-        /^(([5-9][0-9][0-3,5-8][0-9]{6}[vVxX])|([1-2][0,9][0-9]{2}[0-3,5-8][0-9]{7})|([0-9]{9}[vV]))$/,
-        "NIC must be valid. It should be either a 12-digit NIC or 9 digits followed by 'v' or 'V'."
-      ),
-    staffName: Yup.string().required("Staff Name is required"),
-    contactNumber: Yup.string()
-      .matches(
-        /^0\d{9}$/,
-        "Mobile number must start with 0 and contain exactly 10 digits."
-      )
-      .required("Contact Number is required"),
-    deliveryCost: Yup.number()
-      .required("Delivery Cost is required")
-      .positive("Must be a positive number"),
-    validityDays: Yup.number()
-      .required("Validity Days is required")
-      .positive("Must be a positive number")
-      .integer("Must be an integer"),
+
+    unitPrice: Yup.number().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalNumber(),
+      otherwise: () =>
+        Yup.number()
+          .required("Unit Price is required")
+          .positive("Must be a positive number"),
+    }),
+
+    totalPrice: Yup.number().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalNumber(),
+      otherwise: () => Yup.number().required("Total Price is required"),
+    }),
+
+    netTotalPrice: Yup.number().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalNumber(),
+      otherwise: () => Yup.number().required("Net Total Price is required"),
+    }),
+
+    vendorComments: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () => Yup.string().required("Vendor Comments are required"),
+    }),
+
+    description: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () => Yup.string().required("Description is required"),
+    }),
+
+    image: Yup.mixed().nullable().notRequired(),
+
+    nic: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () =>
+        Yup.string()
+          .required("NIC is required")
+          .matches(
+            /^(([5-9][0-9][0-3,5-8][0-9]{6}[vVxX])|([1-2][0,9][0-9]{2}[0-3,5-8][0-9]{7})|([0-9]{9}[vV]))$/,
+            "NIC must be valid. It should be either a 12-digit NIC or 9 digits followed by 'v' or 'V'."
+          ),
+    }),
+
+    staffName: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () => Yup.string().required("Staff Name is required"),
+    }),
+
+    contactNumber: Yup.string().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalString(),
+      otherwise: () =>
+        Yup.string()
+          .matches(
+            /^0\d{9}$/,
+            "Mobile number must start with 0 and contain exactly 10 digits."
+          )
+          .required("Contact Number is required"),
+    }),
+
+    deliveryCost: Yup.number().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalNumber(),
+      otherwise: () =>
+        Yup.number()
+          .required("Delivery Cost is required")
+          .min(0, "Cannot be negative"),
+    }),
+
+    validityDays: Yup.number().when("stockAvailability", {
+      is: isOutOfStock,
+      then: () => optionalNumber(),
+      otherwise: () =>
+        Yup.number()
+          .required("Validity Days is required")
+          .positive("Must be a positive number")
+          .integer("Must be an integer"),
+    }),
   });
 
   // Initialize react-hook-form
@@ -239,28 +327,28 @@ export const ViewQuotationRequestModal: React.FC<
           "",
         vendorEmail: user.email || "",
         buyerId: request.buyerId,
-        deliveryCost: data.deliveryCost,
+        deliveryCost: data.deliveryCost || 0,
         vendorPhone: user.whatsApp || "",
         products: [
           {
-            partName: data.itemName,
-            quantity: quantityNum,
-            unitPrice: unitPriceNum,
-            totalPrice: totalPriceNum,
-            description: data.description,
+            partName: data.itemName || "",
+            quantity: quantityNum || 0,
+            unitPrice: unitPriceNum || 0,
+            totalPrice: totalPriceNum || 0,
+            description: data.description || "",
             condition: "new",
             imageUrl: attachmentUrl || null,
             stockAvailability: data.stockAvailability,
-            vendorComments: data.vendorComments,
-            warranty: data.vendorComments,
+            vendorComments: data.vendorComments || "",
+            warranty: data.vendorComments || "",
           },
         ],
-        description: data.description,
+        description: data.description || "",
         totalAmount: netTotalNum,
         currency: "LKR",
         validUntil,
         deliveryTimeframe: `${data.validityDays} days`,
-        terms: data.vendorComments,
+        terms: data.vendorComments || "",
         status: "pending",
         notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
           data.contactNumber
@@ -368,15 +456,29 @@ export const ViewQuotationRequestModal: React.FC<
   const handleModalClose = () => {
     reset();
     setFileName("");
+    setSubmitError(null);
+    setSelectedImageIndex(null);
+
+    const fileInput = document.getElementById(
+      "file-upload"
+    ) as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
       setImagePreview(null);
     }
+
     onClose();
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleModalClose();
+      }}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-[700px] sm:w-[600px] w-full h-[70vh] md:h-[85vh] sm:h-[70vh] bg-white py-8 px-6 rounded-[10px] shadow-lg focus:outline-none overflow-hidden">

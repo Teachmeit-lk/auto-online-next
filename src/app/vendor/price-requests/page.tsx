@@ -399,7 +399,7 @@ const NewPriceRequests: React.FC = () => {
                   Vehicle Brand
                 </th>
                 <th className="border border-r-2 border-b-2 border-white  py-2">
-                  More Information
+                  Vehicle Model
                 </th>
                 <th className="border border-r-2 border-b-2 border-white  py-2">
                   Date
@@ -444,20 +444,8 @@ const NewPriceRequests: React.FC = () => {
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
                       {vendor.vbrand}
                     </td>
-                    <td
-                      className="border border-r-2 border-b-2 border-[#F8F8F8] text-center py-2 text-[8px] cursor-pointer"
-                      onClick={() => handleImageClick(vendor.raw)}
-                    >
-                      <div className="flex justify-center">
-                        <Image
-                          src={vendor.image}
-                          alt="carImage"
-                          width={62}
-                          height={32}
-                          className="h-[32px] w-[62px] object-contain"
-                        />
-                      </div>
-                      {vendor.minformation}
+                    <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2">
+                      {vendor.raw.model}
                     </td>
 
                     <td className="border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ">
