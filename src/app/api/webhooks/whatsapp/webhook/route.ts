@@ -53,21 +53,145 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let body: any = null;
+
   try {
+    body = await req.json();
+
+    // 1) Always log the raw payload (proof POST was triggered)
     await FirestoreService.create("webhook_logs", {
       at: new Date(),
-      kind: "TEST",
-      note: "curl hit",
+      kind: "RAW",
+      keys: Object.keys(body || {}),
+      body,
       isActive: true,
     } as any);
 
-    return NextResponse.json({ ok: true, log: "saved" });
-  } catch (e: any) {
+    const value = body?.entry?.[0]?.changes?.[0]?.value;
+
+    // 2) If it's a status webhook (sent/delivered/read etc.)
+    const status = value?.statuses?.[0];
+    if (status) {
+      await FirestoreService.create("webhook_logs", {
+        at: new Date(),
+        kind: "STATUS",
+        status,
+        isActive: true,
+      } as any);
+
+      return NextResponse.json({ ok: true, kind: "STATUS" });
+    }
+
+    // 3) Normal incoming message webhook
+    const msg = value?.messages?.[0];
+    if (!msg) {
+      await FirestoreService.create("webhook_logs", {
+        at: new Date(),
+        kind: "NO_MESSAGE",
+        note: "No messages[] or statuses[] found",
+        isActive: true,
+      } as any);
+
+      return NextResponse.json({ ok: true, kind: "NO_MESSAGE" });
+    }
+
+    const fromPhone = normalizeSriLankaPhone(msg.from);
+    if (!fromPhone) {
+      await FirestoreService.create("webhook_logs", {
+        at: new Date(),
+        kind: "BAD_PHONE",
+        from: msg.from,
+        isActive: true,
+      } as any);
+
+      return NextResponse.json({ ok: true, kind: "BAD_PHONE" });
+    }
+
+    const text = msg.type === "text" ? msg.text?.body || "" : `[${msg.type}]`;
+    const refCode = extractRefCode(text);
+
+    const chatRoom = await findChatRoom(fromPhone, refCode);
+
+    if (!chatRoom) {
+      await FirestoreService.create("webhook_logs", {
+        at: new Date(),
+        kind: "NO_CHATROOM",
+        fromPhone,
+        text,
+        refCode: refCode || null,
+        isActive: true,
+      } as any);
+
+      await sendWhatsAppText(
+        fromPhone,
+        `Hi\nPlease reply with your Request Code (RC-XXXX) or Order No (ON-XXXX) so we can connect you to the correct vendor.`
+      );
+
+      return NextResponse.json({ ok: true, kind: "NO_CHATROOM" });
+    }
+
+    const isBuyer = chatRoom.buyerPhone === fromPhone;
+    const targetPhone = isBuyer ? chatRoom.vendorPhone : chatRoom.buyerPhone;
+
+    const prefix = isBuyer
+      ? `Buyer (${chatRoom.refCode})`
+      : `Vendor (${chatRoom.refCode})`;
+
+    // 4) Forward message
+    await sendWhatsAppText(
+      targetPhone,
+      `🔁 FORWARDED MESSAGE\n${prefix}:\n${text}`
+    );
+
+    // 5) Save chat message
+    await FirestoreService.create(COLLECTIONS.CHAT_MESSAGES, {
+      chatRoomId: chatRoom.id,
+      from: fromPhone,
+      to: targetPhone,
+      role: isBuyer ? "buyer" : "vendor",
+      message: text,
+      isActive: true,
+    } as any);
+
+    await FirestoreService.update(COLLECTIONS.CHAT_ROOMS, chatRoom.id!, {
+      lastInboundFrom: isBuyer ? "buyer" : "vendor",
+      lastMessageAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    await FirestoreService.create("webhook_logs", {
+      at: new Date(),
+      kind: "FORWARDED",
+      fromPhone,
+      targetPhone,
+      refCode: chatRoom.refCode,
+      text,
+      chatRoomId: chatRoom.id,
+      isActive: true,
+    } as any);
+
     return NextResponse.json({
-      ok: false,
-      log: "failed",
-      error: e?.message || String(e),
+      ok: true,
+      kind: "FORWARDED",
+      fromPhone,
+      targetPhone,
+      refCode: chatRoom.refCode,
     });
+  } catch (err: any) {
+    console.error("[WHATSAPP_WEBHOOK_ERROR]", err);
+
+    // Log error too (super useful if POST is triggered but fails)
+    try {
+      await FirestoreService.create("webhook_logs", {
+        at: new Date(),
+        kind: "ERROR",
+        message: err?.message || String(err),
+        body: body || null,
+        isActive: true,
+      } as any);
+    } catch {}
+
+    return NextResponse.json({ ok: false, kind: "ERROR" }, { status: 200 });
   }
 }
 
