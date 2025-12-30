@@ -53,66 +53,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-
-    const msg = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-
-    await FirestoreService.create("webhook_logs", {
-      at: new Date(),
-      kind: "RAW",
-      body,
-    });
-    if (!msg) return NextResponse.json({ ok: true });
-
-    const fromPhone = normalizeSriLankaPhone(msg.from);
-    if (!fromPhone) return NextResponse.json({ ok: true });
-
-    const text = msg.type === "text" ? msg.text?.body || "" : `[${msg.type}]`;
-    const refCode = extractRefCode(text);
-
-    const chatRoom = await findChatRoom(fromPhone, refCode);
-
-    if (!chatRoom) {
-      await sendWhatsAppText(
-        fromPhone,
-        `Hi \nPlease reply with your Request Code (RC-XXXX) or Order No (ON-XXXX) so we can connect you to the correct vendor.`
-      );
-      return NextResponse.json({ ok: true });
-    }
-
-    const isBuyer = chatRoom.buyerPhone === fromPhone;
-    const targetPhone = isBuyer ? chatRoom.vendorPhone : chatRoom.buyerPhone;
-
-    const prefix = isBuyer
-      ? `Buyer (${chatRoom.refCode})`
-      : `Vendor (${chatRoom.refCode})`;
-
-    await sendWhatsAppText(
-      targetPhone,
-      `🔁 FORWARDED MESSAGE\n${prefix}:\n${text}`
-    );
-
-    await FirestoreService.create(COLLECTIONS.CHAT_MESSAGES, {
-      chatRoomId: chatRoom.id,
-      from: fromPhone,
-      to: targetPhone,
-      role: isBuyer ? "buyer" : "vendor",
-      message: text,
-      isActive: true,
-    } as any);
-
-    await FirestoreService.update(COLLECTIONS.CHAT_ROOMS, chatRoom.id!, {
-      lastInboundFrom: isBuyer ? "buyer" : "vendor",
-      lastMessageAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
-
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("[WHATSAPP_WEBHOOK_ERROR]", err);
-    return NextResponse.json({ ok: true });
-  }
+  console.log("✅ WEBHOOK POST HIT");
+  const body = await req.json();
+  console.log("BODY:", JSON.stringify(body));
+  return NextResponse.json({ ok: true, receivedKeys: Object.keys(body) });
 }
 
 async function findChatRoom(senderPhone: string, refCode?: string | null) {
