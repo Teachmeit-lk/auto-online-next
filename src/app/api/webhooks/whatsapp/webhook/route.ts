@@ -57,6 +57,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const msg = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+
+    await FirestoreService.create("webhook_logs", {
+      at: new Date(),
+      kind: "RAW",
+      body,
+    });
     if (!msg) return NextResponse.json({ ok: true });
 
     const fromPhone = normalizeSriLankaPhone(msg.from);
@@ -81,14 +87,6 @@ export async function POST(req: NextRequest) {
     const prefix = isBuyer
       ? `Buyer (${chatRoom.refCode})`
       : `Vendor (${chatRoom.refCode})`;
-
-    await FirestoreService.create("webhook_logs", {
-      at: new Date(),
-      from: fromPhone,
-      text,
-      refCode: refCode || null,
-      chatRoomId: chatRoom?.id || null,
-    });
 
     await sendWhatsAppText(
       targetPhone,
