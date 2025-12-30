@@ -82,6 +82,14 @@ export async function POST(req: NextRequest) {
       ? `Buyer (${chatRoom.refCode})`
       : `Vendor (${chatRoom.refCode})`;
 
+    await FirestoreService.create("webhook_logs", {
+      at: new Date(),
+      from: fromPhone,
+      text,
+      refCode: refCode || null,
+      chatRoomId: chatRoom?.id || null,
+    });
+
     await sendWhatsAppText(
       targetPhone,
       `🔁 FORWARDED MESSAGE\n${prefix}:\n${text}`
