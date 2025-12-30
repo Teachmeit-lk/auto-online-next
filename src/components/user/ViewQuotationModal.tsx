@@ -161,7 +161,9 @@ export const ViewQuotationModal: React.FC<IViewQuotationModalProps> = ({
                 <input
                   type="text"
                   placeholder="Shehan Maduranga"
-                  value={staffInfo.staffId || "-"}
+                  value={
+                    staffInfo.staffId == "undefined" ? "-" : staffInfo.staffId
+                  }
                   readOnly
                   className="w-full h-[36px]  placeholder:text-[#111102]  text-[#111102] font-body text-[10px] mt-1 px-3 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]"
                 />
