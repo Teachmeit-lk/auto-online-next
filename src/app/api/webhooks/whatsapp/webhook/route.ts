@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
 
-    // 1) Always log the raw payload (proof POST was triggered)
     await FirestoreService.create("webhook_logs", {
       at: new Date(),
       kind: "RAW",
@@ -69,7 +68,6 @@ export async function POST(req: NextRequest) {
 
     const value = body?.entry?.[0]?.changes?.[0]?.value;
 
-    // 2) If it's a status webhook (sent/delivered/read etc.)
     const status = value?.statuses?.[0];
     if (status) {
       await FirestoreService.create("webhook_logs", {
@@ -82,7 +80,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, kind: "STATUS" });
     }
 
-    // 3) Normal incoming message webhook
     const msg = value?.messages?.[0];
     if (!msg) {
       await FirestoreService.create("webhook_logs", {
@@ -137,13 +134,11 @@ export async function POST(req: NextRequest) {
       ? `Buyer (${chatRoom.refCode})`
       : `Vendor (${chatRoom.refCode})`;
 
-    // 4) Forward message
     await sendWhatsAppText(
       targetPhone,
-      `🔁 FORWARDED MESSAGE\n${prefix}:\n${text}`
+      `FORWARDED MESSAGE\n${prefix}:\n${text}`
     );
 
-    // 5) Save chat message
     await FirestoreService.create(COLLECTIONS.CHAT_MESSAGES, {
       chatRoomId: chatRoom.id,
       from: fromPhone,
@@ -180,7 +175,6 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("[WHATSAPP_WEBHOOK_ERROR]", err);
 
-    // Log error too (super useful if POST is triggered but fails)
     try {
       await FirestoreService.create("webhook_logs", {
         at: new Date(),
