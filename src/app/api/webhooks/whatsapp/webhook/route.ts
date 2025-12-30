@@ -53,10 +53,22 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  console.log("✅ WEBHOOK POST HIT");
-  const body = await req.json();
-  console.log("BODY:", JSON.stringify(body));
-  return NextResponse.json({ ok: true, receivedKeys: Object.keys(body) });
+  try {
+    await FirestoreService.create("webhook_logs", {
+      at: new Date(),
+      kind: "TEST",
+      note: "curl hit",
+      isActive: true,
+    } as any);
+
+    return NextResponse.json({ ok: true, log: "saved" });
+  } catch (e: any) {
+    return NextResponse.json({
+      ok: false,
+      log: "failed",
+      error: e?.message || String(e),
+    });
+  }
 }
 
 async function findChatRoom(senderPhone: string, refCode?: string | null) {
