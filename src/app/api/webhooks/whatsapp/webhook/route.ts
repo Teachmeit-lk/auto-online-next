@@ -130,14 +130,7 @@ export async function POST(req: NextRequest) {
     const isBuyer = chatRoom.buyerPhone === fromPhone;
     const targetPhone = isBuyer ? chatRoom.vendorPhone : chatRoom.buyerPhone;
 
-    const prefix = isBuyer
-      ? `Buyer (${chatRoom.refCode})`
-      : `Vendor (${chatRoom.refCode})`;
-
-    await sendWhatsAppText(
-      targetPhone,
-      `FORWARDED MESSAGE\n${prefix}:\n${text}`
-    );
+    await sendWhatsAppText(targetPhone, text);
 
     await FirestoreService.create(COLLECTIONS.CHAT_MESSAGES, {
       chatRoomId: chatRoom.id,
