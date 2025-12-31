@@ -28,6 +28,14 @@ function extractRefCode(text?: string): string | null {
   return raw.includes("-") ? raw : raw.slice(0, 2) + "-" + raw.slice(2);
 }
 
+function stripRefLine(message: string) {
+  return message
+    .split("\n")
+    .filter((line) => !/^ref\s*:?\s*(rc|on)\b/i.test(line.trim()))
+    .join("\n")
+    .trim();
+}
+
 function toMillis(t: any): number {
   if (t?.seconds) return t.seconds * 1000 + (t.nanoseconds || 0) / 1e6;
 
@@ -104,7 +112,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, kind: "BAD_PHONE" });
     }
 
-    const text = msg.type === "text" ? msg.text?.body || "" : `[${msg.type}]`;
+    const rawText =
+      msg.type === "text" ? msg.text?.body || "" : `[${msg.type}]`;
+    const text = stripRefLine(rawText);
     const refCode = extractRefCode(text);
 
     const chatRoom = await findChatRoom(fromPhone, refCode);

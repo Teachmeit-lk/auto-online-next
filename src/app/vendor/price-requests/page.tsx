@@ -289,9 +289,9 @@ const NewPriceRequests: React.FC = () => {
     if (!businessRaw)
       throw new Error("Missing NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER");
 
-    const business = businessRaw.replace(/\D/g, ""); // wa.me needs digits only
+    const business = businessRaw.replace(/\D/g, "");
     const url = `https://wa.me/${business}?text=${encodeURIComponent(
-      `${message}\n\nRef: ${refCode}`
+      `${message}`
     )}`;
     window.open(url, "_blank");
   }
@@ -605,9 +605,7 @@ const NewPriceRequests: React.FC = () => {
                 "Vendor";
 
               const msg = `
-Hi AutoOnline.lk,
-
-This is ${vendorName}.
+This is ${vendorName} from AutoOnline.lk.
 
 I need to chat regarding this price request:
 Request Code: ${useRefactoredId("RC", (selectedRequest as any).id) || "-"}

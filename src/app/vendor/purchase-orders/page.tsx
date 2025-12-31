@@ -320,7 +320,7 @@ const NewPurchaseOrders: React.FC = () => {
 
     const business = businessRaw.replace(/\D/g, "");
     const url = `https://wa.me/${business}?text=${encodeURIComponent(
-      `${message}\n\nRef: ${refCode}`
+      `${message}`
     )}`;
     window.open(url, "_blank");
   }
@@ -1025,9 +1025,7 @@ const NewPurchaseOrders: React.FC = () => {
                 "Vendor";
 
               const msg = `
-Hi AutoOnline.lk,
-
-This is ${vendorName}.
+This is ${vendorName} from AutoOnline.lk.
 
 I need to chat regarding an order.
 Order No: ${useRefactoredIdLast("ON", (selected as any).orderNumber) || "-"}
