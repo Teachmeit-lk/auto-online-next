@@ -190,7 +190,7 @@ const QuotationRequests: React.FC = () => {
       throw new Error("Missing NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER");
 
     const url = `https://wa.me/${business}?text=${encodeURIComponent(
-      `${message}\n\nRef: ${refCode}`
+      `${message}`
     )}`;
 
     window.open(url, "_blank");

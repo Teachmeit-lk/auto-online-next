@@ -225,7 +225,7 @@ const QuotationsFromVendors: React.FC = () => {
 
     const business = businessRaw.replace(/\D/g, "");
     const url = `https://wa.me/${business}?text=${encodeURIComponent(
-      `${message}\n\nRef: ${refCode}`
+      `${message}`
     )}`;
 
     window.open(url, "_blank");
