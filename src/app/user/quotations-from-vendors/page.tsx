@@ -218,6 +218,7 @@ const QuotationsFromVendors: React.FC = () => {
     return { id, refCode };
   }
 
+  // whatsapp mediator chat opener
   function openMediatorWhatsApp(refCode: string, message: string) {
     const businessRaw = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER;
     if (!businessRaw)
