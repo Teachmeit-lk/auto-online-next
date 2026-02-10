@@ -61,6 +61,7 @@ export const ViewQuotationRequestModal: React.FC<
   );
   const [pendingWhatsAppData, setPendingWhatsAppData] = useState<{
     buyerPhone: string;
+    buyerEmail?: string; // Added email
     buyerName?: string | null;
     request: QuotationRequest;
     vendorUser: any;
@@ -85,8 +86,8 @@ export const ViewQuotationRequestModal: React.FC<
     Yup.number()
       .transform((value, originalValue) =>
         originalValue === "" ||
-        originalValue === null ||
-        originalValue === undefined
+          originalValue === null ||
+          originalValue === undefined
           ? undefined
           : value
       )
@@ -109,8 +110,8 @@ export const ViewQuotationRequestModal: React.FC<
     noOfUnits: Yup.number()
       .transform((value, originalValue) =>
         originalValue === "" ||
-        originalValue === null ||
-        originalValue === undefined
+          originalValue === null ||
+          originalValue === undefined
           ? undefined
           : value
       )
@@ -350,11 +351,9 @@ export const ViewQuotationRequestModal: React.FC<
         deliveryTimeframe: `${data.validityDays} days`,
         terms: data.vendorComments || "",
         status: "pending",
-        notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${
-          data.contactNumber
-        }, Delivery Cost: ${data.deliveryCost || 0}${
-          attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""
-        }`,
+        notes: `NIC: ${data.nic}, Staff: ${data.staffName}, Phone: ${data.contactNumber
+          }, Delivery Cost: ${data.deliveryCost || 0}${attachmentUrl ? `, Attachment: ${attachmentUrl}` : ""
+          }`,
         createdAt: new Date(),
         updatedAt: new Date(),
         isActive: true,
@@ -363,11 +362,13 @@ export const ViewQuotationRequestModal: React.FC<
       showToast.success("Quotation submitted successfully! ");
 
       const buyerPhone = (request as any)?.buyerPhone;
+      const buyerEmail = (request as any)?.buyerEmail; // Added email
       const buyerName = request?.buyerName;
 
-      if (buyerPhone) {
+      if (buyerPhone || buyerEmail) {
         setPendingWhatsAppData({
           buyerPhone,
+          buyerEmail,
           buyerName,
           request,
           vendorUser: user,
@@ -407,6 +408,7 @@ export const ViewQuotationRequestModal: React.FC<
 
     const {
       buyerPhone,
+      buyerEmail, // Added email
       buyerName,
       request,
       vendorUser,
@@ -425,6 +427,7 @@ export const ViewQuotationRequestModal: React.FC<
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           buyerPhone,
+          buyerEmail, // Added email
           buyerName,
           vendorName,
           request,
@@ -641,11 +644,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="text"
                       placeholder="Enter item name"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.itemName
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.itemName
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -670,11 +672,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="text"
                       placeholder="Enter serial number"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.serialNumber
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.serialNumber
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -696,11 +697,10 @@ export const ViewQuotationRequestModal: React.FC<
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.stockAvailability
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.stockAvailability
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     >
                       <option value="">Select</option>
                       <option value="In Stock">In Stock</option>
@@ -728,11 +728,10 @@ export const ViewQuotationRequestModal: React.FC<
                     <select
                       {...field}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                      ${
-                        errors.measurement
+                      ${errors.measurement
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Unit
@@ -770,11 +769,10 @@ export const ViewQuotationRequestModal: React.FC<
                       placeholder="Enter number of units"
                       value={field.value ?? ""}
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.noOfUnits
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.noOfUnits
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     />
                   )}
                 />
@@ -801,10 +799,9 @@ export const ViewQuotationRequestModal: React.FC<
                       value={field.value ?? ""}
                       placeholder="Enter unit price"
                       className={`w-full h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                        ${
-                          errors.unitPrice
-                            ? "focus:ring-red-500 focus:border-red-500"
-                            : "focus:ring-yellow-500 focus:border-yellow-500"
+                        ${errors.unitPrice
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
                         }`}
                     />
                   )}
@@ -830,11 +827,10 @@ export const ViewQuotationRequestModal: React.FC<
                       type="number"
                       readOnly
                       value={field.value ?? ""}
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.totalPrice
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.totalPrice
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -859,11 +855,10 @@ export const ViewQuotationRequestModal: React.FC<
                       type="number"
                       readOnly
                       value={field.value ?? ""}
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.netTotalPrice
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.netTotalPrice
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -894,11 +889,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       rows={3}
                       placeholder="Enter vendor comments"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.vendorComments
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.vendorComments
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -923,11 +917,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       rows={3}
                       placeholder="Enter description"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.description
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.description
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -952,10 +945,9 @@ export const ViewQuotationRequestModal: React.FC<
                     <>
                       <div
                         className={`flex items-center justify-center w-full h-[40px] p-2 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-                          ${
-                            errors.image
-                              ? "border-red-500"
-                              : "hover:border-[#F9C301]"
+                          ${errors.image
+                            ? "border-red-500"
+                            : "hover:border-[#F9C301]"
                           }`}
                       >
                         <Camera size="16px" color="#5B5B5B" />
@@ -1063,11 +1055,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="text"
                       placeholder="Enter nic number"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.serialNumber
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.serialNumber
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -1092,11 +1083,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="text"
                       placeholder="Enter staff name"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.staffName
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.staffName
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -1121,11 +1111,10 @@ export const ViewQuotationRequestModal: React.FC<
                       {...field}
                       type="text"
                       placeholder="Enter contact number"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.contactNumber
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.contactNumber
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -1150,11 +1139,10 @@ export const ViewQuotationRequestModal: React.FC<
                       type="text"
                       placeholder="Enter delivery cost"
                       value={field.value ?? ""}
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.deliveryCost
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.deliveryCost
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -1179,11 +1167,10 @@ export const ViewQuotationRequestModal: React.FC<
                       type="number"
                       value={field.value ?? ""}
                       placeholder="Enter validity days"
-                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.validityDays
+                      className={`w-full h-h-[33px] text-[#111102] font-body text-[10px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.validityDays
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -1199,11 +1186,10 @@ export const ViewQuotationRequestModal: React.FC<
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-[164px] h-[32px] font-[600] font-body text-[12px] rounded-[3px] ${
-                    isSubmitting
+                  className={`w-[164px] h-[32px] font-[600] font-body text-[12px] rounded-[3px] ${isSubmitting
                       ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                       : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
-                  }`}
+                    }`}
                 >
                   {isSubmitting ? "Submitting..." : "Submit to Customer"}
                 </button>
@@ -1295,11 +1281,10 @@ export const ViewQuotationRequestModal: React.FC<
                       <button
                         key={idx}
                         onClick={() => setSelectedImageIndex(idx)}
-                        className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${
-                          idx === selectedImageIndex
+                        className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 overflow-hidden border-2 transition-all ${idx === selectedImageIndex
                             ? "border-[#F9C301] scale-110"
                             : "border-white/30 hover:border-white/60"
-                        }`}
+                          }`}
                       >
                         <Image
                           src={img}

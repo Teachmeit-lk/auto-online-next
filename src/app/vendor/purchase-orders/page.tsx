@@ -49,6 +49,7 @@ const NewPurchaseOrders: React.FC = () => {
 
   const [pendingWhatsAppStatus, setPendingWhatsAppStatus] = useState<{
     customerPhone: string;
+    customerEmail?: string; // Added email
     customerName: string;
     orderNumber: string;
     status: "confirmed" | "in_progress" | "shipped" | "delivered" | "cancelled";
@@ -95,8 +96,8 @@ const NewPurchaseOrders: React.FC = () => {
           t?.seconds
             ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
             : t instanceof Date
-            ? t.getTime()
-            : 0;
+              ? t.getTime()
+              : 0;
         const sorted = [...list].sort(
           (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
         );
@@ -140,7 +141,7 @@ const NewPurchaseOrders: React.FC = () => {
                 id;
               map[id] = name;
             }
-          } catch {}
+          } catch { }
         })
       );
       setBuyerNameMap(map);
@@ -221,8 +222,8 @@ const NewPurchaseOrders: React.FC = () => {
       const d = ts?.seconds
         ? new Date(ts.seconds * 1000)
         : ts instanceof Date
-        ? ts
-        : null;
+          ? ts
+          : null;
 
       const quotationDetails =
         order.quotationId && quotationDetailsMap[order.quotationId]
@@ -455,17 +456,16 @@ const NewPurchaseOrders: React.FC = () => {
                           {vendor.bdate}
                         </td>
                         <td
-                          className={`border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ${
-                            vendor.status === "accepted"
+                          className={`border border-r-2 border-b-2 border-[#F8F8F8] pl-7 py-2 ${vendor.status === "accepted"
                               ? "text-[#F9C301]"
                               : vendor.status === "in_progress"
-                              ? "text-[#338B07]"
-                              : "text-[#930000]"
-                          }`}
+                                ? "text-[#338B07]"
+                                : "text-[#930000]"
+                            }`}
                         >
                           {vendor.raw.deliveryMethod == "collect_from_shop" &&
-                          (vendor?.status == "shipped" ||
-                            vendor?.status == "delivered")
+                            (vendor?.status == "shipped" ||
+                              vendor?.status == "delivered")
                             ? "collected"
                             : vendor?.status}
                         </td>
@@ -538,10 +538,10 @@ const NewPurchaseOrders: React.FC = () => {
                                     const toMs = (t: any) =>
                                       t?.seconds
                                         ? t.seconds * 1000 +
-                                          (t.nanoseconds || 0) / 1e6
+                                        (t.nanoseconds || 0) / 1e6
                                         : t instanceof Date
-                                        ? t.getTime()
-                                        : 0;
+                                          ? t.getTime()
+                                          : 0;
                                     const sorted = [...list].sort(
                                       (a: any, b: any) =>
                                         toMs(b?.createdAt) - toMs(a?.createdAt)
@@ -556,40 +556,40 @@ const NewPurchaseOrders: React.FC = () => {
                               </button>
                               {vendor.raw.deliveryMethod !==
                                 "collect_from_shop" && (
-                                <button
-                                  className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
-                                  onClick={async () => {
-                                    try {
-                                      setSelected(vendor.raw);
-                                      await OrderService.updatePurchaseOrderStatus(
-                                        vendor.id,
-                                        "shipped"
-                                      );
-                                      const list =
-                                        await OrderService.getPurchaseOrdersByVendor(
-                                          currentUser.id
+                                  <button
+                                    className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                                    onClick={async () => {
+                                      try {
+                                        setSelected(vendor.raw);
+                                        await OrderService.updatePurchaseOrderStatus(
+                                          vendor.id,
+                                          "shipped"
                                         );
-                                      const toMs = (t: any) =>
-                                        t?.seconds
-                                          ? t.seconds * 1000 +
+                                        const list =
+                                          await OrderService.getPurchaseOrdersByVendor(
+                                            currentUser.id
+                                          );
+                                        const toMs = (t: any) =>
+                                          t?.seconds
+                                            ? t.seconds * 1000 +
                                             (t.nanoseconds || 0) / 1e6
-                                          : t instanceof Date
-                                          ? t.getTime()
-                                          : 0;
-                                      const sorted = [...list].sort(
-                                        (a: any, b: any) =>
-                                          toMs(b?.createdAt) -
-                                          toMs(a?.createdAt)
-                                      );
-                                      setOrders(sorted);
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }}
-                                >
-                                  Dispatched
-                                </button>
-                              )}
+                                            : t instanceof Date
+                                              ? t.getTime()
+                                              : 0;
+                                        const sorted = [...list].sort(
+                                          (a: any, b: any) =>
+                                            toMs(b?.createdAt) -
+                                            toMs(a?.createdAt)
+                                        );
+                                        setOrders(sorted);
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }}
+                                  >
+                                    Dispatched
+                                  </button>
+                                )}
 
                               <button
                                 className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
@@ -619,10 +619,10 @@ const NewPurchaseOrders: React.FC = () => {
                                     const toMs = (t: any) =>
                                       t?.seconds
                                         ? t.seconds * 1000 +
-                                          (t.nanoseconds || 0) / 1e6
+                                        (t.nanoseconds || 0) / 1e6
                                         : t instanceof Date
-                                        ? t.getTime()
-                                        : 0;
+                                          ? t.getTime()
+                                          : 0;
                                     const sorted = [...list].sort(
                                       (a: any, b: any) =>
                                         toMs(b?.createdAt) - toMs(a?.createdAt)
@@ -641,40 +641,40 @@ const NewPurchaseOrders: React.FC = () => {
                             <>
                               {vendor.raw.deliveryMethod !==
                                 "collect_from_shop" && (
-                                <button
-                                  className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
-                                  onClick={async () => {
-                                    try {
-                                      setSelected(vendor.raw);
-                                      await OrderService.updatePurchaseOrderStatus(
-                                        vendor.id,
-                                        "shipped"
-                                      );
-                                      const list =
-                                        await OrderService.getPurchaseOrdersByVendor(
-                                          currentUser.id
+                                  <button
+                                    className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
+                                    onClick={async () => {
+                                      try {
+                                        setSelected(vendor.raw);
+                                        await OrderService.updatePurchaseOrderStatus(
+                                          vendor.id,
+                                          "shipped"
                                         );
-                                      const toMs = (t: any) =>
-                                        t?.seconds
-                                          ? t.seconds * 1000 +
+                                        const list =
+                                          await OrderService.getPurchaseOrdersByVendor(
+                                            currentUser.id
+                                          );
+                                        const toMs = (t: any) =>
+                                          t?.seconds
+                                            ? t.seconds * 1000 +
                                             (t.nanoseconds || 0) / 1e6
-                                          : t instanceof Date
-                                          ? t.getTime()
-                                          : 0;
-                                      const sorted = [...list].sort(
-                                        (a: any, b: any) =>
-                                          toMs(b?.createdAt) -
-                                          toMs(a?.createdAt)
-                                      );
-                                      setOrders(sorted);
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }}
-                                >
-                                  Dispatched
-                                </button>
-                              )}
+                                            : t instanceof Date
+                                              ? t.getTime()
+                                              : 0;
+                                        const sorted = [...list].sort(
+                                          (a: any, b: any) =>
+                                            toMs(b?.createdAt) -
+                                            toMs(a?.createdAt)
+                                        );
+                                        setOrders(sorted);
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }}
+                                  >
+                                    Dispatched
+                                  </button>
+                                )}
                               <button
                                 className="bg-[#D1D1D1] px-1 py-3 border-l-2 border-[#F8F8F8] text-[#111102] text-[12px] w-full h-full hover:bg-yellow-500"
                                 onClick={async () => {
@@ -691,10 +691,10 @@ const NewPurchaseOrders: React.FC = () => {
                                     const toMs = (t: any) =>
                                       t?.seconds
                                         ? t.seconds * 1000 +
-                                          (t.nanoseconds || 0) / 1e6
+                                        (t.nanoseconds || 0) / 1e6
                                         : t instanceof Date
-                                        ? t.getTime()
-                                        : 0;
+                                          ? t.getTime()
+                                          : 0;
                                     const sorted = [...list].sort(
                                       (a: any, b: any) =>
                                         toMs(b?.createdAt) - toMs(a?.createdAt)
@@ -727,10 +727,10 @@ const NewPurchaseOrders: React.FC = () => {
                                     const toMs = (t: any) =>
                                       t?.seconds
                                         ? t.seconds * 1000 +
-                                          (t.nanoseconds || 0) / 1e6
+                                        (t.nanoseconds || 0) / 1e6
                                         : t instanceof Date
-                                        ? t.getTime()
-                                        : 0;
+                                          ? t.getTime()
+                                          : 0;
                                     const sorted = [...list].sort(
                                       (a: any, b: any) =>
                                         toMs(b?.createdAt) - toMs(a?.createdAt)
@@ -807,8 +807,8 @@ const NewPurchaseOrders: React.FC = () => {
                 t?.seconds
                   ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
                   : t instanceof Date
-                  ? t.getTime()
-                  : 0;
+                    ? t.getTime()
+                    : 0;
               const sorted = [...list].sort(
                 (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
               );
@@ -823,15 +823,18 @@ const NewPurchaseOrders: React.FC = () => {
 
                 const customerPhone =
                   buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+                const customerEmail = buyer?.email || ""; // Added email
+
                 const customerName =
                   buyerNameMap[(selected as any).buyerId] ||
                   `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
                   buyer?.companyName ||
                   "Customer";
 
-                if (customerPhone) {
+                if (customerEmail || customerPhone) {
                   setPendingWhatsAppStatus({
                     customerPhone,
+                    customerEmail,
                     customerName,
                     orderNumber: (selected as any).orderNumber,
                     status: "confirmed",
@@ -846,7 +849,7 @@ const NewPurchaseOrders: React.FC = () => {
                   setWhatsAppModalOpen(true);
                 } else {
                   console.warn(
-                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
+                    "[PurchaseOrders] No email/phone found for buyer"
                   );
                 }
               } catch (waErr) {
@@ -902,8 +905,8 @@ const NewPurchaseOrders: React.FC = () => {
                 t?.seconds
                   ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
                   : t instanceof Date
-                  ? t.getTime()
-                  : 0;
+                    ? t.getTime()
+                    : 0;
               const sorted = [...list].sort(
                 (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
               );
@@ -919,15 +922,18 @@ const NewPurchaseOrders: React.FC = () => {
 
                 const customerPhone =
                   buyer?.whatsApp || buyer?.phone || buyer?.mobileNumber || "";
+                const customerEmail = buyer?.email || ""; // Added email
+
                 const customerName =
                   buyerNameMap[(selected as any).buyerId] ||
                   `${buyer?.firstName || ""} ${buyer?.lastName || ""}`.trim() ||
                   buyer?.companyName ||
                   "Customer";
 
-                if (customerPhone) {
+                if (customerEmail || customerPhone) {
                   setPendingWhatsAppStatus({
                     customerPhone,
+                    customerEmail,
                     customerName,
                     orderNumber: (selected as any).orderNumber,
                     status: "cancelled",
@@ -943,7 +949,7 @@ const NewPurchaseOrders: React.FC = () => {
                   setWhatsAppModalOpen(true);
                 } else {
                   console.warn(
-                    "[PurchaseOrders] No phone/WhatsApp number found for buyer"
+                    "[PurchaseOrders] No email/phone found for buyer"
                   );
                 }
               } catch (waErr) {
@@ -1018,9 +1024,8 @@ const NewPurchaseOrders: React.FC = () => {
               });
 
               const vendorName =
-                `${currentUser?.firstName || ""} ${
-                  currentUser?.lastName || ""
-                }`.trim() ||
+                `${currentUser?.firstName || ""} ${currentUser?.lastName || ""
+                  }`.trim() ||
                 currentUser?.companyName ||
                 "Vendor";
 

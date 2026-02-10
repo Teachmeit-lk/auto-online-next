@@ -207,9 +207,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
 
       const doc: Omit<QuotationRequest, "id" | "createdAt" | "updatedAt"> = {
         buyerId: currentUser.id,
-        buyerName: `${currentUser.firstName || ""} ${
-          currentUser.lastName || ""
-        }`.trim(),
+        buyerName: `${currentUser.firstName || ""} ${currentUser.lastName || ""
+          }`.trim(),
         buyerEmail: currentUser.email || "",
         buyerPhone: currentUser.phone || "",
         vendorId: vendor?.id || null,
@@ -245,6 +244,7 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vendorPhone,
+          vendorEmail: vendor?.email || "", // Added email
           vendorName: vendorDisplayName,
           buyer: {
             firstName: currentUser?.firstName,
@@ -569,8 +569,8 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
             {mode === "search"
               ? "Get Quotation"
               : vendorDisplayName
-              ? `${vendorDisplayName} - Get Quotation`
-              : "Get Quotation"}
+                ? `${vendorDisplayName} - Get Quotation`
+                : "Get Quotation"}
           </Dialog.Title>
 
           <div className="sm:h-full h-[600px] overflow-y-auto no-scrollbar">
@@ -590,11 +590,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                   render={({ field }) => (
                     <select
                       {...field}
-                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.category
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.category
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Category
@@ -628,11 +627,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="country"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.country
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.country
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Country
@@ -665,11 +663,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       id="brand"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${
-                        errors.brand
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] ${errors.brand
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Brand
@@ -704,11 +701,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       type="text"
                       id="model"
                       placeholder="Enter vehicle model"
-                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${
-                        errors.model
+                      className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]  ${errors.model
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -733,11 +729,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       {...field}
                       id="district"
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
-                     ${
-                       errors.district
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.district
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select District
@@ -769,11 +764,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301]
-                     ${
-                       errors.vehicletype
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.vehicletype
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Type
@@ -807,11 +801,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       {...field}
                       id="manufactoringyear"
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.manufactoringyear
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.manufactoringyear
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Year
@@ -843,11 +836,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.fueltype
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.fueltype
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     >
                       <option value="" className="text-gray-500">
                         Select Fuel
@@ -879,11 +871,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <select
                       {...field}
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.measurement
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.measurement
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                       defaultValue=""
                     >
                       <option value="" className="text-gray-500">
@@ -943,11 +934,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                         }
                       }}
                       className={`w-full h-[33px] text-[#111102] font-body text-[11px] mt-1 p-2 bg-[#FEFEFE] rounded-[3px] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                      ${
-                        errors.noofunits
+                      ${errors.noofunits
                           ? "focus:ring-red-500 focus:border-red-500"
                           : "focus:ring-yellow-500 focus:border-yellow-500"
-                      }`}
+                        }`}
                     />
                   )}
                 />
@@ -974,11 +964,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                       rows={3}
                       placeholder="Enter description"
                       className={`w-full h-[53px] mt-1 p-3 text-[11px] text-body bg-[#FEFEFE] rounded-[3px] text-[#111102] focus:outline-none focus:ring-2 focus:ring-[#F9C301] 
-                     ${
-                       errors.description
-                         ? "focus:ring-red-500 focus:border-red-500"
-                         : "focus:ring-yellow-500 focus:border-yellow-500"
-                     }`}
+                     ${errors.description
+                          ? "focus:ring-red-500 focus:border-red-500"
+                          : "focus:ring-yellow-500 focus:border-yellow-500"
+                        }`}
                     />
                   )}
                 />
@@ -1002,10 +991,9 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
                     <>
                       <div
                         className={`flex items-center justify-center w-full h-[40px] p-2 border border-dashed border-[#D1D1D1] rounded-[3px] cursor-pointer bg-[#FEFEFE] 
-                          ${
-                            errors.images
-                              ? "border-red-500"
-                              : "hover:border-[#F9C301]"
+                          ${errors.images
+                            ? "border-red-500"
+                            : "hover:border-[#F9C301]"
                           }`}
                       >
                         <Camera size="16px" color="#5B5B5B" />
@@ -1134,11 +1122,10 @@ export const GetQuotationModal: React.FC<IGetQuotationModalProps> = ({
               <div className="flex col-span-3 items-center justify-center mt-4">
                 <button
                   type="submit"
-                  className={`w-[164px] h-[32px]   font-[600] font-body text-[12px] rounded-[3px]  ${
-                    isSubmitting
+                  className={`w-[164px] h-[32px]   font-[600] font-body text-[12px] rounded-[3px]  ${isSubmitting
                       ? "bg-gray-400 text-gray-700 cursor-not-allowed"
                       : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
-                  }`}
+                    }`}
                 >
                   {isSubmitting ? "Submitting..." : "Submit"}
                 </button>

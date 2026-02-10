@@ -84,6 +84,7 @@ export const CreatePurchaseOrderModal: React.FC<
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [pendingWhatsAppData, setPendingWhatsAppData] = useState<{
     vendorPhone: string;
+    vendorEmail?: string; // Added email
     vendorName: string;
     orderNumber: string;
     items: OrderItem[];
@@ -280,20 +281,19 @@ export const CreatePurchaseOrderModal: React.FC<
     try {
       await schema.validate(data);
 
-      const orderNumber = `PO-${Date.now()}-${
-        quotation.quotationRequestId?.slice(0, 8) || "00000000"
-      }`;
+      const orderNumber = `PO-${Date.now()}-${quotation.quotationRequestId?.slice(0, 8) || "00000000"
+        }`;
 
       const normalizedDeliveryAddress =
         data.deliveryMethod === "arrange_delivery" && watchedDeliveryAddress
           ? watchedDeliveryAddress
           : {
-              street: "",
-              city: "",
-              district: "",
-              zipCode: "",
-              country: "",
-            };
+            street: "",
+            city: "",
+            district: "",
+            zipCode: "",
+            country: "",
+          };
 
       const purchaseOrderData = {
         quotationId: quotation.id!,
@@ -318,12 +318,12 @@ export const CreatePurchaseOrderModal: React.FC<
           data.deliveryMethod === "arrange_delivery" && data.deliveryAddress
             ? data.deliveryAddress
             : {
-                street: "",
-                city: "",
-                district: "",
-                zipCode: "",
-                country: "",
-              },
+              street: "",
+              city: "",
+              district: "",
+              zipCode: "",
+              country: "",
+            },
         expectedDeliveryDate:
           quotation.validUntil instanceof Date
             ? quotation.validUntil
@@ -331,6 +331,7 @@ export const CreatePurchaseOrderModal: React.FC<
         status: "pending" as const,
         paymentStatus: "pending" as const,
         deliveryCostRequested: data.deliveryMethod === "arrange_delivery",
+        isActive: true,
       };
 
       const orderId = await OrderService.createPurchaseOrder(purchaseOrderData);
@@ -341,11 +342,13 @@ export const CreatePurchaseOrderModal: React.FC<
 
       try {
         const vendorPhone = quotation.vendorPhone || "";
+        const vendorEmail = quotation.vendorEmail || ""; // Added email
         const vendorName = quotation.vendorName || "Vendor";
 
-        if (vendorPhone) {
+        if (vendorPhone || vendorEmail) {
           setPendingWhatsAppData({
             vendorPhone,
+            vendorEmail,
             vendorName,
             orderNumber,
             items,
@@ -437,8 +440,8 @@ export const CreatePurchaseOrderModal: React.FC<
     paymentMethod === "bank_transfer"
       ? "Bank transfer"
       : paymentMethod === "pay_online"
-      ? "Pay online"
-      : "Pay cash at the shop";
+        ? "Pay online"
+        : "Pay cash at the shop";
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleModalClose}>
@@ -738,11 +741,10 @@ export const CreatePurchaseOrderModal: React.FC<
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
                         <label
-                          className={`flex items-center space-x-2 cursor-pointer ${
-                            paymentMethod === "cash_at_shop"
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
+                          className={`flex items-center space-x-2 cursor-pointer ${paymentMethod === "cash_at_shop"
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                            }`}
                         >
                           <input
                             type="radio"
@@ -784,11 +786,10 @@ export const CreatePurchaseOrderModal: React.FC<
                     render={({ field }) => (
                       <div className="space-y-1 text-[11px]">
                         <label
-                          className={`flex items-center space-x-2 cursor-pointer ${
-                            deliveryMethod === "arrange_delivery"
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
+                          className={`flex items-center space-x-2 cursor-pointer ${deliveryMethod === "arrange_delivery"
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                            }`}
                         >
                           <input
                             type="radio"
@@ -861,17 +862,16 @@ export const CreatePurchaseOrderModal: React.FC<
               <button
                 type="submit"
                 disabled={isSubmitting || hasOutOfStock}
-                className={`w-[120px] h-[36px] font-[600] font-body text-[12px] rounded-[3px] ${
-                  isSubmitting || hasOutOfStock
-                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                    : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
-                }`}
+                className={`w-[120px] h-[36px] font-[600] font-body text-[12px] rounded-[3px] ${isSubmitting || hasOutOfStock
+                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                  : "bg-[#F9C301] text-[#111102] hover:bg-yellow-500"
+                  }`}
               >
                 {isSubmitting
                   ? "Creating..."
                   : hasOutOfStock
-                  ? "Out of Stock"
-                  : "Create Order"}
+                    ? "Out of Stock"
+                    : "Create Order"}
               </button>
             </div>
           </form>

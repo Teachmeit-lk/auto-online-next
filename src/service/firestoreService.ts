@@ -128,6 +128,7 @@ export interface Quotation extends BaseDocument {
   status: "pending" | "accepted" | "rejected" | "expired";
   notes?: string;
   vendorPhone?: string;
+  deliveryCost?: number;
 }
 
 // Purchase Order interfaces
@@ -160,12 +161,12 @@ export interface PurchaseOrder extends BaseDocument {
   };
   expectedDeliveryDate: Date | Timestamp;
   status:
-    | "pending"
-    | "confirmed"
-    | "in_progress"
-    | "shipped"
-    | "delivered"
-    | "cancelled";
+  | "pending"
+  | "confirmed"
+  | "in_progress"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
   paymentStatus: "pending" | "paid" | "refunded";
   paymentMethod?: "cash_at_shop" | "bank_transfer" | "pay_online";
   deliveryMethod?: "arrange_delivery" | "collect_from_shop";
@@ -690,8 +691,8 @@ export class OrderService {
       t?.seconds
         ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
         : t instanceof Date
-        ? t.getTime()
-        : 0;
+          ? t.getTime()
+          : 0;
     const orders = [...list].sort(
       (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
     );
@@ -718,8 +719,8 @@ export class OrderService {
       t?.seconds
         ? t.seconds * 1000 + (t.nanoseconds || 0) / 1e6
         : t instanceof Date
-        ? t.getTime()
-        : 0;
+          ? t.getTime()
+          : 0;
     const orders = [...list].sort(
       (a: any, b: any) => toMs(b?.createdAt) - toMs(a?.createdAt)
     );

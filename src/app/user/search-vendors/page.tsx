@@ -372,11 +372,11 @@ const SearchVendors: React.FC = () => {
 
             const compressed = file.type.startsWith("image/")
               ? await FirebaseStorageService.compressImage(
-                  file,
-                  1920,
-                  1080,
-                  0.7
-                )
+                file,
+                1920,
+                1080,
+                0.7
+              )
               : file;
 
             const requestId = `req_${Date.now()}_${Math.random()
@@ -435,6 +435,7 @@ const SearchVendors: React.FC = () => {
     setSentToVendors((prev) => ({ ...prev, [vendor.id]: true }));
 
     const vendorPhone = vendor?.whatsApp || vendor?.phone || "";
+    const vendorEmail = vendor?.email || ""; // Added email
     const vendorName =
       vendor?.companyName ||
       `${vendor?.firstName || ""} ${vendor?.lastName || ""}`.trim() ||
@@ -442,6 +443,7 @@ const SearchVendors: React.FC = () => {
 
     setPendingWhatsAppPayload({
       vendorPhone,
+      vendorEmail, // Added email
       vendorName,
       request: doc,
       requestId: createdId,
@@ -469,9 +471,8 @@ const SearchVendors: React.FC = () => {
 
       const vendorDisplayName =
         selectedVendor?.companyName ||
-        `${selectedVendor?.firstName || ""} ${
-          selectedVendor?.lastName || ""
-        }`.trim() ||
+        `${selectedVendor?.firstName || ""} ${selectedVendor?.lastName || ""
+          }`.trim() ||
         "Vendor";
 
       showToast.success(
@@ -730,8 +731,8 @@ const SearchVendors: React.FC = () => {
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
                         {vendor?.companyName ||
                           (vendor?.firstName || "") +
-                            " " +
-                            (vendor?.lastName || "")}
+                          " " +
+                          (vendor?.lastName || "")}
                       </td>
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
                         {vendor.address || "-"}
@@ -739,11 +740,10 @@ const SearchVendors: React.FC = () => {
                       <td className="grid grid-cols-2 text-center w-full h-full">
                         <button
                           className={`bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full
-    ${
-      isDisabled
-        ? "opacity-50 cursor-not-allowed"
-        : "hover:bg-yellow-500 active:bg-yellow-500"
-    }`}
+    ${isDisabled
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:bg-yellow-500 active:bg-yellow-500"
+                            }`}
                           onClick={() => {
                             if (isDisabled) return;
                             if (!authState.isAuthenticated) {
@@ -861,17 +861,16 @@ const SearchVendors: React.FC = () => {
                       <td className="border border-r-2 border-b-2 border-[#F8F8F8] px-8 py-2 ">
                         {vendor?.companyName ||
                           (vendor?.firstName || "") +
-                            " " +
-                            (vendor?.lastName || "")}
+                          " " +
+                          (vendor?.lastName || "")}
                       </td>
                       <td className="grid grid-cols-2 text-center w-full h-full">
                         <button
                           className={`bg-[#D1D1D1] border-r-2 border-white lg:px-3 lg:py-3 px-1 py-3 text-[#111102] text-[12px] w-full h-full
-    ${
-      isDisabled
-        ? "opacity-50 cursor-not-allowed"
-        : "hover:bg-yellow-500 active:bg-yellow-500"
-    }`}
+    ${isDisabled
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:bg-yellow-500 active:bg-yellow-500"
+                            }`}
                           onClick={() => {
                             if (isDisabled) return;
                             if (!authState.isAuthenticated) {
@@ -969,9 +968,8 @@ const SearchVendors: React.FC = () => {
         }}
         vendorName={
           pendingVendor?.companyName ||
-          `${pendingVendor?.firstName || ""} ${
-            pendingVendor?.lastName || ""
-          }`.trim()
+          `${pendingVendor?.firstName || ""} ${pendingVendor?.lastName || ""
+            }`.trim()
         }
       />
       <GetQuotationModal

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { normalizeSriLankaPhone, sendWhatsAppText } from "@/lib/whatsapp";
+// import { normalizeSriLankaPhone, sendWhatsAppText } from "@/lib/whatsapp";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
     const {
-      buyerPhone,
+      buyerEmail, // changed from buyerPhone
       buyerName,
       vendorName,
       request,
@@ -12,15 +13,16 @@ export async function POST(req: NextRequest) {
       attachmentUrl,
     } = await req.json();
 
-    const to = normalizeSriLankaPhone(buyerPhone);
+    // const to = normalizeSriLankaPhone(buyerPhone);
+    const to = buyerEmail;
     if (!to) {
       return NextResponse.json(
-        { error: "Invalid buyer phone" },
+        { error: "Invalid buyer email" },
         { status: 400 }
       );
     }
 
-    const msg = buildVendorQuotationMessage({
+    const msg = buildVendorQuotationEmail({
       buyerName,
       vendorName,
       request,
@@ -28,9 +30,14 @@ export async function POST(req: NextRequest) {
       attachmentUrl,
     });
 
-    const waRes = await sendWhatsAppText(to, msg);
+    // const waRes = await sendWhatsAppText(to, msg);
+    const emailRes = await sendEmail(
+      to,
+      `New Quotation Received - ${quotation?.itemName || "Part"}`,
+      msg
+    );
 
-    return NextResponse.json({ ok: true, wa: waRes });
+    return NextResponse.json({ ok: true, email: emailRes });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json(
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function buildVendorQuotationMessage({
+function buildVendorQuotationEmail({
   buyerName,
   vendorName,
   request,
@@ -56,51 +63,62 @@ function buildVendorQuotationMessage({
 
   if (isOutOfStock) {
     return `
-Dear ${safeBuyer},
+      <p>Dear ${safeBuyer},</p>
 
-This is ${safeVendor}.
+      <p>This is ${safeVendor}.</p>
 
-Regarding your request for ${
-      quotation?.itemName || "-"
-    }, unfortunately this item is *OUT OF STOCK*.
+      <p>Regarding your request for <strong>${quotation?.itemName || "-"
+      }</strong>, unfortunately this item is <strong>OUT OF STOCK</strong>.</p>
 
-Please check again later or update your request.
+      <p>Please check again later or update your request.</p>
 
-Buyer Login Url - https://auto-online.lk/user/login
-`.trim();
+      <p><a href="https://auto-online.lk/user/login">Buyer Login</a></p>
+    `.trim();
   }
 
   return `
-Dear ${safeBuyer},
+    <p>Dear ${safeBuyer},</p>
 
-This is ${safeVendor}. I am sending you the quotation for your vehicle ${
-    request?.category || ""
-  } request.
+    <p>This is ${safeVendor}. I am sending you the quotation for your vehicle ${request?.category || ""
+    } request.</p>
 
-Request Details
-Vehicle Type - ${request?.vehicleType || "-"}
-Brand/Model - ${request?.brand || ""} ${request?.model || ""}
-Fuel Type - ${request?.fuelType || "-"}
-Manufacturing Year - ${request?.manufacturingYear || "-"}
-Measurement Requested - ${request?.measurement || "-"}
-No. of Units Requested - ${request?.numberOfUnits ?? "-"}
+    <h3>Request Details</h3>
+    <ul>
+      <li>Vehicle Type - ${request?.vehicleType || "-"}</li>
+      <li>Brand/Model - ${request?.brand || ""} ${request?.model || ""}</li>
+      <li>Fuel Type - ${request?.fuelType || "-"}</li>
+      <li>Manufacturing Year - ${request?.manufacturingYear || "-"}</li>
+      <li>Measurement Requested - ${request?.measurement || "-"}</li>
+      <li>No. of Units Requested - ${request?.numberOfUnits ?? "-"}</li>
+    </ul>
 
-Quotation Details
-Item Name - ${quotation?.itemName || "-"}
-Stock Availability - ${quotation?.stockAvailability || "-"}
-Measurement - ${quotation?.measurement || "-"}
-No. of Units - ${quotation?.noOfUnits ?? "-"}
-Unit Price - Rs. ${Number(quotation?.unitPrice || 0).toFixed(2)}
-Total Price (before VAT) - Rs. ${Number(quotation?.totalPrice || 0).toFixed(2)}
-Net Total (incl. VAT) - Rs. ${Number(quotation?.netTotalPrice || 0).toFixed(2)}
-Delivery Cost - Rs. ${Number(quotation?.deliveryCost || 0).toFixed(2)}
-Validity - ${quotation?.validityDays ?? "-"} day(s)
+    <h3>Quotation Details</h3>
+    <ul>
+      <li>Item Name - ${quotation?.itemName || "-"}</li>
+      <li>Stock Availability - ${quotation?.stockAvailability || "-"}</li>
+      <li>Measurement - ${quotation?.measurement || "-"}</li>
+      <li>No. of Units - ${quotation?.noOfUnits ?? "-"}</li>
+      <li>Unit Price - Rs. ${Number(quotation?.unitPrice || 0).toFixed(2)}</li>
+      <li>Total Price (before VAT) - Rs. ${Number(
+      quotation?.totalPrice || 0
+    ).toFixed(2)}</li>
+      <li>Net Total (incl. VAT) - Rs. ${Number(
+      quotation?.netTotalPrice || 0
+    ).toFixed(2)}</li>
+      <li>Delivery Cost - Rs. ${Number(quotation?.deliveryCost || 0).toFixed(
+      2
+    )}</li>
+      <li>Validity - ${quotation?.validityDays ?? "-"} day(s)</li>
+    </ul>
 
-Vendor Comments
-${quotation?.vendorComments || "-"}
+    <h3>Vendor Comments</h3>
+    <p>${quotation?.vendorComments || "-"}</p>
 
-${attachmentUrl ? `Attachment URL - ${attachmentUrl}` : ""}
+    ${attachmentUrl
+      ? `<p><a href="${attachmentUrl}">View Attachment</a></p>`
+      : ""
+    }
 
-Buyer Login Url - https://auto-online.lk/user/login
-`.trim();
+    <p><a href="https://auto-online.lk/user/login">Buyer Login</a></p>
+  `.trim();
 }

@@ -20,12 +20,12 @@ export const SendWhatsAppConfirmationModal: React.FC<
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-none" />
         <Dialog.Content className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[170px] bg-white rounded-[8px] shadow-lg focus:outline-none">
           <Dialog.Title className="text-[14px] font-bold text-[#111102] font-body text-left mt-3 pl-4">
-            Send WhatsApp Message?
+            Send Email Notification?
           </Dialog.Title>
 
           <div className="bg-[#F8F8F8] rounded-[5px] ml-4 mr-4 mt-2 p-4 flex flex-col items-center justify-center">
             <p className="text-[11px] text-[#111102] font-body font-[500] text-center">
-              Do you also want to send this request as a WhatsApp message to the{" "}
+              Do you also want to send this request as an Email to the{" "}
               {person}?
             </p>
 
